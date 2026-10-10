@@ -297,7 +297,8 @@ function audit({ touch }) {
 /* ------------------------------------------------------------------ */
 /* one page                                                            */
 /* ------------------------------------------------------------------ */
-const IGNORED_HOSTS = /fonts\.(googleapis|gstatic)\.com/;
+// Fonts need network access: Google Fonts, and the emulator's /__font/ stand-in for Shopify's font CDN.
+const IGNORED_HOSTS = /fonts\.(googleapis|gstatic)\.com|\/__font\//;
 async function shoot(context, vpName, route) {
   const vp = VIEWPORTS[vpName];
   const page = await context.newPage();

@@ -15,10 +15,12 @@
     assign recs_performed = true
   endif
   assign cols = s.columns_desktop
+  # The Product Recommendations API returns at most 10 products.
+  assign rec_limit = s.products_to_show | at_most: 10
   assign rec_url = routes.product_recommendations_url
   assign rec_url = rec_url | append: '?section_id=' | append: section.id
   assign rec_url = rec_url | append: '&product_id=' | append: product.id
-  assign rec_url = rec_url | append: '&limit=' | append: s.products_to_show
+  assign rec_url = rec_url | append: '&limit=' | append: rec_limit
   assign rec_url = rec_url | append: '&intent=' | append: s.intent
 
   if s.layout == 'grid'
@@ -28,8 +30,8 @@
     assign card_sizes = '(min-width: 990px) calc((min(100vw, ' | append: settings.page_width | append: 'px) - 120px) / ' | append: cols | append: '), (min-width: 750px) 36vw, 60vw'
     assign skeleton_count = cols | plus: 1
   endif
-  if skeleton_count > s.products_to_show
-    assign skeleton_count = s.products_to_show
+  if skeleton_count > rec_limit
+    assign skeleton_count = rec_limit
   endif
 -%}
 <section
@@ -149,7 +151,7 @@
       ],
       "default": "related"
     },
-    { "type": "range", "id": "products_to_show", "min": 2, "max": 12, "step": 1, "label": "Maximum products", "default": 8 },
+    { "type": "range", "id": "products_to_show", "min": 2, "max": 10, "step": 1, "label": "Maximum products", "default": 8, "info": "Shopify recommends up to 10 products." },
     {
       "type": "select",
       "id": "layout",

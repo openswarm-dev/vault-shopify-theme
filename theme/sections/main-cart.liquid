@@ -6,8 +6,15 @@
   assign form_id = 'CartForm-' | append: sid
 
   assign threshold_cents = 0
-  if settings.free_shipping_threshold != blank
-    assign threshold_cents = settings.free_shipping_threshold | remove: ',' | times: 100 | round
+  if settings.free_shipping_threshold != blank and cart.currency.iso_code == shop.currency
+    assign threshold_raw = settings.free_shipping_threshold | strip | remove: ' '
+    assign threshold_parts = threshold_raw | split: ','
+    if threshold_parts.size == 2 and threshold_parts.last.size <= 2
+      assign threshold_raw = threshold_raw | remove: '.' | replace: ',', '.'
+    else
+      assign threshold_raw = threshold_raw | remove: ','
+    endif
+    assign threshold_cents = threshold_raw | times: 100 | round
   endif
 
   case settings.card_media_ratio
@@ -397,7 +404,10 @@
       <div class="cart-page-bar" data-cart-bar>
         <div class="cart-page-bar__inner">
           <div class="cart-page-bar__total" data-cart-swap="{{ sid }}" data-cart-swap-key="bar">
-            <span class="cart-page-bar__label">{{ 'sections.main_cart.estimated_total' | t }} &middot; {{ count_label }}</span>
+            <span class="cart-page-bar__label">
+              <span>{{ 'sections.main_cart.estimated_total' | t }}</span>
+              <span class="cart-page-bar__count"><span class="cart-page-bar__sep" aria-hidden="true">&middot;</span>{{ count_label }}</span>
+            </span>
             <span class="cart-page-bar__amount">{{ cart.total_price | money }}</span>
           </div>
           <button type="submit" form="{{ form_id }}" name="checkout" class="btn btn--primary cart-page-bar__btn">

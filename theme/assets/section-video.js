@@ -17,11 +17,12 @@ if (!customElements.get('video-player')) {
       this.frame = this.querySelector('[data-video-frame]');
       this.playEl = this.querySelector('[data-video-play]');
       this.template = this.querySelector('template[data-video-template]');
-      this.slot = this.querySelector('[data-video-slot]');
+      // Not `this.slot`: HTMLElement#slot is a reflected string attribute and would swallow the node.
+      this.slotEl = this.querySelector('[data-video-slot]');
       this.ambientVideo = this.querySelector('video.video__ambient');
       this.toggleBtn = this.querySelector('[data-video-toggle]');
 
-      if (this.playEl && this.template && this.slot) this.bindPlayer();
+      if (this.playEl && this.template && this.slotEl) this.bindPlayer();
       if (this.ambientVideo) this.bindAmbient();
     }
 
@@ -92,13 +93,13 @@ if (!customElements.get('video-player')) {
       if (this.playing) return;
       this.playing = true;
       const fragment = this.template.content.cloneNode(true);
-      this.slot.appendChild(fragment);
-      const media = this.slot.querySelector('iframe, video');
+      this.slotEl.appendChild(fragment);
+      const media = this.slotEl.querySelector('iframe, video');
 
       if (this.motionOK()) {
         const { animate } = this.V.Motion;
         animate(this.playEl, { scale: 1.35, opacity: 0 }, { duration: 0.35, ease: this.V.ease.in });
-        animate(this.slot, { opacity: [0, 1] }, { duration: 0.5, delay: 0.1, ease: this.V.ease.out });
+        animate(this.slotEl, { opacity: [0, 1] }, { duration: 0.5, delay: 0.1, ease: this.V.ease.out });
       }
       this.classList.add('is-playing');
 

@@ -61,11 +61,6 @@
   .cl__grid--bento > .cl__item--hero.cl__item--last { grid-column: 1 / -1; }
 }
 
-/* Very small tiles (320px phones): the whole tile is the link, so the arrow chip can go. */
-@container collection-card (max-width: 180px) {
-  .section-collection-list .collection-card__arrow { display: none; }
-}
-
 /* ---------- Carousel (touch users swipe; arrows from tablet up) ---------- */
 @media (max-width: 749px) {
   .cl__carousel .carousel__btn { display: none; }

@@ -1,10 +1,11 @@
 {
   "current": {
     "logo_width": 130,
-    "logo_width_mobile": 96,
-    "font_display": "unbounded",
-    "font_body": "manrope",
+    "logo_width_mobile": 95,
+    "type_display_font": "unbounded_n7",
+    "type_body_font": "manrope_n4",
     "font_mono_enabled": true,
+    "type_mono_font": "roboto_mono_n4",
     "heading_case": "uppercase",
     "heading_scale": 100,
     "body_scale": 100,
@@ -38,10 +39,6 @@
     "predictive_search_enabled": true,
     "predictive_search_show_price": true,
     "mobile_dock": true,
-    "social_instagram_link": "https://instagram.com/",
-    "social_tiktok_link": "https://tiktok.com/",
-    "social_youtube_link": "https://youtube.com/",
-    "social_discord_link": "https://discord.com/",
     "color_schemes": {
       "scheme-1": {
         "settings": {

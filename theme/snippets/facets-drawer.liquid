@@ -90,7 +90,7 @@
 
       <div class="drawer__footer facets-drawer__footer{% unless has_filters %} facets-drawer__footer--single{% endunless %}">
         {%- if has_filters -%}
-          <a href="{{ clear_url }}" class="btn btn--secondary facets-drawer__clear" data-facets-link>
+          <a href="{{ clear_url }}" class="btn btn--secondary facets-drawer__clear" data-facets-link data-facets-clear>
             {{- 'collections.facets.clear' | t -}}
           </a>
         {%- endif -%}

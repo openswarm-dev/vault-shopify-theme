@@ -45,7 +45,8 @@
           "settings": {
             "text": "Condition & grading guide",
             "heading": "Condition guide",
-            "content": "<p><strong>Near Mint (NM)</strong> — Sharp corners, clean edges and a glossy surface. At most one tiny flaw under close inspection.</p><p><strong>Lightly Played (LP)</strong> — Light edge wear or minor scuffs on a closer look. No creases or bends.</p><p><strong>Moderately Played (MP)</strong> — Noticeable edge wear, corner rounding or light surface scratches.</p><p><strong>Heavily Played (HP)</strong> — Heavy wear, whitening or a crease. Still sleeve-playable.</p><p><strong>Graded slabs</strong> — Sold exactly as certified. The grade on the label is the grade you get.</p>"
+            "content": "<p><strong>Near Mint (NM)</strong> — Sharp corners, clean edges and a glossy surface. At most one tiny flaw under close inspection.</p><p><strong>Lightly Played (LP)</strong> — Light edge wear or minor scuffs on a closer look. No creases or bends.</p><p><strong>Moderately Played (MP)</strong> — Noticeable edge wear, corner rounding or light surface scratches.</p><p><strong>Heavily Played (HP)</strong> — Heavy wear, whitening or a crease. Still sleeve-playable.</p><p><strong>Graded slabs</strong> — Sold exactly as certified. The grade on the label is the grade you get.</p>",
+            "show_on": "cards"
           }
         },
         "quantity": {

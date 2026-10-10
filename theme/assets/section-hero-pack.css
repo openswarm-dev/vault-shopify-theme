@@ -220,7 +220,7 @@ body:has(.vault-header[data-overlay]) .main-content > .shopify-section:first-chi
   align-items: center;
   gap: .4rem;
   min-width: 0;
-  padding-inline: .4rem;
+  padding-inline: .2rem;
 }
 .hero-pack__stat + .hero-pack__stat { border-left: 1px solid rgb(var(--color-text-rgb) / .1); }
 .hero-pack__stat-num {
@@ -233,16 +233,22 @@ body:has(.vault-header[data-overlay]) .main-content > .shopify-section:first-chi
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* Phone columns (from 96px at 320) fit a 13-letter word such as AUTHENTICATED at 10px with
+   tighter tracking; from a 400px text column up the labels get the full 11px / .08em.
+   break-word is only a last resort for unusually long custom labels. */
 .hero-pack__stat-label {
   max-width: 100%;
   color: var(--color-muted);
-  /* Scales with the text column so long labels (e.g. AUTHENTICATED) never break mid-word. */
-  font-size: clamp(.58rem, 2.4cqi, .6875rem);
+  font-size: .625rem;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: .04em;
   line-height: 1.35;
   text-transform: uppercase;
   overflow-wrap: break-word;
+}
+@container (min-width: 400px) {
+  .hero-pack__stat { padding-inline: .4rem; }
+  .hero-pack__stat-label { font-size: .6875rem; letter-spacing: .08em; }
 }
 
 /* ---------- Card stage ---------- */
@@ -342,10 +348,11 @@ html.motion-ok .hero-pack:not(.is-intro-done):not(.is-measuring) .hp-card__fan {
     0 40px 70px -24px rgb(0 0 0 / .9);
 }
 
-/* Labels drift outward with the card's offset so the centre card never covers them. */
+/* Labels drift outward with the card's offset so the centre card never covers them:
+   26% of the card width for the inner cards (o = ±.5, half under the slab), 22% at the ends. */
 .hp-card__label {
   position: absolute;
-  left: calc(50% + var(--o) * 22%);
+  left: calc(50% + var(--o) * (62% - var(--o2) * 40%));
   bottom: 0;
   z-index: 4;
   max-width: 120%;
@@ -373,6 +380,19 @@ html.motion-ok .hero-pack:not(.is-intro-done):not(.is-measuring) .hp-card__fan {
   border-color: transparent;
   color: var(--color-on-accent);
   box-shadow: 0 10px 24px -8px rgb(var(--color-accent-rgb) / .8);
+}
+
+/* Narrow fans: the labels of the two half-covered inner cards would collide with their
+   neighbours' (the desktop fan is tighter, so it needs more room than the tablet one). */
+@media (min-width: 750px) {
+  @container (max-width: 519px) {
+    .hero-pack__fan .hp-card.hp-card--inner .hp-card__label { display: none; }
+  }
+}
+@media (min-width: 990px) {
+  @container (max-width: 619px) {
+    .hero-pack__fan .hp-card.hp-card--inner .hp-card__label { display: none; }
+  }
 }
 
 /* Soft floor light under the fan. */
@@ -473,6 +493,26 @@ html.motion-ok .hero-pack:not(.is-intro-done):not(.is-measuring) .hp-card__fan {
   .hero-pack__spark--desk { display: block; }
 }
 
+/* Portrait tablets (stacked layout): the whole hero — copy, CTAs, stats and the complete
+   fan — fits the first screen. The copy is tightened a little and the stage is sized from
+   the viewport height (≈680px of chrome + copy above it); the fan box is trimmed to the
+   cards' real extent (.62 of its width, labels included). */
+@media (min-width: 750px) and (max-width: 989px) {
+  .hero-pack__inner {
+    gap: 1rem;
+    padding-top: calc(var(--hp-clear, 0px) + 2.25rem);
+  }
+  .hero-pack__heading { font-size: clamp(1.75rem, calc(15cqi * var(--heading-adjust, 1) * var(--heading-scale, 1)), 4.5rem); }
+  .hero-pack__sub { max-width: 54ch; }
+  .hero-pack__stats { margin-top: 1.75rem; padding-top: 1.1rem; }
+  .hero-pack__stage {
+    max-width: clamp(440px, calc((100vh - 680px) / .62), 640px);
+    max-width: clamp(440px, calc((100svh - 680px) / .62), 640px);
+  }
+  .hero-pack__fan { --fan-ar: 1 / .62; }
+  .hero-pack[data-count="3"] .hero-pack__fan { --fan-ar: 1 / .64; }
+}
+
 /* ---------- Desktop (≥990): two columns, text 5/12 · stage 7/12 ---------- */
 @media (min-width: 990px) {
   .hero-pack { --hp-glow-x: 70%; --hp-glow-y: 55%; }
@@ -505,7 +545,9 @@ html.motion-ok .hero-pack:not(.is-intro-done):not(.is-measuring) .hp-card__fan {
     max-width: none;
     margin: 0;
   }
-  .hero-pack__fan { --fan-ar: 1 / .74; }
+  /* The stage ends at the page gutter: this spread keeps the rotated outer cards inside it. */
+  .hero-pack__fan { --fan-ar: 1 / .74; --spread: 29cqi; }
+  .hero-pack[data-count="4"] .hero-pack__fan { --spread: 28cqi; }
 
   .hero-pack--full .hero-pack__cue {
     position: absolute;
@@ -542,6 +584,12 @@ html.motion-ok .hero-pack:not(.is-intro-done):not(.is-measuring) .hp-card__fan {
     box-shadow: 0 0 8px rgb(var(--color-accent-rgb) / .9);
   }
   html.motion-ok .hero-pack__cue i::after { animation: hp-cue 1.9s var(--ease-in-out) infinite; }
+}
+
+/* Small desktops / iPad landscape: a 6/6 split gives the copy room for both CTAs on one row. */
+@media (min-width: 990px) and (max-width: 1199px) {
+  .hero-pack__content { grid-column: 1 / span 6; }
+  .hero-pack__stage { grid-column: 7 / span 6; }
 }
 
 @media (min-width: 1400px) {

@@ -1,0 +1,16 @@
+{%- comment -%}
+  Label for the "everything under this menu item" link (mega menu footer, menu drawer panels).
+  "Shop all Pokémon", or "Shop everything" when the title already starts with "Shop"
+  (so a top-level "Shop" item never reads "Shop all Shop").
+  Usage: {% render 'menu-view-all-label', title: link.title %}
+  Params:
+    title  required — menu item (or menu) title
+{%- endcomment -%}
+{%- liquid
+  assign label_first_word = title | strip | downcase | split: ' ' | first
+  if label_first_word == 'shop'
+    echo 'sections.header.shop_everything' | t
+  else
+    echo 'sections.header.shop_all' | t: title: title
+  endif
+-%}

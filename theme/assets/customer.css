@@ -522,14 +522,15 @@ html.motion-ok .customer-fan__card--3 { animation: customer-fan-right 7s var(--e
   background: rgb(var(--color-surface-rgb) / .55);
   overflow: hidden;
 }
+/* Phones: the info column gets the full width beside the thumbnail; quantity + price share a row under it. */
 .order-line {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) auto;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
   grid-template-areas:
-    "media info price"
-    "media info qty";
+    "media info info"
+    "media qty price";
   grid-template-rows: auto 1fr;
-  gap: .35rem 1rem;
+  gap: .6rem .9rem;
   padding: 1rem;
   border-bottom: 1px solid var(--color-border);
 }
@@ -551,7 +552,14 @@ html.motion-ok .customer-fan__card--3 { animation: customer-fan-right 7s var(--e
   height: 100%;
   object-fit: contain;
 }
-.order-line__info { grid-area: info; display: grid; gap: .3rem; align-content: start; min-width: 0; }
+.order-line__info {
+  grid-area: info;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* never let the fulfillment box widen the column */
+  gap: .3rem;
+  align-content: start;
+  min-width: 0;
+}
 .order-line__title {
   font-family: var(--font-body);
   font-size: var(--text-base);
@@ -587,7 +595,7 @@ html.motion-ok .customer-fan__card--3 { animation: customer-fan-right 7s var(--e
 @media (pointer: coarse) {
   .order-line__fulfillment .link { min-height: 44px; }
 }
-.order-line__qty { grid-area: qty; justify-self: end; align-self: start; font-size: var(--text-sm); color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.order-line__qty { grid-area: qty; justify-self: start; align-self: start; font-size: var(--text-sm); color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .order-line__price {
   grid-area: price;
   justify-self: end;
@@ -608,6 +616,7 @@ html.motion-ok .customer-fan__card--3 { animation: customer-fan-right 7s var(--e
     padding: 1.1rem 1.25rem;
   }
   .order-line__qty { justify-self: center; align-self: center; }
+  .order-line__price { align-self: center; }
 }
 
 .order-aside { display: grid; gap: 12px; min-width: 0; }

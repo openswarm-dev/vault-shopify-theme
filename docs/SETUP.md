@@ -89,8 +89,9 @@ Vault renders them automatically: a sticky sidebar on desktop, a swipeable botto
 
 - **Colors:** five schemes ship with the theme: Graphite (default), Carbon (near-black), Steel (lighter grey),
   Crimson (red background) and Bone (light). Every section has a *Color scheme* picker.
-- **Typography:** display font (Unbounded by default; Archivo Expanded, Chakra Petch, Space Grotesk, Syne, Oswald
-  and Bebas Neue are also available) and body font, heading case and scale.
+- **Typography:** display, body and monospace fonts come from Shopify's font library (served by Shopify, no
+  third-party requests). Defaults: Unbounded Bold for headings, Manrope for text, Roboto Mono for card numbers.
+  Wide, heavy faces such as Archivo, Syne, Chakra Petch or Space Grotesk also suit the look. Heading case and scale.
 - **Animations:** on/off, intensity (subtle / standard / bold), page transitions, scroll progress bar, cursor glow,
   film grain. Visitors who set "reduce motion" on their device always get a calm, static version.
 - **Product cards:** image shape and fit, holographic shine, 3D tilt, second image on hover, quick add, "New" badge
@@ -98,6 +99,8 @@ Vault renders them automatically: a sticky sidebar on desktop, a swipeable botto
 - **Cart:** drawer or page, free-shipping threshold (progress bar), order note, fly-to-cart animation,
   drawer recommendations collection.
 - **Mobile:** app-style bottom navigation for phones.
+- **Social media:** links are empty on a fresh install; icons appear in the footer and menu as soon as you add an
+  account URL.
 
 ---
 

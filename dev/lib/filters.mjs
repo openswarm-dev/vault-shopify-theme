@@ -8,6 +8,7 @@ import { placeholderSvg, artSize, esc } from '../mock/art.mjs';
 import { handleize, mockImageFor, stripHtml, buildShop } from '../mock/store.mjs';
 import { translate, DIRS, rel, exists, readText } from './theme.mjs';
 import { record } from './errors.mjs';
+import { hasVariant, fontFileUrl } from './fonts.mjs';
 
 export const RS = Symbol.for('vault.requestState');
 
@@ -578,18 +579,41 @@ export function registerFilters(engine) {
   F.font_face = function (font, ...args) {
     const f = v(font);
     const { named } = split(args);
-    if (!f) return '';
-    return `@font-face {\n  font-family: "${f.family}";\n  font-weight: ${f.weight};\n  font-style: ${f.style};\n  font-display: ${named.font_display || 'swap'};\n  src: local("${f.family}");\n}`;
+    if (!(f instanceof FontDrop)) return '';
+    const display = named.font_display ? `\n  font-display: ${named.font_display};` : '';
+    return `@font-face {\n  font-family: "${f.family}";\n  font-weight: ${f.weight};\n  font-style: ${f.style};${display}\n  src: url("${fontFileUrl(f.handle)}") format("woff2");\n}`;
   };
-  F.font_url = function () { return ''; };
+  // Shopify serves library fonts from fonts.shopifycdn.com; the preview serves them from /__font/ (lib/fonts.mjs).
+  F.font_url = function (font) {
+    const f = v(font);
+    return f instanceof FontDrop ? fontFileUrl(f.handle) : '';
+  };
+  // Like Shopify, returns nil when the family has no such variant.
   F.font_modify = function (font, prop, value) {
     const f = v(font);
     if (!(f instanceof FontDrop)) return f;
-    const clone = Object.assign(Object.create(FontDrop.prototype), f);
     const p = String(v(prop));
     const val = String(v(value));
-    if (p === 'weight') clone.weight = val === 'bold' ? 700 : val === 'normal' ? 400 : val.startsWith('+') ? f.weight + Number(val.slice(1)) : val.startsWith('-') ? f.weight - Number(val.slice(1)) : Number(val) || f.weight;
-    if (p === 'style') clone.style = val;
+    let { weight, style } = f;
+    if (p === 'weight') {
+      if (val === 'bold') weight = 700;
+      else if (val === 'normal') weight = 400;
+      else if (val === 'bolder' || val === 'lighter') {
+        const step = val === 'bolder' ? 100 : -100;
+        weight = f.weight + step;
+        while (weight >= 100 && weight <= 900 && !hasVariant(f.slug, style, weight)) weight += step;
+      } else if (/^[+-]\d+$/.test(val)) weight = f.weight + Number(val);
+      else weight = Number(val);
+    } else if (p === 'style') {
+      style = val === 'normal' ? 'normal' : 'italic';
+    } else {
+      return f;
+    }
+    if (!hasVariant(f.slug, style, weight)) return null;
+    if (weight === f.weight && style === f.style) return f;
+    const clone = new FontDrop(f.handle);
+    clone.weight = weight;
+    clone.style = style;
     return clone;
   };
 

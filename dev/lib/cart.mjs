@@ -143,6 +143,8 @@ function lineDrop(l) {
     product,
     product_id: product.id,
     url: variant.url,
+    // Shopify's no-JS remove link: GET /cart/change → redirect to /cart.
+    url_to_remove: `/cart/change?id=${encodeURIComponent(l.key)}&quantity=0`,
     image: variant.featured_image || product.featured_image,
     price: variant.price,
     original_price: variant.price,

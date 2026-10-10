@@ -196,6 +196,13 @@ html:not(.motion-ok) .article-hero__parallax { inset: 0; }
   gap: 12px;
   margin-top: clamp(3rem, 2rem + 3vw, 5rem);
 }
+/* Same measure as the prose column (72ch at the prose font size, component-prose.css), so the cards
+   line up with the text and the share rule above instead of overshooting the 860px narrow width. */
+.article-pager {
+  max-width: calc(72ch + var(--gutter) * 2);
+  font-size: calc(clamp(1.0625rem, 1rem + .3vw, 1.1875rem) * var(--body-scale, 1));
+}
+.article-pager > * { font-size: var(--text-base); }
 @media (min-width: 750px) {
   .article-pager { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .article-pager__link--next:only-child { grid-column: 2; }

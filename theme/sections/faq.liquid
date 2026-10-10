@@ -75,6 +75,7 @@
             id="Faq-{{ block.id }}"
             data-accordion
             data-reveal="fade-up"
+            {% if s.single_open %}name="faq-{{ section.id }}"{% endif %}
             {% if is_open %}open{% endif %}
             {{ block.shopify_attributes }}
           >

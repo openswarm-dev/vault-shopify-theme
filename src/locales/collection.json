@@ -15,8 +15,8 @@
     "toolbar": {
       "label": "Product tools",
       "results_html": {
-        "one": "<strong>{{ count }}</strong> result",
-        "other": "<strong>{{ count }}</strong> results"
+        "one": "<strong>{{ count }}</strong> <span class=\"collection-toolbar__count-label\">result</span>",
+        "other": "<strong>{{ count }}</strong> <span class=\"collection-toolbar__count-label\">results</span>"
       },
       "sort_by": "Sort by",
       "filter_and_sort": "Filter & sort",

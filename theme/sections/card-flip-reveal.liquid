@@ -165,8 +165,14 @@
                     </{{ link_tag }}>
 
                     <div class="cfr-card__badges">
+                      {%- comment -%} The product's own rarity chip; the block's rarity text is the fallback. {%- endcomment -%}
+                      {%- assign product_rarity = '' -%}
                       {%- if card_product != blank -%}
-                        {% render 'card-badges', product: card_product, context: 'card' %}
+                        {%- capture product_rarity -%}{% render 'card-badges', product: card_product, context: 'rarity' %}{%- endcapture -%}
+                        {%- assign product_rarity = product_rarity | strip -%}
+                      {%- endif -%}
+                      {%- if product_rarity != blank -%}
+                        {{ product_rarity }}
                       {%- elsif b.rarity != blank -%}
                         <span class="badge badge--rarity" data-tier="{{ tier }}">{{ b.rarity | escape }}</span>
                       {%- endif -%}
@@ -205,18 +211,23 @@
 
             <div class="cfr-item__meta">
               <div class="cfr-item__info" data-cfr-info>
-                {%- if b.chase -%}
-                  <span class="cfr-item__chase">{{ 'sections.card_flip_reveal.chase' | t }}</span>
-                {%- endif -%}
                 {%- if item_url != blank -%}
                   <h3 class="cfr-item__title"><a class="cfr-item__link" href="{{ item_url }}">{{ item_title | escape }}</a></h3>
                 {%- else -%}
                   <h3 class="cfr-item__title">{{ item_title | escape }}</h3>
                 {%- endif -%}
-                {%- if card_product != blank -%}
-                  {% render 'price', product: card_product, size: 'sm' %}
-                {%- elsif b.price != blank -%}
-                  <p class="cfr-item__price">{{ b.price | escape }}</p>
+                {%- comment -%} The chase tag shares the price row, so every title in the row keeps one baseline. {%- endcomment -%}
+                {%- if card_product != blank or b.price != blank or b.chase -%}
+                  <div class="cfr-item__row">
+                    {%- if card_product != blank -%}
+                      {% render 'price', product: card_product, size: 'sm' %}
+                    {%- elsif b.price != blank -%}
+                      <p class="cfr-item__price">{{ b.price | escape }}</p>
+                    {%- endif -%}
+                    {%- if b.chase -%}
+                      <span class="cfr-item__chase">{{ 'sections.card_flip_reveal.chase' | t }}</span>
+                    {%- endif -%}
+                  </div>
                 {%- endif -%}
               </div>
               <p class="cfr-item__hint" aria-hidden="true">

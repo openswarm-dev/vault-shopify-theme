@@ -561,6 +561,8 @@ main-cart.is-enhanced .main-cart__update { display: none; }
 }
 .cart-page-bar__total { display: grid; gap: 2px; min-width: 0; line-height: 1.15; }
 .cart-page-bar__label {
+  display: flex;
+  gap: .45em;
   font-size: var(--text-2xs);
   font-weight: 700;
   letter-spacing: .1em;
@@ -569,6 +571,13 @@ main-cart.is-enhanced .main-cart__update { display: none; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.cart-page-bar__label > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.cart-page-bar__count { flex: none; display: inline-flex; gap: .45em; }
+/* Narrowest phones: label and item count stack instead of the count being cut off. */
+@media (max-width: 359px) {
+  .cart-page-bar__label { flex-direction: column; gap: 1px; }
+  .cart-page-bar__sep { display: none; }
 }
 .cart-page-bar__amount {
   font-family: var(--font-display);

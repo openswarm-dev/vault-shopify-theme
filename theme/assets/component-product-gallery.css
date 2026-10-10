@@ -235,6 +235,31 @@ html.no-js .pg__zoom-hit { display: none; }
 .pg__tool[aria-pressed="true"] .icon { transform: rotate(180deg); }
 html.no-js .pg__tools { display: none; }
 
+/* "View in your space" on 3D model slides (Shopify XR removes data-shopify-xr-hidden on AR devices). */
+.pg__xr {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 99px;
+  border: 1px solid rgb(var(--color-text-rgb) / .12);
+  background: rgb(var(--color-bg-rgb) / .55);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  color: var(--color-text);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.pg__xr[data-shopify-xr-hidden] { display: none; }
+.pg__xr .icon { color: var(--color-accent); }
+
 .pg__counter {
   grid-column: 1;
   grid-row: 2;
@@ -377,6 +402,18 @@ html.no-js .pg__tools { display: none; }
     min-height: 0;
     margin-top: 16px;
     padding-left: 0;
+  }
+}
+
+/* ---------- Tablet portrait PDP (750–989): gallery shares the row with the buy box ----------
+   section-main-product.css makes .pdp__media an inline-size container, so the stage is sized
+   to fit a full card in its column (100cqi) instead of a viewport-tall box with empty bands. */
+@media (min-width: 750px) and (max-width: 989px) {
+  .pg--main { --pg-pad: 24px; }
+  @supports (width: 1cqi) {
+    .pg--main {
+      --pg-stage-h: min(60svh, calc((100cqi - var(--pg-pad) * 2) / .716 + var(--pg-pad) * 2 + var(--pg-tools-room, 0px)));
+    }
   }
 }
 
@@ -560,4 +597,10 @@ vault-drawer.pz-drawer .drawer__overlay { background: rgb(0 0 0 / .78); }
     border-color: rgb(var(--color-accent-rgb) / .8);
     background: rgb(var(--color-accent-rgb) / .16);
   }
+}
+
+/* Bigger dot hit areas on touch (QA follow-up) */
+@media (pointer: coarse) {
+  .pg__dots { column-gap: 20px; }
+  .pg__dots .carousel__dot::before { inset: -18px -10px; }
 }

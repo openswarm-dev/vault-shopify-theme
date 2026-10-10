@@ -5,6 +5,7 @@
    The card is a size container, so it adapts to the width it is given
    rather than to the viewport:
      < 200px   compact  (2-up phone grids, 6-up desktop rows)
+     < 240px   small badges (3–4 column tablet / laptop grids)
      ≥ 200px   standard (quick add expands into a full bar on desktop hover)
      ≥ 260px   roomy    (carousels, 3–4 column desktop grids)
      ≥ 340px   spacious
@@ -30,6 +31,9 @@
 
 .product-card__inner {
   --pc-pad: 6px;
+  /* Badge rail at the top of the media: badge inset + badge height + 4px air. */
+  --pc-badge-inset: 8px;
+  --pc-rail: max(11%, 38px);
   --pc-radius: var(--radius-lg);
   --pc-media-radius: max(var(--radius-xs), calc(var(--pc-radius) - var(--pc-pad)));
   position: relative;
@@ -92,19 +96,21 @@
     var(--color-surface);
   box-shadow: inset 0 0 0 1px rgb(var(--color-text-rgb) / .07);
 }
+/* The top of the case is a badge rail (--pc-rail): the art starts below it, so the
+   status badge and the slab label never cover a card name or a slab's printed label. */
 .product-card--fit-contain:not(.product-card--natural) .product-card__media > img,
 .product-card--fit-contain:not(.product-card--natural) .product-card__media > svg {
-  top: 7%;
+  top: var(--pc-rail);
   left: 9%;
   width: 82%;
-  height: 86%;
+  height: calc(93% - var(--pc-rail));
   filter: drop-shadow(0 12px 16px rgb(0 0 0 / .5));
 }
 
 /* Foil belongs on the card, not the case: confine the shine to the image area
    (the glare stays case-wide, like light catching the display glass). */
 .product-card--fit-contain:not(.product-card--natural) .holo__shine {
-  inset: 7% 9%;
+  inset: var(--pc-rail) 9% 7%;
   border-radius: max(4px, calc(var(--pc-media-radius) - 4px));
 }
 
@@ -152,28 +158,30 @@
   filter: grayscale(.85) brightness(.7) drop-shadow(0 12px 16px rgb(0 0 0 / .5));
 }
 
-/* ---------- Badges (status top-left, grading slab label top-right) ---------- */
+/* ---------- Badges ----------
+   In the media: one status badge (top-left) + the grading slab label (top-right), on the
+   rail above the art. When both can't share the row (narrow 2-up phone cards) the slab
+   label wraps under it on the right — over the slab's own printed grade, never over
+   the status text. Rarity lives in the info area (.card-badges--rarity). */
 .product-card .card-badges--card {
   position: absolute;
   z-index: 4;
-  top: 8px;
-  left: 8px;
-  right: 8px;
+  top: var(--pc-badge-inset);
+  left: var(--pc-badge-inset);
+  right: var(--pc-badge-inset);
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px 6px;
   pointer-events: none;
 }
 .product-card .card-badges__status {
   flex: 0 1 auto;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
   min-width: 0;
   max-width: 100%;
 }
-/* Long labels truncate instead of running under the slab label. */
+/* A label wider than the whole card truncates rather than overflowing it. */
 .product-card .card-badges__status > .badge { max-width: 100%; }
 .product-card .badge__text {
   min-width: 0;
@@ -181,9 +189,6 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.product-card .card-badges__status > .badge:nth-child(n + 4) { display: none; }
-/* Graded cards: keep the slab's own label readable — fewer status badges. */
-.product-card .card-badges--card:has(.card-badges__grade) .card-badges__status > .badge:nth-child(n + 3) { display: none; }
 .product-card .card-badges__grade {
   flex: none;
   margin-left: auto;
@@ -401,6 +406,23 @@
   line-height: 1.35;
 }
 
+/* Rarity chip: a quiet label above the meta line (no blur needed off the art). */
+.product-card .card-badges--rarity {
+  flex-wrap: nowrap;
+  min-width: 0;
+  margin-bottom: 2px;
+}
+.product-card .card-badges--rarity .badge {
+  max-width: 100%;
+  height: 1.375rem;
+  padding: 0 .5rem;
+  font-size: .625rem;
+  letter-spacing: .07em;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.product-card .card-badges--rarity .badge--rarity::before { flex: none; width: 6px; height: 6px; }
+
 .product-card__title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -449,19 +471,10 @@
 }
 
 /* ---------- Container sizes ---------- */
-@container product-card (max-width: 199px) {
-  .product-card__inner { --pc-pad: 5px; }
-  .product-card__info { gap: 3px; padding: 10px 4px 4px; }
-  .product-card__title { font-size: .8125rem; line-height: 1.3; }
-  .product-card__meta { font-size: .625rem; }
-  .product-card__detail { font-size: .6875rem; }
-  .product-card .price--sm .price__current { font-size: var(--text-sm); }
-  .product-card .price--sm .price__compare { font-size: .6875rem; }
-
-  .product-card .card-badges--card { top: 6px; left: 6px; right: 6px; gap: 4px; }
-  .product-card .card-badges__status { gap: 3px; }
-  .product-card .card-badges__status > .badge:nth-child(n + 3) { display: none; }
-  .product-card .card-badges--card:has(.card-badges__grade) .card-badges__status > .badge:nth-child(n + 2) { display: none; }
+/* Small badges below 240px, so the longest status ("Only 3 left") and a slab label
+   share the rail in 3–4 column tablet/laptop grids (cards ~200–239px). */
+@container product-card (max-width: 239px) {
+  .product-card__inner { --pc-rail: max(11%, 32px); }
   .product-card .card-badges--card .badge {
     height: 1.25rem;
     padding: 0 .4rem;
@@ -471,6 +484,24 @@
   .product-card .card-badges--card .badge--grade { padding: 0; }
   .product-card .card-badges--card .badge__grader { padding: 0 .35rem; }
   .product-card .card-badges--card .badge__score { padding: 0 .4rem; font-size: .6875rem; }
+  .product-card .card-badges--rarity .badge { height: 1.25rem; padding: 0 .4rem; letter-spacing: .05em; }
+}
+
+@container product-card (max-width: 199px) {
+  .product-card__inner { --pc-pad: 5px; --pc-badge-inset: 6px; --pc-rail: max(11%, 30px); }
+  .product-card__info { gap: 3px; padding: 10px 4px 4px; }
+  .product-card__title { font-size: .8125rem; line-height: 1.3; }
+  .product-card__meta { font-size: .625rem; }
+  .product-card__detail { font-size: .6875rem; }
+  .product-card .price--sm .price__current { font-size: var(--text-sm); }
+  .product-card .price--sm .price__compare { font-size: .6875rem; }
+
+  /* Trimmed so "Last one" + a slab label still share one row on 375–390px phones. */
+  .product-card .card-badges--card { gap: 4px; }
+  .product-card .card-badges--card .badge:not(.badge--grade) { gap: .3em; padding: 0 .35rem; }
+  .product-card .card-badges--card .badge--low-stock::before { width: 5px; height: 5px; }
+  .product-card .card-badges--card .badge__grader { padding: 0 .3rem; }
+  .product-card .card-badges--card .badge__score { padding: 0 .32rem; }
 
   /* 38px visual, 44px hit area */
   .quick-add { right: 6px; bottom: 6px; }
@@ -481,11 +512,10 @@
 }
 
 @container product-card (min-width: 260px) {
-  .product-card__inner { --pc-pad: 8px; }
+  .product-card__inner { --pc-pad: 8px; --pc-badge-inset: 10px; --pc-rail: max(11%, 40px); }
   .product-card__info { gap: 5px; padding: 14px 8px 8px; }
   .product-card__title { font-size: var(--text-base); }
   .product-card .price--sm .price__current { font-size: var(--text-md); }
-  .product-card .card-badges--card { top: 10px; left: 10px; right: 10px; }
 }
 
 @container product-card (min-width: 340px) {

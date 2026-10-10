@@ -137,7 +137,7 @@ class FormTag extends Tag {
     ctx.pop();
     let html = '<form';
     for (const [k, val] of Object.entries(attrs)) {
-      if (val == null || val === false || val === '') continue;
+      if (val == null || val === false) continue;
       html += val === true ? ` ${k}` : ` ${k}="${esc(val)}"`;
     }
     html += '>';

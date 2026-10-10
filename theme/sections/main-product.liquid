@@ -26,7 +26,7 @@
   <span class="main-product__glow" aria-hidden="true"></span>
   <div class="page-width">
     <product-info
-      class="pdp{% if s.sticky_media %} pdp--sticky-media{% endif %}"
+      class="pdp{% if s.sticky_media %} pdp--sticky-media{% endif %}{% unless current_variant.available %} is-unavailable{% endunless %}"
       data-product
       data-section-id="{{ section.id }}"
       data-product-id="{{ product.id }}"
@@ -269,7 +269,8 @@
       "name": "Buy buttons",
       "limit": 1,
       "settings": [
-        { "type": "checkbox", "id": "show_dynamic_checkout", "label": "Show dynamic checkout buttons", "info": "Customers see their preferred express checkout, like Shop Pay or Apple Pay.", "default": true }
+        { "type": "checkbox", "id": "show_dynamic_checkout", "label": "Show dynamic checkout buttons", "info": "Customers see their preferred express checkout, like Shop Pay or Apple Pay.", "default": true },
+        { "type": "checkbox", "id": "show_pickup", "label": "Show pickup availability", "info": "Shows local pickup for the selected variant when a location offers it.", "default": true }
       ]
     },
     {
@@ -428,7 +429,18 @@
         { "type": "text", "id": "text", "label": "Link label", "default": "Condition & grading guide" },
         { "type": "text", "id": "heading", "label": "Heading", "default": "Condition guide" },
         { "type": "richtext", "id": "content", "label": "Text", "default": "<p><strong>Near Mint (NM)</strong> — Sharp corners, clean edges and a glossy surface. At most one tiny flaw under close inspection.</p><p><strong>Lightly Played (LP)</strong> — Light edge wear or minor scuffs on a closer look. No creases or bends.</p><p><strong>Moderately Played (MP)</strong> — Noticeable edge wear, corner rounding or light surface scratches.</p><p><strong>Heavily Played (HP)</strong> — Heavy wear, whitening or a crease. Still sleeve-playable.</p><p><strong>Graded slabs</strong> — Sold exactly as certified. The grade on the label is the grade you get.</p>" },
-        { "type": "page", "id": "page", "label": "Page", "info": "Replaces the text above." }
+        { "type": "page", "id": "page", "label": "Page", "info": "Replaces the text above." },
+        {
+          "type": "select",
+          "id": "show_on",
+          "label": "Show on",
+          "options": [
+            { "value": "all", "label": "All products" },
+            { "value": "cards", "label": "Single cards only" }
+          ],
+          "default": "all",
+          "info": "Single cards only hides it on sealed product and supplies."
+        }
       ]
     }
   ]

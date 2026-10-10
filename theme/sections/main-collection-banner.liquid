@@ -148,6 +148,8 @@
                   assign pill_current = false
                   if block.settings.link == request.path
                     assign pill_current = true
+                  elsif current_tags == blank and block.settings.link == collection.url
+                    assign pill_current = true
                   endif
                 -%}
                 <li class="collection-banner__pill-item" {{ block.shopify_attributes }}>

@@ -1,0 +1,97 @@
+{%- comment -%}
+  Local pickup availability for the selected variant (variant.store_availabilities), shown under the
+  buy buttons on the product page. Lists every pickup location in a drawer. Rendered inside a
+  [data-variant-swap="pickup"] region, so <product-info> refreshes it on variant change.
+  Outputs nothing when no location offers pickup.
+
+  Usage:
+    {% render 'product-pickup-availability', product: product, variant: variant, section_id: section_id %}
+{%- endcomment -%}
+{%- liquid
+  assign pu_list = variant.store_availabilities | where: 'pick_up_enabled', true
+  assign pu_id = 'PickupDrawer-' | append: section_id
+-%}
+{%- if pu_list.size > 0 -%}
+  {%- liquid
+    assign pu_first = pu_list.first
+    assign pu_name = pu_first.location.name | escape
+  -%}
+  <div class="pdp-pickup" data-state="{% if pu_first.available %}available{% else %}unavailable{% endif %}">
+    <span class="pdp-pickup__icon" aria-hidden="true">
+      {%- if pu_first.available -%}
+        {%- render 'icon', name: 'check', size: 16, stroke: 2.2 -%}
+      {%- else -%}
+        {%- render 'icon', name: 'close', size: 16, stroke: 2.2 -%}
+      {%- endif -%}
+    </span>
+    <div class="pdp-pickup__text">
+      <p class="pdp-pickup__title">
+        {%- if pu_first.available -%}
+          {{ 'products.pdp.pickup.available_at_html' | t: location: pu_name }}
+        {%- else -%}
+          {{ 'products.pdp.pickup.unavailable_at_html' | t: location: pu_name }}
+        {%- endif -%}
+      </p>
+      {%- if pu_first.available and pu_first.pick_up_time != blank -%}
+        <p class="pdp-pickup__time">{{ pu_first.pick_up_time }}</p>
+      {%- endif -%}
+      <button
+        type="button"
+        class="link link--accent pdp-pickup__more"
+        data-drawer-open="{{ pu_id }}"
+        aria-haspopup="dialog"
+        aria-controls="{{ pu_id }}"
+        aria-expanded="false"
+      >
+        {%- if pu_list.size == 1 -%}
+          {{ 'products.pdp.pickup.view_store_info' | t }}
+        {%- else -%}
+          {{ 'products.pdp.pickup.check_other_stores' | t }}
+        {%- endif -%}
+      </button>
+    </div>
+  </div>
+
+  <vault-drawer id="{{ pu_id }}" data-placement="right" data-mobile-placement="bottom">
+    <dialog class="drawer" aria-labelledby="{{ pu_id }}-title">
+      <div class="drawer__overlay" data-drawer-close></div>
+      <div class="drawer__panel pdp-pickup__panel">
+        <div class="drawer__handle" data-drawer-handle></div>
+        <div class="drawer__header">
+          <div class="pdp-pickup__heading">
+            <h2 class="drawer__title" id="{{ pu_id }}-title">{{ product.title | escape }}</h2>
+            {%- unless product.has_only_default_variant -%}
+              <p class="pdp-pickup__variant">{{ variant.title | escape }}</p>
+            {%- endunless -%}
+          </div>
+          <button type="button" class="btn btn--icon btn--ghost" data-drawer-close data-drawer-focus aria-label="{{ 'accessibility.close' | t }}">
+            {%- render 'icon', name: 'close', size: 20 -%}
+          </button>
+        </div>
+        <ul class="drawer__body pdp-pickup__list" role="list">
+          {%- for availability in pu_list -%}
+            <li class="pdp-pickup__store" data-drawer-item>
+              <h3 class="pdp-pickup__store-name">{{ availability.location.name | escape }}</h3>
+              <p class="pdp-pickup__status" data-state="{% if availability.available %}available{% else %}unavailable{% endif %}">
+                {%- if availability.available -%}
+                  {%- render 'icon', name: 'check', size: 14, stroke: 2.2 -%}
+                  <span>{{ 'products.pdp.pickup.available' | t }}{% if availability.pick_up_time != blank %} · {{ availability.pick_up_time }}{% endif %}</span>
+                {%- else -%}
+                  {%- render 'icon', name: 'close', size: 14, stroke: 2.2 -%}
+                  <span>{{ 'products.pdp.pickup.unavailable' | t }}</span>
+                {%- endif -%}
+              </p>
+              <address class="pdp-pickup__address">{{ availability.location.address | format_address }}</address>
+              {%- if availability.location.address.phone.size > 0 -%}
+                <a class="link pdp-pickup__phone" href="tel:{{ availability.location.address.phone | remove: ' ' }}">
+                  {%- render 'icon', name: 'phone', size: 14 -%}
+                  {{- availability.location.address.phone | escape -}}
+                </a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    </dialog>
+  </vault-drawer>
+{%- endif -%}

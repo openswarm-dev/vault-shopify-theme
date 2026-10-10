@@ -25,7 +25,7 @@
     </p>
     {%- if view_all_url != blank and view_all_url != '#' -%}
       <a href="{{ view_all_url }}" class="menu-drawer__view-all" data-submenu-item>
-        <span>{{ 'sections.header.shop_all' | t: title: link.title }}</span>
+        <span>{%- render 'menu-view-all-label', title: link.title -%}</span>
         {%- render 'icon', name: 'arrow-right', size: 16 -%}
       </a>
     {%- endif -%}

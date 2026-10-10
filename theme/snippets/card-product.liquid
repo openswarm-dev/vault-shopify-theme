@@ -21,9 +21,10 @@
     .product-card[data-product-card]                  container-query root + reveal
       .product-card__inner[data-spotlight]             surface: border, glow, hover lift
         holo-card > .holo > .product-card__media[data-vt-media][data-fly-source]
-                          + .card-badges + .holo__shine + .holo__glare
+                          + .card-badges--card          one status badge + slab label, in a rail above the art
+                          + .holo__shine + .holo__glare
                   + .quick-add                         outside .holo so it stays flat while the card tilts
-        .product-card__info                            meta · vendor · title link (stretched) · condition · price
+        .product-card__info                            rarity chip · meta · vendor · title link (stretched) · condition · price
   Styles: assets/component-card.css (loaded here).
 {%- endcomment -%}
 {%- liquid
@@ -56,6 +57,7 @@
   assign sold_out = false
   assign is_graded = false
   assign rarity_tier = ''
+  assign card_kind = ''
   assign meta_text = ''
   assign detail_text = ''
 -%}
@@ -90,6 +92,7 @@
     assign demo_sealed = false
     if demo_flags contains 's'
       assign demo_sealed = true
+      assign card_kind = 'sealed'
     endif
     if demo_flags contains 'x'
       assign sold_out = true
@@ -123,6 +126,7 @@
 {%- else -%}
   {%- liquid
     assign card_title = product.title
+    assign card_kind = product.type | downcase
     if product.available == false
       assign sold_out = true
     endif
@@ -245,6 +249,12 @@
   else
     assign foil = 'subtle'
   endif
+  # Foil belongs on cards: sealed boxes, tins and supplies (product type contains sealed / suppl /
+  # accessor) keep the tilt but get no rainbow sheen. The removes test all three without an or-chain.
+  assign card_kind_probe = card_kind | remove: 'sealed' | remove: 'suppl' | remove: 'accessor'
+  if card_kind_probe != card_kind
+    assign foil = 'none'
+  endif
 
   # Media shape
   assign shape = card_ratio
@@ -327,27 +337,22 @@
         </div>
 
         {%- if demo_mode -%}
+          {%- comment -%} Same rules as card-badges 'card': one status badge (sold out › sale › new › sealed) + slab label. {%- endcomment -%}
           <div class="card-badges card-badges--card">
-            <div class="card-badges__status badges">
+            {%- capture demo_status -%}
               {%- if sold_out -%}
                 <span class="badge badge--sold-out"><span class="badge__text">{{ 'products.product.sold_out' | t }}</span></span>
-              {%- endif -%}
-              {%- if demo_sale -%}
+              {%- elsif demo_sale -%}
                 <span class="badge badge--sale"><span class="badge__text">{{ 'products.card.sale_off' | t: percent: demo_percent }}</span></span>
-              {%- endif -%}
-              {%- if demo_new -%}
+              {%- elsif demo_new -%}
                 <span class="badge badge--new"><span class="badge__text">{{ 'products.product.badges.new' | t }}</span></span>
-              {%- endif -%}
-              {%- if demo_sealed -%}
+              {%- elsif demo_sealed -%}
                 <span class="badge badge--sealed"><span class="badge__text">{{ 'products.product.badges.sealed' | t }}</span></span>
               {%- endif -%}
-              {%- if demo_rarity != blank -%}
-                <span class="badge badge--rarity" data-tier="{{ rarity_tier }}">
-                  <span class="visually-hidden">{{ 'collector.rarity' | t }}:</span>
-                  <span class="badge__text">{{ demo_rarity_label }}</span>
-                </span>
-              {%- endif -%}
-            </div>
+            {%- endcapture -%}
+            {%- if demo_status != blank -%}
+              <div class="card-badges__status badges">{{ demo_status }}</div>
+            {%- endif -%}
             {%- if demo_grader != blank -%}
               <div class="card-badges__grade">
                 <span class="badge badge--grade" data-grader="{{ demo_grader_key }}"{% if demo_gem %} data-gem{% endif %}>
@@ -425,6 +430,7 @@
     </holo-card>
 
     <div class="product-card__info">
+      {%- render 'card-badges', product: product, context: 'rarity', label: demo_rarity_label, tier: rarity_tier -%}
       {%- if meta_text != blank -%}
         <p class="product-card__meta mono">{{ meta_text | escape }}</p>
       {%- endif -%}

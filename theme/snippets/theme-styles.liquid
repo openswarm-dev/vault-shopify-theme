@@ -1,84 +1,51 @@
 {%- comment -%}
   Fonts + global CSS custom properties + color scheme classes.
-  Rendered once in <head> by layout/theme.liquid and layout/password.liquid.
+  Rendered once in <head> by layout/theme.liquid, layout/password.liquid and templates/gift_card.liquid.
+  Fonts come from Shopify's font library (font_picker settings → font_face / font_url), served by Shopify's CDN.
 {%- endcomment -%}
 {%- liquid
-  assign display_stretch = 'normal'
-  assign display_adjust = 0.86
-  assign display_weight = 700
-  case settings.font_display
-    when 'archivo_expanded'
-      assign display_family = "'Archivo'"
-      assign display_query = 'Archivo:wdth,wght@62..125,400..900'
-      assign display_stretch = '125%'
-      assign display_adjust = 0.86
-      assign display_weight = 800
-    when 'chakra_petch'
-      assign display_family = "'Chakra Petch'"
-      assign display_query = 'Chakra+Petch:wght@500;600;700'
-      assign display_adjust = 1.0
-    when 'space_grotesk'
-      assign display_family = "'Space Grotesk'"
-      assign display_query = 'Space+Grotesk:wght@400..700'
-      assign display_adjust = 1.0
-    when 'syne'
-      assign display_family = "'Syne'"
-      assign display_query = 'Syne:wght@500..800'
-      assign display_adjust = 0.94
-      assign display_weight = 800
-    when 'oswald'
-      assign display_family = "'Oswald'"
-      assign display_query = 'Oswald:wght@400..700'
-      assign display_adjust = 1.12
-      assign display_weight = 600
-    when 'bebas_neue'
-      assign display_family = "'Bebas Neue'"
-      assign display_query = 'Bebas+Neue'
-      assign display_adjust = 1.24
-      assign display_weight = 400
-    when 'system'
-      assign display_family = 'ui-sans-serif'
-      assign display_query = ''
-      assign display_adjust = 1.0
-      assign display_weight = 800
-    else
-      assign display_family = "'Unbounded'"
-      assign display_query = 'Unbounded:wght@400..900'
-      assign display_adjust = 0.84
-      assign display_weight = 700
-  endcase
+  assign display_font = settings.type_display_font
+  assign body_font = settings.type_body_font
+  assign mono_font = settings.type_mono_font
 
-  case settings.font_body
-    when 'inter'
-      assign body_family = "'Inter'"
-      assign body_query = 'Inter:wght@400..700'
-    when 'dm_sans'
-      assign body_family = "'DM Sans'"
-      assign body_query = 'DM+Sans:wght@400..700'
-    when 'plus_jakarta_sans'
-      assign body_family = "'Plus Jakarta Sans'"
-      assign body_query = 'Plus+Jakarta+Sans:wght@400..800'
-    when 'space_grotesk'
-      assign body_family = "'Space Grotesk'"
-      assign body_query = 'Space+Grotesk:wght@400..700'
-    when 'system'
-      assign body_family = 'ui-sans-serif'
-      assign body_query = ''
-    else
-      assign body_family = "'Manrope'"
-      assign body_query = 'Manrope:wght@400..800'
-  endcase
-
-  assign font_params = ''
-  if display_query != blank
-    assign font_params = font_params | append: '&family=' | append: display_query
+  # Font stacks: library families are quoted, system families (e.g. -apple-system) must not be.
+  assign display_stack = display_font.family | prepend: '"' | append: '"'
+  if display_font.system?
+    assign display_stack = display_font.family
   endif
-  if body_query != blank and body_query != display_query
-    assign font_params = font_params | append: '&family=' | append: body_query
+  assign display_stack = display_stack | append: ', ' | append: display_font.fallback_families
+  assign body_stack = body_font.family | prepend: '"' | append: '"'
+  if body_font.system?
+    assign body_stack = body_font.family
   endif
+  assign body_stack = body_stack | append: ', ' | append: body_font.fallback_families
+  assign mono_stack = ''
   if settings.font_mono_enabled
-    assign font_params = font_params | append: '&family=JetBrains+Mono:wght@400;500;700'
+    assign mono_stack = mono_font.family | prepend: '"' | append: '", '
+    if mono_font.system?
+      assign mono_stack = mono_font.family | append: ', '
+    endif
   endif
+
+  # Heading size compensation for unusually wide / narrow display faces (1 = as designed).
+  assign display_family = display_font.family | downcase
+  case display_family
+    when 'unbounded'
+      assign display_adjust = 0.84
+    when 'archivo black', 'syne'
+      assign display_adjust = 0.94
+    when 'oswald', 'barlow condensed', 'archivo narrow'
+      assign display_adjust = 1.12
+    when 'bebas neue', 'anton'
+      assign display_adjust = 1.24
+    else
+      assign display_adjust = 1
+  endcase
+
+  assign display_weight = display_font.weight | append: ''
+  assign body_weight = body_font.weight | append: ''
+  assign display_url = display_font | font_url
+  assign body_url = body_font | font_url
 
   case settings.corner_style
     when 'sharp'
@@ -107,25 +74,58 @@
       assign r_btn = '10px'
   endcase
 -%}
-{%- if font_params != '' -%}
-  {% # theme-check-disable RemoteAsset %}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?{{ font_params | remove_first: '&' }}&display=swap">
-  {% # theme-check-enable RemoteAsset %}
-{%- endif -%}
+<link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
+{% # theme-check-disable AssetPreload %}
+{%- # Font preloads need type + crossorigin, which preload_tag cannot set (same pattern as Dawn). -%}
+{%- unless display_font.system? or display_url == blank %}
+  <link rel="preload" as="font" href="{{ display_url }}" type="font/woff2" crossorigin>
+{%- endunless -%}
+{%- unless body_font.system? or body_url == blank or body_url == display_url %}
+  <link rel="preload" as="font" href="{{ body_url }}" type="font/woff2" crossorigin>
+{%- endunless %}
+{% # theme-check-enable AssetPreload %}
 
 {% style %}
+  {{ display_font | font_face: font_display: 'swap' }}
+  {%- for weight in (6..9) -%}
+    {%- assign w = weight | times: 100 | append: '' -%}
+    {%- unless w == display_weight -%}
+      {%- assign face = display_font | font_modify: 'weight', w -%}
+      {{ face | font_face: font_display: 'swap' }}
+    {%- endunless -%}
+  {%- endfor %}
+  {{ body_font | font_face: font_display: 'swap' }}
+  {%- for weight in (5..9) -%}
+    {%- assign w = weight | times: 100 | append: '' -%}
+    {%- unless w == body_weight -%}
+      {%- assign face = body_font | font_modify: 'weight', w -%}
+      {{ face | font_face: font_display: 'swap' }}
+    {%- endunless -%}
+  {%- endfor -%}
+  {%- assign body_italic = body_font | font_modify: 'style', 'italic' -%}
+  {%- assign body_bold = body_font | font_modify: 'weight', 'bold' -%}
+  {%- assign body_bold_italic = body_bold | font_modify: 'style', 'italic' %}
+  {{ body_italic | font_face: font_display: 'swap' }}
+  {{ body_bold_italic | font_face: font_display: 'swap' }}
+  {%- if mono_stack != '' -%}
+    {%- assign mono_medium = mono_font | font_modify: 'weight', '500' -%}
+    {%- assign mono_bold = mono_font | font_modify: 'weight', 'bold' %}
+    {{ mono_font | font_face: font_display: 'swap' }}
+    {{ mono_medium | font_face: font_display: 'swap' }}
+    {{ mono_bold | font_face: font_display: 'swap' }}
+  {%- endif %}
+
   :root {
-    --font-display: {{ display_family }}, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --font-display-weight: {{ display_weight }};
-    --font-display-stretch: {{ display_stretch }};
+    --font-display: {{ display_stack }};
+    --font-display-weight: {{ display_font.weight }};
+    --font-display-stretch: normal;
     --font-display-case: {{ settings.heading_case }};
     --heading-adjust: {{ display_adjust }};
     --heading-scale: {{ settings.heading_scale | divided_by: 100.0 }};
-    --font-body: {{ body_family }}, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-body: {{ body_stack }};
+    --font-body-weight: {{ body_font.weight }};
     --body-scale: {{ settings.body_scale | divided_by: 100.0 }};
-    --font-mono: {% if settings.font_mono_enabled %}'JetBrains Mono', {% endif %}ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-mono: {{ mono_stack }}ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
     --page-width: {{ settings.page_width }}px;
     --section-spacing-scale: {{ settings.section_spacing | divided_by: 100.0 }};

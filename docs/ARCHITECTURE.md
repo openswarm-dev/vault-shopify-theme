@@ -72,7 +72,8 @@ Scheme-dependent (set per color scheme class `.color-<scheme-id>`, `:root` = fir
 Use `rgb(var(--color-accent-rgb) / .3)` for alpha. `color-mix()` is allowed.
 
 Global: `--font-display` `--font-display-weight` `--font-display-stretch` `--font-display-case`
-`--font-body` `--font-mono` · `--page-width` `--gutter` `--section-space` `--grid-gap`
+`--font-body` `--font-body-weight` `--font-mono` (fonts come from Shopify's font library via the `type_display_font`,
+`type_body_font` and `type_mono_font` font_picker settings — never load fonts from third-party hosts) · `--page-width` `--gutter` `--section-space` `--grid-gap`
 · `--radius-xs|sm|md|lg|xl|card|btn` · `--ratio-card` (63/88) `--ratio-portrait` `--ratio-square` `--ratio-slab`
 · type: `--text-2xs|xs|sm|base|md|lg|xl`, headings `--h0..--h5` (fluid, already scaled per font)
 · `--ease-out` `--ease-in-out` `--ease-back` `--dur-fast|dur|dur-slow`
@@ -102,7 +103,9 @@ Visibility: `.visually-hidden`, `.hide-mobile`, `.show-mobile-only`, `.hide-tabl
 
 ## 5. Motion system
 
-`assets/motion.js` (Motion 14) is loaded `defer` in `<head>`, then `assets/theme.js` (core).
+`assets/motion.js` (Motion 14) is loaded `defer` in `<head>` **only when `settings.animations_enabled` is on**, then
+`assets/theme.js` (core). With animations off `window.Motion` is undefined, so never touch it ungated: use
+`Vault.motionOK()`, or `const M = window.Motion; if (M && typeof M.inView === 'function') …`.
 `window.Motion` exposes `animate, scroll, inView, stagger, spring, hover, press, frame, mix, transform, …`.
 Use `Vault.Motion` (same object) inside theme JS.
 
@@ -121,11 +124,11 @@ Use `Vault.Motion` (same object) inside theme JS.
 | Attribute | Effect |
 |---|---|
 | `data-reveal` / `="fade-up\|fade\|fade-down\|left\|right\|scale\|blur\|clip\|zoom\|card"` | Reveal when scrolled into view. Siblings entering together auto-stagger (visual order). Optional `data-reveal-delay="0.2"`, `data-reveal-duration="1.1"`. Inline styles are cleared after, so your CSS hover transforms work. Do **not** put `data-reveal` on an element whose own `transform` you animate elsewhere. |
-| `data-split` / `="chars"` | Masked word (or char) slide-up for headings. Optional `data-split-delay`. Sets aria-label automatically. |
+| `data-split` / `="chars"` | Masked word (or char) slide-up for headings. Optional `data-split-delay`. Sets aria-label automatically. Pieces of one word split by a tag (`<em>binder</em>,`) or joined by `&nbsp;` are kept on one line in a `.split-glue`. |
 | `data-count-to="25000"` | Count-up number (+ `data-count-decimals`, `data-count-prefix`, `data-count-suffix`, `data-count-duration`). Put the final formatted value as text content for no-JS. |
 | `data-parallax="0.15"` | Scroll-linked Y parallax (fraction of viewport). Scroll target = closest `[data-parallax-root]` or parent. |
 | `data-magnetic="0.3"` | Pointer-magnetic element (desktop only). |
-| `details.accordion[data-accordion]` | Animated height accordion; wrap in `[data-accordion-group]` for single-open. Markup in theme.js header comment. |
+| `details.accordion[data-accordion]` | Animated height accordion; wrap in `[data-accordion-group]` (or give the items the same native `name="…"`, which also works without JS) for single-open — enforced with reduced motion too. Markup in theme.js header comment. |
 | `data-spotlight` | Pointer-follow radial glow on cards/tiles (desktop). |
 
 **Core custom elements** (markup documented at the top of each class in `assets/theme.js`):
@@ -140,6 +143,10 @@ Use `Vault.Motion` (same object) inside theme JS.
 `lockScroll/unlockScroll` (ref-counted), `formatMoney(cents)`, `toast(msg, {type:'success'|'error'})`,
 `inViewport(el)`, `scrollVelocity`, `scrollDirection`, `isMobile()`, `isDesktop()`, `canHover()`, `intensity`,
 `init(root)`, `cart.*` (§9), `flyToCart(el)`.
+Document events: `vault:cart:updated` (§9) and `vault:header:reveal` — core emits it when it needs a header that hid
+itself on scroll back on screen (e.g. fly-to-cart aiming at the header cart icon); the header listens and slides back in.
+Custom elements: never keep state under a built-in `HTMLElement` property name (`dir`, `title`, `hidden`, `lang`, `slot`,
+`role`, `translate`…) — those reflect to attributes, e.g. `this.dir = -1` reads back as `""`.
 
 **Section JS pattern** — one file per section/component in `assets/`, loaded at the bottom of the section:
 ```liquid
@@ -293,12 +300,14 @@ The lead composes `templates/index.json` from these (use unique section keys, in
 
 Tags: `if/elsif/else/unless/case/when/for (limit, offset, reversed, forloop.*)/break/continue/cycle/tablerow/assign/capture/increment/liquid/echo/comment/# inline comments/raw/render (with/for/as, named args)/section/sections/schema/style/stylesheet/javascript/form/paginate/layout`.
 Objects: `shop, settings, request (page_type, locale, design_mode, path, host, origin), routes, template (name, suffix), canonical_url, page_title, page_description, page_image, content_for_header, content_for_layout, cart, customer, localization, product, collection, collections, all_products, linklists, pages, page, blog, blogs, article, articles, search, predictive_search, recommendations, current_page, current_tags, paginate, form, section, block, settings.color_schemes, images, powered_by_link, handle, gift_card, order, recipient`.
-Filters (Shopify): `asset_url, stylesheet_tag, script_tag, image_url, image_tag, img_url (avoid), placeholder_svg_tag, money, money_with_currency, money_without_currency, money_without_trailing_zeros, t, json, handle/handleize, link_to, url_for_type, url_for_vendor, within, default_pagination, highlight, pluralize, time_tag, date, payment_type_svg_tag, payment_type_img_url, external_video_tag, external_video_url, video_tag, media_tag, metafield_tag, color_to_rgb, color_modify, color_brightness, color_mix, color_lighten, color_darken, color_extract, font_face, font_url, default_errors, customer_login_link, customer_logout_link, customer_register_link, format_address, highlight_active_tag, link_to_tag, link_to_add_tag, link_to_remove_tag, sort_by, url_param_escape, url_escape, shopify_asset_url, inline_asset_content, structured_data, weight_with_unit, escape, escape_once, strip_html, strip_newlines, newline_to_br, truncate, truncatewords, split, join, first, last, map, where, sort, sort_natural, uniq, reverse, size, concat, compact, slice, remove, remove_first, replace, replace_first, append, prepend, upcase, downcase, capitalize, camelize, plus, minus, times, divided_by, modulo, round, ceil, floor, abs, at_least, at_most, default, md5, sha256, hmac_sha256, base64_encode, base64_decode, url_decode, url_encode, date, strip, lstrip, rstrip`.
+Filters (Shopify): `asset_url, stylesheet_tag, script_tag, image_url, image_tag, img_url (avoid), placeholder_svg_tag, money, money_with_currency, money_without_currency, money_without_trailing_zeros, t, json, handle/handleize, link_to, url_for_type, url_for_vendor, within, default_pagination, highlight, pluralize, time_tag, date, payment_type_svg_tag, payment_type_img_url, external_video_tag, external_video_url, video_tag, media_tag, metafield_tag, color_to_rgb, color_modify, color_brightness, color_mix, color_lighten, color_darken, color_extract, font_face, font_url, font_modify, default_errors, customer_login_link, customer_logout_link, customer_register_link, format_address, highlight_active_tag, link_to_tag, link_to_add_tag, link_to_remove_tag, sort_by, url_param_escape, url_escape, shopify_asset_url, inline_asset_content, structured_data, weight_with_unit, escape, escape_once, strip_html, strip_newlines, newline_to_br, truncate, truncatewords, split, join, first, last, map, where, sort, sort_natural, uniq, reverse, size, concat, compact, slice, remove, remove_first, replace, replace_first, append, prepend, upcase, downcase, capitalize, camelize, plus, minus, times, divided_by, modulo, round, ceil, floor, abs, at_least, at_most, default, md5, sha256, hmac_sha256, base64_encode, base64_decode, url_decode, url_encode, date, strip, lstrip, rstrip`.
 Do not use `include` (deprecated), `{% content_for 'blocks' %}`/theme blocks, or Shopify Plus-only features.
 
 ## 13. Quality bar
 
 - `npm run check` (Shopify Theme Check) must report **0 errors** for your files. Fix warnings unless clearly irrelevant.
+  It also runs `scripts/schema-ranges.mjs` (`SchemaRangeStep`): range steps ≤ 101, unit ≤ 3 chars, and every default and
+  saved value (settings_data, presets, templates, section groups) on a step — Shopify rejects the upload otherwise.
 - Valid HTML, landmarks, labelled controls, `alt` text (`image.alt | escape` fallback to product title), visible focus, `aria-expanded`/`aria-controls` on toggles, `aria-live` for dynamic updates.
 - Performance: no layout thrash in scroll handlers, `loading="lazy"` below the fold, explicit `width`/`height` on images (image_tag does this), `defer` scripts, no blocking work on load.
 - Pick numbers that look intentional; align to the spacing scale; keep the red accent purposeful — highlights, CTAs, glows, active states — on a disciplined graphite base.

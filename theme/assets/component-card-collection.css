@@ -166,6 +166,8 @@
 
 .collection-card__text {
   display: grid;
+  /* minmax(0, 1fr): a long display word wraps inside the column instead of running under the arrow. */
+  grid-template-columns: minmax(0, 1fr);
   gap: .4rem;
   min-width: 0;
 }
@@ -254,6 +256,11 @@
   .collection-card__arrow .icon { width: 15px; height: 15px; }
   .collection-card__count { height: 1.375rem; padding: 0 .5rem; font-size: .625rem; letter-spacing: .06em; }
   .collection-card__top { padding-bottom: 0; }
+}
+/* Very small tiles (2-up on 320–375px phones): the whole tile is the link, so the arrow
+   chip goes and the title gets the full width. */
+@container collection-card (max-width: 180px) {
+  .collection-card__arrow { display: none; }
 }
 @container collection-card (max-height: 190px) {
   .collection-card__caption { display: none; }

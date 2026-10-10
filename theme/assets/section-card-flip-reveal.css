@@ -240,10 +240,11 @@ html.motion-ok .cfr:not(.is-ready):not(.is-static) .cfr-card__rotator { animatio
   .cfr.is-ready .cfr-item:not(.is-revealed) .cfr-card:hover .cfr-back__emblem { transform: scale(1.08) rotate(-10deg); }
 }
 
-/* Flip toggle: 32px visual, 44px hit area. */
+/* Flip toggle: 32px visual, 44px hit area. It sits just below the card's name / HP strip
+   (top ~12% of a trading card) so it never covers them. */
 .cfr-card__toggle {
   position: absolute;
-  top: 8px;
+  top: 14%;
   right: 8px;
   z-index: 6;
   display: grid;
@@ -288,10 +289,17 @@ html.motion-ok .cfr:not(.is-ready):not(.is-static) .cfr-card__rotator { animatio
   visibility: hidden;
   transition: opacity .2s, transform .2s, visibility 0s linear .2s;
 }
+/* Price + chase tag share one row under the title. */
+.cfr-item__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem .85rem;
+  min-width: 0;
+}
 .cfr-item__chase {
   display: inline-flex;
   align-items: center;
-  justify-self: start;
   gap: .4rem;
   color: var(--color-accent);
   font-size: var(--text-2xs);
@@ -363,3 +371,5 @@ html.motion-ok .cfr:not(.is-ready):not(.is-static) .cfr-card__rotator { animatio
   0%, 100% { box-shadow: inset 0 0 0 1px rgb(var(--color-accent-rgb) / 0); }
   50% { box-shadow: inset 0 0 0 2px rgb(var(--color-accent-rgb) / .85), 0 0 24px -4px rgb(var(--color-accent-rgb) / .8); }
 }
+
+.cfr-item__title { text-wrap: balance; }

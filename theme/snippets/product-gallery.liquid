@@ -22,7 +22,7 @@
   assign gid = section_id
   assign g_context = context | default: 'main'
   assign g_foil = foil | default: 'intense'
-  assign g_sizes = sizes | default: '(min-width: 990px) min(600px, 36vw), (min-width: 750px) 60vw, 82vw'
+  assign g_sizes = sizes | default: '(min-width: 990px) min(600px, 36vw), (min-width: 750px) 42vw, 82vw'
   assign g_widths = '360, 540, 720, 900, 1080, 1280, 1600'
 
   assign is_demo = false
@@ -44,6 +44,7 @@
   else
     assign media_count = product.media.size
     assign image_count = product.media | where: 'media_type', 'image' | size
+    assign model_media = product.media | where: 'media_type', 'model'
     if media_count > 1 and enable_flip
       assign first_media = product.media[0]
       assign back_media = product.media[1]
@@ -82,6 +83,7 @@
   data-initial-index="{{ initial_index }}"
   {% if zoom_on %}data-zoom-id="ProductZoom-{{ gid }}"{% endif %}
   {% if back_media_id != blank %}data-back-media-id="{{ back_media_id }}"{% endif %}
+  {% if model_media.size > 0 %}data-model-ui-css="https://cdn.shopify.com/shopifycloud/model-viewer-ui/assets/v1.0/model-viewer-ui.css"{% endif %}
 >
   <div class="pg__layout">
     {%- if thumbs_on -%}
@@ -294,6 +296,21 @@
                             {{ media | media_tag: image_size: '1200x' }}
                         {%- endcase -%}
                       </div>
+                      {%- if media.media_type == 'model' -%}
+                        {%- comment -%} Shopify XR reveals this only on AR-capable devices. {%- endcomment -%}
+                        <button
+                          type="button"
+                          class="pg__xr"
+                          data-shopify-xr
+                          data-shopify-model3d-id="{{ media.id }}"
+                          data-shopify-title="{{ product.title | escape }}"
+                          data-shopify-xr-hidden
+                          aria-label="{{ 'products.pdp.gallery.view_in_space_label' | t }}"
+                        >
+                          {%- render 'icon', name: 'box', size: 16, stroke: 2 -%}
+                          <span>{{ 'products.pdp.gallery.view_in_space' | t }}</span>
+                        </button>
+                      {%- endif -%}
                     {%- endif -%}
                   </div>
                 </div>
@@ -346,6 +363,12 @@
       </vault-carousel>
     </div>
   </div>
+  {%- if model_media.size > 0 -%}
+    {%- comment -%} 3D models for Shopify XR ("View in your space"), read by component-product-gallery.js. {%- endcomment -%}
+    <script type="application/json" data-product-models>
+      {{ model_media | json }}
+    </script>
+  {%- endif -%}
 </product-gallery>
 
 {%- if zoom_on -%}

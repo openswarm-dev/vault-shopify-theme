@@ -94,6 +94,7 @@
       this.onScroll(true);
       // Keyboard users tabbing into a hidden header bring it back.
       this.listen(this.header, 'focusin', () => this.setHidden(false));
+      this.listen(document, 'vault:header:reveal', () => this.setHidden(false));
     }
 
     onScroll(initial = false) {

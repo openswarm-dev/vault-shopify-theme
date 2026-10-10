@@ -9,6 +9,8 @@
  * <load-more>           "Load more" button or infinite scroll: fetches the next page of the section
  *                       and appends each [data-append-target] group's items. The numbered
  *                       pagination stays in the markup as the no-JS fallback.
+ *                       Loaded pages + scroll position are kept in history.state, so Back from a
+ *                       product re-appends them and returns to the card the shopper left from.
  */
 (() => {
   'use strict';
@@ -231,6 +233,19 @@
     }
   };
 
+  const HISTORY_KEY = 'vaultLoadMore';
+  const MAX_RESTORE = 12;
+  const here = () => `${window.location.pathname}${window.location.search}`;
+  const readHistory = () => {
+    try { return (window.history.state && window.history.state[HISTORY_KEY]) || null; } catch (_) { return null; }
+  };
+  const writeHistory = (patch) => {
+    try {
+      const state = window.history.state && typeof window.history.state === 'object' ? window.history.state : {};
+      window.history.replaceState({ ...state, [HISTORY_KEY]: { ...(state[HISTORY_KEY] || {}), ...patch } }, '');
+    } catch (_) { /* sandboxed preview / rate-limited */ }
+  };
+
   class LoadMore extends HTMLElement {
     connectedCallback() {
       if (this._bound) return;
@@ -238,14 +253,64 @@
       this.sectionId = this.dataset.sectionId;
       this.nextUrl = this.dataset.nextUrl || '';
       this.onClick = this.onClick.bind(this);
+      this.onScroll = this.onScroll.bind(this);
       this.addEventListener('click', this.onClick);
-      if (this.dataset.mode === 'infinite' && this.nextUrl) this.watch();
+      if (!this.restore() && this.dataset.mode === 'infinite' && this.nextUrl) this.watch();
     }
 
     disconnectedCallback() {
       this.removeEventListener('click', this.onClick);
+      window.removeEventListener('scroll', this.onScroll);
+      clearTimeout(this.scrollTimer);
       this.unwatch();
       this._bound = false;
+    }
+
+    /* ---------- history: survive Back from a product page ---------- */
+
+    /** Record a loaded page on this history entry; scroll is restored by us, not the browser. */
+    remember(url) {
+      const saved = readHistory();
+      const same = saved && saved.section === this.sectionId && saved.base === here();
+      const pages = same && Array.isArray(saved.pages) ? saved.pages.slice() : [];
+      if (!pages.includes(url)) pages.push(url);
+      writeHistory({ section: this.sectionId, base: here(), pages, y: window.scrollY });
+      try { window.history.scrollRestoration = 'manual'; } catch (_) { /* old browsers */ }
+      window.addEventListener('scroll', this.onScroll, { passive: true });
+    }
+
+    onScroll() {
+      clearTimeout(this.scrollTimer);
+      this.scrollTimer = setTimeout(() => {
+        const saved = readHistory();
+        if (saved && saved.section === this.sectionId && saved.base === here()) writeHistory({ y: window.scrollY });
+      }, 200);
+    }
+
+    /** Re-append the pages loaded before the visitor left, then return to where they were. */
+    restore() {
+      const saved = readHistory();
+      if (!saved || saved.section !== this.sectionId || saved.base !== here()) return false;
+      const pages = Array.isArray(saved.pages) ? saved.pages.slice(0, MAX_RESTORE) : [];
+      if (!pages.length || stripSectionParams(this.nextUrl) !== pages[0]) return false;
+      this.restoring = true;
+      const startY = window.scrollY;
+      (async () => {
+        for (const url of pages) {
+          if (!this.isConnected || stripSectionParams(this.nextUrl) !== url) break;
+          // eslint-disable-next-line no-await-in-loop
+          if (!(await this.load({ restoring: true }))) break;
+        }
+        this.restoring = false;
+        if (!this.isConnected) return;
+        window.addEventListener('scroll', this.onScroll, { passive: true });
+        // Only jump if the visitor hasn't started scrolling on their own meanwhile.
+        if (Math.abs(window.scrollY - startY) < 40 && typeof saved.y === 'number') {
+          window.scrollTo({ top: saved.y, behavior: 'instant' });
+        }
+        if (this.dataset.mode === 'infinite' && this.nextUrl) this.watch();
+      })();
+      return true;
     }
 
     get results() {
@@ -280,9 +345,11 @@
       this.stopWatch = null;
     }
 
-    async load({ fromKeyboard = false } = {}) {
-      if (this.loading || !this.nextUrl || !this.sectionId) return;
+    async load({ fromKeyboard = false, restoring = false } = {}) {
+      if (this.loading || !this.nextUrl || !this.sectionId) return false;
+      if (this.restoring && !restoring) return false;
       this.loading = true;
+      const pageUrl = stripSectionParams(this.nextUrl);
       const btn = this.querySelector('[data-load-more-button]');
       btn?.classList.add('is-loading');
       btn?.setAttribute('aria-busy', 'true');
@@ -290,8 +357,8 @@
       let firstNew = null;
 
       try {
-        const doc = await V().fetchSection(this.sectionId, stripSectionParams(this.nextUrl));
-        if (!this.isConnected) return;
+        const doc = await V().fetchSection(this.sectionId, pageUrl);
+        if (!this.isConnected) return false;
 
         $$('[data-append-target]', doc).forEach((source) => {
           const key = source.dataset.appendTarget;
@@ -306,6 +373,7 @@
 
         const next = doc.querySelector('load-more');
         this.update(next);
+        if (!restoring) this.remember(pageUrl);
         if (fromKeyboard && firstNew) {
           const focusable = firstNew.querySelector('a[href], button:not([disabled])');
           focusable?.focus({ preventScroll: false });
@@ -315,7 +383,7 @@
         this.failed = true;
         this.unwatch();
         if (this.dataset.errorMessage && V().toast) V().toast(this.dataset.errorMessage, { type: 'error' });
-        return;
+        return false;
       } finally {
         this.loading = false;
         btn?.classList.remove('is-loading');
@@ -323,12 +391,13 @@
       }
 
       // Infinite mode: keep going while the end of the grid is still near the viewport.
-      if (this.dataset.mode === 'infinite' && this.nextUrl) {
+      if (!restoring && this.dataset.mode === 'infinite' && this.nextUrl) {
         requestAnimationFrame(() => {
           const r = this.getBoundingClientRect();
           if (r.top < window.innerHeight + 600) this.load();
         });
       }
+      return true;
     }
 
     update(next) {

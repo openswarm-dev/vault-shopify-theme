@@ -36,7 +36,7 @@
     %}
 
     <product-info
-      class="fp"
+      class="fp{% if fp_product != blank and current_variant.available == false %} is-unavailable{% endif %}"
       data-product
       data-section-id="{{ section.id }}"
       data-product-url="{{ fp_product.url }}"

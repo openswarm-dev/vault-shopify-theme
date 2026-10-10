@@ -45,7 +45,7 @@
         "promo-graded": {
           "type": "mega_promo",
           "settings": {
-            "menu_item": "Pokémon",
+            "menu_item": "Shop",
             "eyebrow": "Just landed",
             "heading": "Graded <em>grails</em>",
             "text": "PSA 10 and BGS 9.5 slabs, cert-verified and insured to your door.",
@@ -55,7 +55,7 @@
         "promo-sealed": {
           "type": "mega_promo",
           "settings": {
-            "menu_item": "Pokémon",
+            "menu_item": "Shop",
             "eyebrow": "Sealed",
             "heading": "Booster boxes, <em>untouched</em>",
             "text": "Factory-sealed displays, ETBs and cases straight from distribution.",

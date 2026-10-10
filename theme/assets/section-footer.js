@@ -129,7 +129,8 @@
       if (!fill || !motionOK()) return;
       const M = Vault.Motion;
       const cancel = M.scroll(
-        M.animate(fill, { clipPath: ['inset(100% -12% 0% -12%)', 'inset(-12% -12% -12% -12%)'] }, { ease: 'linear' }),
+        // Ends well outside the box (vertical slack > the drop-shadow blur) so the glow fades out softly.
+        M.animate(fill, { clipPath: ['inset(100% -12% 0% -12%)', 'inset(-45% -12% -45% -12%)'] }, { ease: 'linear' }),
         { target: this.wordmark, offset: ['start end', 'end end'] },
       );
       this.cleanups.push(() => {

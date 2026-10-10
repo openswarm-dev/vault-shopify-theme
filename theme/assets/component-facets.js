@@ -385,6 +385,15 @@
         if (next && document.activeElement !== sel) sel.value = next.value;
       });
 
+      // Every "Clear" link (sidebar heading, drawer footer…) keeps the current sort in its URL.
+      const clears = $$('[data-facets-clear]', fresh);
+      $$('[data-facets-clear]', this).forEach((a, i) => {
+        const src = clears[i];
+        if (!src) return;
+        a.hidden = src.hidden;
+        a.setAttribute('href', src.getAttribute('href'));
+      });
+
       this.dispatchEvent(new CustomEvent('facets:updated', { bubbles: true }));
     }
 
@@ -479,12 +488,7 @@
         return;
       }
       groups.forEach((group, i) => this.syncGroup(group, nextGroups[i], source));
-      const clears = $$('[data-facets-clear]', next);
-      $$('[data-facets-clear]', form).forEach((a, i) => {
-        if (!clears[i]) return;
-        a.hidden = clears[i].hidden;
-        a.setAttribute('href', clears[i].getAttribute('href'));
-      });
+      // [data-facets-clear] links are refreshed for the whole component in apply().
       const hiddenNext = $$('input[type="hidden"]', next);
       $$('input[type="hidden"]', form).forEach((input, i) => {
         if (hiddenNext[i] && hiddenNext[i].name === input.name) input.value = hiddenNext[i].value;

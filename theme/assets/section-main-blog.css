@@ -69,9 +69,10 @@
 
 /* ---------- Grid ---------- */
 .blog-grid {
+  --blog-gap: clamp(14px, .6rem + 1vw, 24px);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: clamp(14px, .6rem + 1vw, 24px);
+  gap: var(--blog-gap);
 }
 .blog-grid__item { min-width: 0; display: flex; }
 .blog-grid__item > * { flex: 1; }
@@ -82,6 +83,23 @@
 @media (min-width: 990px) {
   .blog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .blog-grid__item--featured { grid-column: span 2; }
+}
+
+/* Bookend: a last card that would sit alone in its row (main-blog.liquid adds --end-tablet /
+   --end-desktop) spans the row and turns horizontal — image | text — instead of leaving most of
+   the row empty above the pagination and footer. */
+@media (min-width: 750px) and (max-width: 989px) {
+  .blog-grid__item--end-tablet { grid-column: 1 / -1; }
+  .blog-grid__item--end-tablet > .card-article--md { flex-direction: row; }
+  .blog-grid__item--end-tablet .card-article__media { flex: 0 0 50%; aspect-ratio: auto; min-height: 260px; }
+  .blog-grid__item--end-tablet .card-article__body { justify-content: center; padding: 1.75rem; }
+}
+@media (min-width: 990px) {
+  .blog-grid__item--end-desktop { grid-column: 1 / -1; }
+  .blog-grid__item--end-desktop > .card-article--md { flex-direction: row; }
+  .blog-grid__item--end-desktop .card-article__media { flex: 0 0 calc((200% - var(--blog-gap)) / 3); /* lines up with the featured card above */ aspect-ratio: auto; min-height: 300px; }
+  .blog-grid__item--end-desktop .card-article__body { justify-content: center; padding: clamp(1.75rem, 1rem + 2vw, 2.75rem); }
+  .blog-grid__item--end-desktop .card-article__title { font-size: var(--h4); }
 }
 
 .main-blog__pagination { margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem); }

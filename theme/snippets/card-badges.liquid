@@ -3,19 +3,26 @@
 
   Usage:
     {% render 'card-badges', product: product, context: 'card' %}
+    {% render 'card-badges', product: product, context: 'rarity' %}
     {% render 'card-badges', product: product, variant: product.selected_or_first_available_variant, context: 'product' %}
     {% render 'card-badges', product: item.product, variant: item.variant, context: 'cart' %}
 
   Params:
     product   product object (required)
     variant   variant object (optional) — drives sold out / sale / low stock when given
-    context   'card' (default) — status badges in .card-badges__status (top-left of a product card)
-                                 and the slab label in .card-badges__grade (top-right)
-              'product' — one larger row with every badge (product page)
+    label     rarity text to show instead of the product's (sample cards in card-product; product may be blank)
+    tier      rarity tier for `label` (common|uncommon|rare|holo|ultra|secret|promo) — default: mapped from the text
+    context   'card' (default) — ONE status badge in .card-badges__status (top-left of a product card's
+                                 media, highest priority wins: sold out › sale › low stock › new › sealed)
+                                 and the slab label in .card-badges__grade (top-right). Rarity is not part
+                                 of it: long rarity names would cover the card art.
+              'rarity'  — the rarity chip on its own (product card info area, card flip reveal)
+              'product' — one larger row with every badge (product page). The sale badge is left out:
+                          the price block's saving chip already says it.
               'cart'    — compact: grade + rarity only
 
   Collector data is read per ARCHITECTURE §8 (metafields in settings.collector_namespace, tag fallback).
-  Context 'card' is positioned by component-card.css; 'product' and 'cart' load component-badges.css.
+  Contexts 'card' and 'rarity' are styled by component-card.css; 'product' and 'cart' load component-badges.css.
 {%- endcomment -%}
 {%- liquid
   assign badge_context = context | default: 'card'
@@ -85,6 +92,11 @@
     endif
   endif
 
+  # Sample cards pass their own rarity text (+ tier).
+  if label != blank
+    assign rarity = label
+  endif
+
   # ---- Rarity → tier ----
   assign rarity_tier = ''
   if rarity != blank
@@ -103,43 +115,51 @@
     elsif r contains 'promo'
       assign rarity_tier = 'promo'
     endif
+    if label != blank
+      assign rarity_tier = tier | default: rarity_tier
+    endif
   endif
 
-  # ---- Commerce state ----
+  # ---- Commerce state (not needed for the rarity chip) ----
   assign is_sold_out = false
-  if variant != blank
-    if variant.available == false
+  assign is_sale = false
+  assign sale_percent = 0
+  assign is_new = false
+  assign low_stock_qty = 0
+  if badge_context != 'rarity'
+    if variant != blank
+      if variant.available == false
+        assign is_sold_out = true
+      endif
+    elsif product.available == false
       assign is_sold_out = true
     endif
-  elsif product.available == false
-    assign is_sold_out = true
-  endif
 
-  assign sale_percent = 0
-  assign is_sale = false
-  if is_sold_out == false and badge_variant.compare_at_price > badge_variant.price
-    assign is_sale = true
-    assign sale_percent = badge_variant.compare_at_price | minus: badge_variant.price | times: 100.0 | divided_by: badge_variant.compare_at_price | round
-  elsif is_sold_out == false and variant == blank and product.compare_at_price > product.price
-    assign is_sale = true
-  endif
-
-  assign is_new = false
-  if settings.card_new_badge_days > 0 and product.created_at != blank
-    assign now_s = 'now' | date: '%s' | plus: 0
-    assign created_s = product.created_at | date: '%s' | plus: 0
-    assign age_days = now_s | minus: created_s | divided_by: 86400
-    if age_days < settings.card_new_badge_days
-      assign is_new = true
+    # The product page shows the saving next to the price, so no sale badge there.
+    if badge_context != 'product'
+      if is_sold_out == false and badge_variant.compare_at_price > badge_variant.price
+        assign is_sale = true
+        assign sale_percent = badge_variant.compare_at_price | minus: badge_variant.price | times: 100.0 | divided_by: badge_variant.compare_at_price | round
+      elsif is_sold_out == false and variant == blank and product.compare_at_price > product.price
+        assign is_sale = true
+      endif
     endif
-  endif
 
-  assign low_stock_qty = 0
-  if is_sold_out == false and settings.low_stock_threshold > 0
-    if badge_context == 'product' or product.variants.size == 1
-      if badge_variant.inventory_management == 'shopify' and badge_variant.inventory_policy == 'deny'
-        if badge_variant.inventory_quantity > 0 and badge_variant.inventory_quantity <= settings.low_stock_threshold
-          assign low_stock_qty = badge_variant.inventory_quantity
+    if settings.card_new_badge_days > 0 and product.created_at != blank
+      assign now_s = 'now' | date: '%s' | plus: 0
+      assign created_s = product.created_at | date: '%s' | plus: 0
+      assign age_days = now_s | minus: created_s | divided_by: 86400
+      if age_days < settings.card_new_badge_days
+        assign is_new = true
+      endif
+    endif
+
+    if is_sold_out == false and settings.low_stock_threshold > 0
+      if badge_context == 'product' or product.variants.size == 1
+        if badge_variant.inventory_management == 'shopify' and badge_variant.inventory_policy == 'deny'
+          if badge_variant.inventory_quantity > 0 and badge_variant.inventory_quantity <= settings.low_stock_threshold
+            assign low_stock_qty = badge_variant.inventory_quantity
+          endif
         endif
       endif
     endif
@@ -166,10 +186,13 @@
     </span>
   {%- endif -%}
 {%- endcapture -%}
-{%- capture badge_status -%}
+{%- comment -%} Status badges, in priority order (the card context shows only the first). {%- endcomment -%}
+{%- capture badge_sold_out -%}
   {%- if is_sold_out -%}
     <span class="badge badge--sold-out"><span class="badge__text">{{ 'products.product.sold_out' | t }}</span></span>
   {%- endif -%}
+{%- endcapture -%}
+{%- capture badge_sale -%}
   {%- if is_sale -%}
     <span class="badge badge--sale"><span class="badge__text">
       {%- if sale_percent > 0 -%}
@@ -179,17 +202,43 @@
       {%- endif -%}
     </span></span>
   {%- endif -%}
-  {%- if is_new -%}
-    <span class="badge badge--new"><span class="badge__text">{{ 'products.product.badges.new' | t }}</span></span>
-  {%- endif -%}
+{%- endcapture -%}
+{%- capture badge_low_stock -%}
   {%- if low_stock_qty > 0 -%}
     <span class="badge badge--low-stock"><span class="badge__text">{{ 'products.product.badges.low_stock' | t: count: low_stock_qty }}</span></span>
   {%- endif -%}
+{%- endcapture -%}
+{%- capture badge_new -%}
+  {%- if is_new -%}
+    <span class="badge badge--new"><span class="badge__text">{{ 'products.product.badges.new' | t }}</span></span>
+  {%- endif -%}
+{%- endcapture -%}
+{%- capture badge_sealed -%}
   {%- if is_sealed -%}
     <span class="badge badge--sealed"><span class="badge__text">{{ 'products.product.badges.sealed' | t }}</span></span>
   {%- endif -%}
 {%- endcapture -%}
+{%- liquid
+  assign badge_status = badge_sold_out | append: badge_sale | append: badge_low_stock | append: badge_new | append: badge_sealed
+  assign badge_status_top = badge_sold_out
+  if badge_status_top == blank
+    assign badge_status_top = badge_sale
+  endif
+  if badge_status_top == blank
+    assign badge_status_top = badge_low_stock
+  endif
+  if badge_status_top == blank
+    assign badge_status_top = badge_new
+  endif
+  if badge_status_top == blank
+    assign badge_status_top = badge_sealed
+  endif
+-%}
 {%- case badge_context -%}
+  {%- when 'rarity' -%}
+    {%- if badge_rarity != blank -%}
+      <div class="card-badges card-badges--rarity badges">{{ badge_rarity }}</div>
+    {%- endif -%}
   {%- when 'product' -%}
     {%- if badge_status != blank or badge_rarity != blank or badge_grade != blank -%}
       {{ 'component-badges.css' | asset_url | stylesheet_tag }}
@@ -208,13 +257,10 @@
       </div>
     {%- endif -%}
   {%- else -%}
-    {%- if badge_status != blank or badge_rarity != blank or badge_grade != blank -%}
+    {%- if badge_status_top != blank or badge_grade != blank -%}
       <div class="card-badges card-badges--card">
-        {%- if badge_status != blank or badge_rarity != blank -%}
-          <div class="card-badges__status badges">
-            {{- badge_status -}}
-            {{- badge_rarity -}}
-          </div>
+        {%- if badge_status_top != blank -%}
+          <div class="card-badges__status badges">{{ badge_status_top }}</div>
         {%- endif -%}
         {%- if badge_grade != blank -%}
           <div class="card-badges__grade">{{ badge_grade }}</div>

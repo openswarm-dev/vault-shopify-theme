@@ -1,6 +1,8 @@
 // Runs Shopify Theme Check against ./theme and prints a compact report.
 // Usage: node scripts/check.mjs [--json] [--all]   (--all includes info-level offenses)
+// Also runs scripts/schema-ranges.mjs (range steps/defaults Shopify rejects on upload; Theme Check skips them).
 import { check } from '@shopify/theme-check-node';
+import { schemaRangeOffenses } from './schema-ranges.mjs';
 import { resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -8,7 +10,7 @@ const themeRoot = resolve(fileURLToPath(new URL('../theme', import.meta.url)));
 const args = process.argv.slice(2);
 const SEVERITY = ['error', 'warning', 'info'];
 
-const offenses = await check(themeRoot);
+const offenses = [...(await check(themeRoot)), ...schemaRangeOffenses(themeRoot)];
 const shown = offenses.filter((o) => args.includes('--all') || o.severity < 2);
 
 if (args.includes('--json')) {

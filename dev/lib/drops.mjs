@@ -1,6 +1,7 @@
 // Shopify-like drop classes for the local preview.
 import { Drop } from 'liquidjs';
 import { artSize } from '../mock/art.mjs';
+import { parseHandle, handleFor } from './fonts.mjs';
 
 /* ------------------------------------------------------------------ */
 /* Color                                                               */
@@ -170,19 +171,22 @@ export class OptionValueDrop extends Drop {
   toJSON() { return this.name; }
 }
 
-/** Font drop for font_picker settings. */
+/** Font drop for font_picker settings (handles like "unbounded_n7", "plus_jakarta_sans_i4"; see fonts.mjs). */
 export class FontDrop extends Drop {
   constructor(handle = 'assistant_n4') {
     super();
-    const [fam, variant = 'n4'] = String(handle).split('_');
-    this.family = fam.replace(/(^|-)(\w)/g, (_, s, c) => `${s ? ' ' : ''}${c.toUpperCase()}`);
-    this.fallback_families = 'sans-serif';
-    this.style = variant[0] === 'i' ? 'italic' : 'normal';
-    this.weight = Number(variant.slice(1) || 4) * 100;
+    const { slug, family, style, weight } = parseHandle(handle);
+    Object.defineProperty(this, 'slug', { value: slug, enumerable: false });
+    this.family = family;
+    this.fallback_families = /\bmono\b/i.test(family) ? 'monospace' : 'sans-serif';
+    this.style = style;
+    this.weight = weight;
     this.baseline_ratio = 0.2;
     this.system = false;
+    this['system?'] = false;
     this.variants = [this];
   }
+  get handle() { return handleFor(this.slug, this.style, this.weight); }
   toString() { return this.family; }
   valueOf() { return this.family; }
 }

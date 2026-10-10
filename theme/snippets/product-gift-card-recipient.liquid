@@ -1,0 +1,87 @@
+{%- comment -%}
+  "Send to a recipient" fields for gift card products (Shopify gift card recipient line item properties).
+  Render INSIDE the product {% form %}. <gift-card-recipient> (component-product-form.js) disables the
+  fields while the checkbox is off (so nothing is sent) and fills the visitor's timezone offset.
+  Without JS the fields still appear once the checkbox is ticked (CSS :has()).
+
+  Usage:
+    {% render 'product-gift-card-recipient', section_id: section_id %}
+{%- endcomment -%}
+{%- liquid
+  assign gr_id = 'GiftRecipient-' | append: section_id
+  assign gr_today = 'now' | date: '%Y-%m-%d'
+  assign gr_max_s = 'now' | date: '%s' | plus: 7776000
+  assign gr_max = gr_max_s | date: '%Y-%m-%d'
+-%}
+<gift-card-recipient class="pdp-gift">
+  <label class="check pdp-gift__toggle" for="{{ gr_id }}-toggle">
+    <input
+      type="checkbox"
+      id="{{ gr_id }}-toggle"
+      name="properties[__shopify_send_gift_card_to_recipient]"
+      value="on"
+      aria-controls="{{ gr_id }}-fields"
+      data-gift-toggle
+    >
+    <span>{{ 'products.pdp.gift_recipient.checkbox' | t }}</span>
+  </label>
+
+  <div class="pdp-gift__fields" id="{{ gr_id }}-fields" data-gift-fields>
+    <div class="field">
+      <input
+        class="field__input"
+        type="email"
+        id="{{ gr_id }}-email"
+        name="properties[Recipient email]"
+        placeholder=" "
+        autocomplete="off"
+        spellcheck="false"
+        data-gift-input
+      >
+      <label class="field__label" for="{{ gr_id }}-email">{{ 'products.pdp.gift_recipient.email' | t }}</label>
+    </div>
+    <div class="field">
+      <input
+        class="field__input"
+        type="text"
+        id="{{ gr_id }}-name"
+        name="properties[Recipient name]"
+        placeholder=" "
+        autocomplete="off"
+        data-gift-input
+      >
+      <label class="field__label" for="{{ gr_id }}-name">{{ 'products.pdp.gift_recipient.name' | t }}</label>
+    </div>
+    <div class="field">
+      <textarea
+        class="field__input"
+        id="{{ gr_id }}-message"
+        name="properties[Message]"
+        placeholder=" "
+        rows="3"
+        maxlength="200"
+        aria-describedby="{{ gr_id }}-message-hint"
+        data-gift-input
+      ></textarea>
+      <label class="field__label" for="{{ gr_id }}-message">{{ 'products.pdp.gift_recipient.message' | t }}</label>
+    </div>
+    <p class="pdp-gift__hint" id="{{ gr_id }}-message-hint">{{ 'products.pdp.gift_recipient.message_hint' | t: max: 200 }}</p>
+    <div class="field">
+      <input
+        class="field__input"
+        type="date"
+        id="{{ gr_id }}-date"
+        name="properties[Send on]"
+        placeholder=" "
+        min="{{ gr_today }}"
+        max="{{ gr_max }}"
+        pattern="\d{4}-\d{2}-\d{2}"
+        aria-describedby="{{ gr_id }}-date-hint"
+        data-gift-input
+      >
+      <label class="field__label" for="{{ gr_id }}-date">{{ 'products.pdp.gift_recipient.send_on' | t }}</label>
+    </div>
+    <p class="pdp-gift__hint" id="{{ gr_id }}-date-hint">{{ 'products.pdp.gift_recipient.send_on_hint' | t }}</p>
+    <input type="hidden" name="properties[__shopify_offset]" value="" data-gift-input data-gift-offset>
+  </div>
+</gift-card-recipient>

@@ -30,8 +30,12 @@
   {%- endif -%}
 
   {%- if s.show_cards -%}
+    {%- comment -%}
+      Both cards use a negative parallax speed: they sit lower while the section's top edge is on
+      screen and higher while its bottom edge is, so the section's overflow clip never slices them.
+    {%- endcomment -%}
     <div class="newsletter__cards" aria-hidden="true">
-      <div class="newsletter__card newsletter__card--left" data-parallax="0.1">
+      <div class="newsletter__card newsletter__card--left" data-parallax="-0.08">
         <div class="newsletter__card-inner">
           {%- render 'placeholder-card', variant: 3, uid: section.id -%}
         </div>

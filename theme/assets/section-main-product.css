@@ -1,8 +1,9 @@
 /* ==========================================================================
    VAULT — section-main-product.css
    PDP layout · breadcrumbs · sticky add-to-cart bar.
-   Phones: edge-to-edge gallery then info. Tablet portrait: full-width gallery, info in a
-   comfortable measure. Desktop ≥ 990 (incl. iPad landscape): sticky gallery 56% + info 44%.
+   Phones: edge-to-edge gallery then info. Tablet portrait (750–989): two even columns, the
+   gallery sized to its column and sticky, so price + Add to cart sit in the first screen.
+   Desktop ≥ 990 (incl. iPad landscape): sticky gallery 56% + info 44%.
    ========================================================================== */
 
 .main-product {
@@ -80,13 +81,26 @@
 
 /* ---------- Tablet portrait ---------- */
 @media (min-width: 750px) and (max-width: 989px) {
-  .pdp__grid { gap: 2rem; }
-  .pdp__info {
-    width: 100%;
-    max-width: 680px;
-    margin-inline: auto;
+  .pdp__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.75rem;
+    align-items: start;
   }
-  .pdp-title.h2 { font-size: calc(var(--h2) * 1.06); }
+  /* The gallery sizes its stage from this column (component-product-gallery.css, cqi units). */
+  .pdp__media { container-type: inline-size; }
+  .pdp--sticky-media .pdp__media {
+    position: sticky;
+    top: calc(var(--header-height) + 12px);
+  }
+}
+
+/* Title scale for the two-column buy box (tablet + desktop): display caps read loud, so keep it a
+   step under the section h2 and let the price lead the hierarchy. */
+@media (min-width: 750px) {
+  .pdp-title.h2 {
+    font-size: calc(clamp(1.75rem, 1rem + 1.4vw, 2.5rem) * var(--heading-adjust, 1) * var(--heading-scale, 1));
+    line-height: 1.02;
+  }
 }
 
 /* ---------- Desktop + iPad landscape ---------- */
@@ -220,7 +234,9 @@ html.no-js .pdp-sticky { display: none; }
   .pdp-sticky__thumb { width: 40px; }
   .pdp-sticky__atc.btn { min-height: 52px; padding: 0 1.75rem; }
 }
-@media (min-width: 990px) {
+/* "Phones and tablets" mode: hidden only on hover-capable desktops — touch tablets in landscape keep it
+   (same test as component-product-form.js). */
+@media (min-width: 990px) and (hover: hover) and (pointer: fine) {
   .pdp-sticky[data-mode="mobile"] { display: none; }
 }
 

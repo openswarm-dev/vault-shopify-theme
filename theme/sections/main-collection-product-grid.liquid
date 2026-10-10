@@ -58,7 +58,14 @@
     assign desk_offset = sidebar_px | plus: 96
     capture card_sizes
       echo '(min-width: ' | append: wide_from | append: 'px) ' | append: wide_px | append: 'px, '
-      echo '(min-width: 990px) calc((100vw - ' | append: desk_offset | append: 'px) / ' | append: cols_desktop | append: '), '
+      if sidebar
+        # 990–1199px beside the sidebar the grid shows one column fewer (section-collection-grid.css).
+        assign cols_narrow = cols_desktop | minus: 1
+        echo '(min-width: 1200px) calc((100vw - ' | append: desk_offset | append: 'px) / ' | append: cols_desktop | append: '), '
+        echo '(min-width: 990px) calc((100vw - ' | append: desk_offset | append: 'px) / ' | append: cols_narrow | append: '), '
+      else
+        echo '(min-width: 990px) calc((100vw - ' | append: desk_offset | append: 'px) / ' | append: cols_desktop | append: '), '
+      endif
       echo '(min-width: 750px) calc((100vw - 80px) / ' | append: cols_tablet | append: '), '
       echo 'calc((100vw - 44px) / ' | append: cols_mobile | append: ')'
     endcapture
@@ -196,6 +203,7 @@
                   class="grid product-grid"
                   role="list"
                   data-density
+                  data-cols-desktop="{{ cols_desktop }}"
                   style="--cols-mobile: {{ cols_mobile }}; --cols-tablet: {{ cols_tablet }}; --cols-desktop: {{ cols_desktop }};"
                 >
                   {%- render 'facets-placeholder-products', count: 8, uid: sid -%}

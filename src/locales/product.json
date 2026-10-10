@@ -16,7 +16,9 @@
         "zoom_hint_touch": "Tap to zoom · Pinch or drag to pan",
         "zoom_hint_pointer": "Click to zoom · Move to pan",
         "flip": "Flip",
-        "flip_label": "Flip the card to see the back"
+        "flip_label": "Flip the card to see the back",
+        "view_in_space": "View in your space",
+        "view_in_space_label": "View in your space, loads item in augmented reality window"
       },
       "stock": {
         "in_stock": "In stock",
@@ -62,6 +64,23 @@
       "sticky": {
         "label": "Quick add to cart",
         "back_to_top": "Back to product images"
+      },
+      "pickup": {
+        "available_at_html": "Pickup available at <strong>{{ location }}</strong>",
+        "unavailable_at_html": "Pickup currently unavailable at <strong>{{ location }}</strong>",
+        "available": "Pickup available",
+        "unavailable": "Pickup currently unavailable",
+        "view_store_info": "View store information",
+        "check_other_stores": "Check availability at other stores"
+      },
+      "gift_recipient": {
+        "checkbox": "Send it to a recipient as a gift",
+        "email": "Recipient email",
+        "name": "Recipient name (optional)",
+        "message": "Message (optional)",
+        "message_hint": "{{ max }} characters max",
+        "send_on": "Send on (optional)",
+        "send_on_hint": "Leave empty to send it right away. Up to 90 days ahead."
       }
     }
   },

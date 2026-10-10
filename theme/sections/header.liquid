@@ -109,10 +109,14 @@
           <kbd class="header__kbd" data-search-kbd aria-hidden="true" hidden>⌘K</kbd>
         </a>
 
+        {%- comment -%}
+          Phones keep the bar to search + cart so the wordmark has room on every template;
+          the account link lives in the dock and at the top of the menu drawer.
+        {%- endcomment -%}
         {%- if shop.customer_accounts_enabled -%}
           <a
             href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}"
-            class="header__icon header__account{% if show_dock %} hide-mobile{% endif %}"
+            class="header__icon header__account hide-mobile"
           >
             {%- render 'icon', name: 'user', size: 22 -%}
             <span class="visually-hidden">
@@ -256,8 +260,8 @@
           "type": "text",
           "id": "menu_item",
           "label": "Menu item",
-          "info": "Title of the top-level menu item this card appears under, e.g. Pokémon. Up to two cards per menu item.",
-          "default": "Pokémon"
+          "info": "Title of the top-level menu item whose mega menu shows this card, e.g. Shop. Up to two cards per menu item.",
+          "default": "Shop"
         },
         {
           "type": "image_picker",

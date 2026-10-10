@@ -78,6 +78,13 @@ html:not(.motion-ok) .header { transition: background-color .35s var(--ease-out)
 }
 .header__nav { display: none; }
 
+/* Phones: the brand fills its track (the flex row keeps the logo left-aligned) and the logo may
+   shrink below its text width, so a long shop name ellipsizes instead of running under the icons. */
+@media (max-width: 749px) {
+  .header__brand { justify-self: stretch; }
+  .header__brand .logo { min-width: 0; }
+}
+
 @media (min-width: 750px) {
   .header__inner {
     height: 72px;
@@ -146,6 +153,13 @@ html.motion-ok .logo__dot { animation: header-dot 2.6s var(--ease-in-out) infini
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: .45; transform: scale(.7); }
 }
+/* Narrow phones: the wordmark scales with the viewport; the dot steps aside below 360px. */
+@media (max-width: 399px) {
+  .header__brand .logo__text { font-size: calc(clamp(.8125rem, 4.3vw, 1.0625rem) * var(--heading-adjust, 1)); }
+}
+@media (max-width: 359px) {
+  .header__brand .logo__dot { display: none; }
+}
 @media (min-width: 750px) {
   .logo__img { width: var(--logo-width); max-height: 52px; }
   .header__brand .logo__img { object-position: center; }
@@ -180,7 +194,8 @@ html.motion-ok .logo__dot { animation: header-dot 2.6s var(--ease-in-out) infini
 }
 .header__kbd { display: none; }
 
-/* Wide screens: search becomes a command-palette pill with a shortcut hint. */
+/* Wide screens: search becomes a command-palette pill with a shortcut hint
+   (icon + shortcut from 1200px, plus the "Search" label from 1400px where the row has room). */
 @media (min-width: 1200px) {
   .header__search {
     display: inline-flex;
@@ -200,14 +215,6 @@ html.motion-ok .logo__dot { animation: header-dot 2.6s var(--ease-in-out) infini
     transition: border-color var(--dur), background-color var(--dur), color var(--dur);
   }
   .header__search .icon { width: 18px; height: 18px; }
-  .header__search-label {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    clip: auto;
-    padding-right: 1.75rem;
-  }
   .header__kbd:not([hidden]) {
     display: inline-grid;
     place-items: center;
@@ -221,6 +228,20 @@ html.motion-ok .logo__dot { animation: header-dot 2.6s var(--ease-in-out) infini
     font-size: var(--text-2xs);
     font-weight: 700;
     color: var(--color-text);
+  }
+}
+@media (min-width: 1200px) and (max-width: 1399px) {
+  /* No shortcut hint (touch screens): a round icon button. */
+  .header__search:has(.header__kbd[hidden]) { justify-content: center; width: 40px; padding: 0; }
+}
+@media (min-width: 1400px) {
+  .header__search-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    padding-right: 1.75rem;
   }
 }
 @media (min-width: 1200px) and (hover: hover) and (pointer: fine) {
@@ -356,8 +377,11 @@ html.motion-ok .logo__dot { animation: header-dot 2.6s var(--ease-in-out) infini
   .header__nav:not(.has-indicator) .header__link:hover { background: rgb(var(--color-text-rgb) / .07); }
 }
 
+/* Small desktops / landscape tablets: a tighter row so logo + six links + icons fit from 990px. */
 @media (min-width: 990px) and (max-width: 1199px) {
-  .header__link { padding: 0 .7rem; letter-spacing: .08em; }
+  .header__inner { column-gap: 1rem; }
+  .header__link { padding: 0 .55rem; letter-spacing: .06em; }
+  .header__brand .logo__text { font-size: calc(1.0625rem * var(--heading-adjust, 1)); }
 }
 
 /* ---------- Panels (shared) ---------- */
@@ -562,7 +586,44 @@ html.motion-ok .logo__dot { animation: header-dot 2.6s var(--ease-in-out) infini
 }
 .mega__all .icon { color: var(--color-accent); transition: transform var(--dur) var(--ease-out); }
 .mega__all:hover .icon { transform: translateX(4px); }
-.mega__count { font-size: var(--text-xs); color: var(--color-muted); letter-spacing: .1em; }
+
+/* Small desktops / landscape tablets: one promo card keeps three readable link columns. */
+@media (max-width: 1199px) {
+  .mega__promo:nth-child(n + 2) { display: none; }
+}
+
+/* Touch (landscape tablets open panels by tap): full-size targets inside panels. */
+@media (pointer: coarse) {
+  .mega__heading { min-height: 44px; margin-bottom: .25rem; }
+  .mega__link { min-height: 44px; }
+  .mega__link::after { bottom: 10px; }
+  .dropdown__link,
+  .dropdown__all { min-height: 44px; }
+}
+
+/* Dim the page under an open mega menu so the panel reads as a layer above it.
+   Fixed to the viewport, stacked under the header bar (inside the sticky header's context). */
+.vault-header::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgb(0 0 0 / .5);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .35s var(--ease-out), visibility 0s linear .35s;
+}
+@media (min-width: 990px) {
+  .vault-header:has(.header__item--mega > .header__details[open])::after {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .35s var(--ease-out);
+  }
+  /* With JS, a tap on the dimmed page only closes the panel (section-header.js closes on any
+     outside pointerdown) instead of also activating whatever link sits underneath. */
+  .js .vault-header:has(.header__item--mega > .header__details[open])::after { pointer-events: auto; }
+}
 
 /* ---------- Promo card (mega menu + drawer) ---------- */
 .header-promo {

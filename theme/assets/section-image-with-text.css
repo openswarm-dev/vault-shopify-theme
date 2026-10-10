@@ -177,11 +177,18 @@
 
 /* ---------- Trading card on a glowing pedestal ---------- */
 .iwt__stage {
+  /* Breathing room for the backdrop glow, idle float and the pedestal under the card */
+  --iwt-stage-pt: clamp(1.5rem, 1rem + 3vw, 3rem);
+  --iwt-stage-pb: clamp(3.25rem, 2.5rem + 3vw, 5rem);
   position: relative;
   isolation: isolate;
   display: grid;
   place-items: center;
-  padding: clamp(1.5rem, 1rem + 3vw, 3rem) 0 clamp(3.25rem, 2.5rem + 3vw, 5rem);
+  padding: var(--iwt-stage-pt) 0 var(--iwt-stage-pb);
+  /* Where the stage meets a section edge (always the top: the image leads when stacked), that room
+     overlaps the section padding instead of stacking on top of it and leaving a dead band. Capped at
+     part of the padding so small merchant paddings never push the glow into the neighbouring section. */
+  margin-top: calc(min(var(--iwt-stage-pt), var(--section-space) * var(--pt, 1) * .5) * -1);
 }
 /* Backdrop glow */
 .iwt__stage::before {
@@ -325,6 +332,10 @@ html.motion-ok .iwt__pedestal-shadow { animation: iwt-shadow 6.5s var(--ease-in-
   .iwt--bleed .iwt__content { padding-block: var(--space-8); }
 
   .iwt__card { width: min(78%, 360px); }
+
+  /* Side by side the stage also meets the bottom edge: let the pedestal spill into the section
+     padding so the card itself sizes the row. */
+  .iwt__stage { margin-bottom: calc(min(var(--iwt-stage-pb), var(--section-space) * var(--pb, 1) * .75) * -1); }
 }
 /* iPad Air / Pro portrait (820–989): even split so the text column never gets squeezed */
 @media (min-width: 820px) and (max-width: 989px) {

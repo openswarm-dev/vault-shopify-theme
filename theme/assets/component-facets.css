@@ -272,6 +272,8 @@ price-range { display: block; }
 .price-range__slider {
   position: relative;
   height: 44px;
+  /* Room for the thumb ring (5px, 8px while dragging) + shadow at both ends: the accordion clips. */
+  margin-inline: 8px;
 }
 .price-range__track {
   position: absolute;

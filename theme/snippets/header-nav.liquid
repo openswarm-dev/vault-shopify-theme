@@ -59,7 +59,11 @@
             <div class="header__panel header__panel--mega" id="{{ panel_id }}" data-nav-panel>
               <div class="mega page-width{% if promo_count > 0 %} mega--has-promos{% endif %}">
                 {%- liquid
+                  # Promo cards take the right-hand side, so the link grid drops to 3 columns.
                   assign col_count = link.links.size | at_most: 4
+                  if promo_count > 0
+                    assign col_count = link.links.size | at_most: 3
+                  endif
                   unless has_grandchildren
                     assign col_count = 1
                   endunless
@@ -145,10 +149,9 @@
                 <div class="mega__footer">
                   <div class="page-width mega__footer-inner">
                     <a href="{{ link.url }}" class="mega__all" data-panel-item>
-                      <span>{{ 'sections.header.shop_all' | t: title: link.title }}</span>
+                      <span>{%- render 'menu-view-all-label', title: link.title -%}</span>
                       {%- render 'icon', name: 'arrow-right', size: 16 -%}
                     </a>
-                    <span class="mega__count mono" aria-hidden="true">{{ link.links.size | prepend: '0' | slice: -2, 2 }}</span>
                   </div>
                 </div>
               {%- endif -%}

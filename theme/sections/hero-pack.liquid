@@ -20,13 +20,26 @@
 
   # Fan geometry: every card gets a normalised offset from the centre (-1 … 1) for the
   # desktop/tablet fan (all cards) and for the phone fan (the middle three cards only).
-  assign half = card_total | minus: 1 | divided_by: 2.0
-  assign norm = half | at_least: 1
+  # Desktop offsets are literals, not `divided_by` arithmetic: whether -1 / 2 gives -0.5 or
+  # floors to -1 depends on how an engine types whole numbers, and a floored offset stacks
+  # two cards on the same pose.
+  case card_total
+    when 5
+      assign fan_offsets = '-1,-0.5,0,0.5,1' | split: ','
+    when 4
+      assign fan_offsets = '-1,-0.3333,0.3333,1' | split: ','
+    when 3
+      assign fan_offsets = '-1,0,1' | split: ','
+    when 2
+      assign fan_offsets = '-0.5,0.5' | split: ','
+    else
+      assign fan_offsets = '0' | split: ','
+  endcase
   assign mobile_total = card_total | at_most: 3
   assign mobile_start = card_total | minus: 3 | at_least: 0 | divided_by: 2 | floor
   assign mobile_end = mobile_start | plus: mobile_total
-  assign half_m = mobile_total | minus: 1 | divided_by: 2.0
-  assign norm_m = half_m | at_least: 1
+  # Phone fan: whole-card steps around the middle card (-1, 0, 1), or ±0.5 for two cards.
+  assign half_m = mobile_total | minus: 1 | times: 0.5
   assign variants = '2,3,5,4,6' | split: ','
 
   assign img_loading = 'eager'
@@ -201,10 +214,10 @@
                 assign idx = forloop.index0
                 assign card_block = card_blocks[idx]
 
-                assign o = idx | minus: half | divided_by: norm
+                assign o = fan_offsets[idx] | plus: 0
                 assign o_abs = o | abs
                 assign o2 = o | times: o
-                assign om = idx | minus: mobile_start | minus: half_m | divided_by: norm_m
+                assign om = idx | minus: mobile_start | minus: half_m
                 assign om2 = om | times: om
                 assign z_drop = o_abs | times: 4 | round
                 assign z = 20 | minus: z_drop
@@ -213,6 +226,11 @@
                 assign desktop_only = false
                 if idx < mobile_start or idx >= mobile_end
                   assign desktop_only = true
+                endif
+                # 5-card fan: the two cards half under the centre slab (their labels hide on narrow fans).
+                assign inner_card = false
+                if card_total == 5 and o_abs == 0.5
+                  assign inner_card = true
                 endif
 
                 assign card_product = card_block.settings.product
@@ -248,7 +266,7 @@
                 assign uid = section.id | append: '-hp-' | append: idx
               -%}
               <div
-                class="hp-card{% if graded %} hp-card--slab{% endif %}{% if desktop_only %} hp-card--desk{% endif %}{% if om == 0 %} hp-card--mid-m{% endif %}"
+                class="hp-card{% if graded %} hp-card--slab{% endif %}{% if desktop_only %} hp-card--desk{% endif %}{% if om == 0 %} hp-card--mid-m{% endif %}{% if inner_card %} hp-card--inner{% endif %}"
                 style="--o-d: {{ o }}; --o2-d: {{ o2 }}; --o-m: {{ om }}; --o2-m: {{ om2 }}; --ar: {{ ar }}; --z: {{ z }};"
                 data-hp-card
                 data-depth="{{ depth }}"

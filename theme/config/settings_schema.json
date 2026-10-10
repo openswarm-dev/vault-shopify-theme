@@ -12,7 +12,7 @@
     "settings": [
       { "type": "image_picker", "id": "logo", "label": "Logo" },
       { "type": "range", "id": "logo_width", "min": 60, "max": 300, "step": 5, "unit": "px", "label": "Desktop logo width", "default": 130 },
-      { "type": "range", "id": "logo_width_mobile", "min": 50, "max": 200, "step": 5, "unit": "px", "label": "Mobile logo width", "default": 96 },
+      { "type": "range", "id": "logo_width_mobile", "min": 50, "max": 200, "step": 5, "unit": "px", "label": "Mobile logo width", "default": 95 },
       { "type": "image_picker", "id": "favicon", "label": "Favicon", "info": "Scaled down to 32 x 32px" }
     ]
   },
@@ -51,37 +51,27 @@
     "name": "Typography",
     "settings": [
       {
-        "type": "select",
-        "id": "font_display",
+        "type": "font_picker",
+        "id": "type_display_font",
         "label": "Display font",
-        "info": "Loaded from Google Fonts",
-        "options": [
-          { "value": "unbounded", "label": "Unbounded" },
-          { "value": "archivo_expanded", "label": "Archivo Expanded" },
-          { "value": "chakra_petch", "label": "Chakra Petch" },
-          { "value": "space_grotesk", "label": "Space Grotesk" },
-          { "value": "syne", "label": "Syne" },
-          { "value": "oswald", "label": "Oswald" },
-          { "value": "bebas_neue", "label": "Bebas Neue" },
-          { "value": "system", "label": "System font (fastest)" }
-        ],
-        "default": "unbounded"
+        "info": "Headings, prices and buttons. Wide, heavy faces suit Vault: Unbounded, Archivo, Syne, Chakra Petch or Space Grotesk. The weight you pick is used for headings.",
+        "default": "unbounded_n7"
       },
       {
-        "type": "select",
-        "id": "font_body",
+        "type": "font_picker",
+        "id": "type_body_font",
         "label": "Body font",
-        "options": [
-          { "value": "manrope", "label": "Manrope" },
-          { "value": "inter", "label": "Inter" },
-          { "value": "dm_sans", "label": "DM Sans" },
-          { "value": "plus_jakarta_sans", "label": "Plus Jakarta Sans" },
-          { "value": "space_grotesk", "label": "Space Grotesk" },
-          { "value": "system", "label": "System font (fastest)" }
-        ],
-        "default": "manrope"
+        "info": "Manrope, Inter, DM Sans and Plus Jakarta Sans all work well.",
+        "default": "manrope_n4"
       },
       { "type": "checkbox", "id": "font_mono_enabled", "label": "Monospace for card numbers & specs", "default": true },
+      {
+        "type": "font_picker",
+        "id": "type_mono_font",
+        "label": "Monospace font",
+        "info": "Used for card numbers, cert numbers and specs when the option above is on.",
+        "default": "roboto_mono_n4"
+      },
       {
         "type": "select",
         "id": "heading_case",

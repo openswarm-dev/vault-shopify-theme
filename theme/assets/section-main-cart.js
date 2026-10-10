@@ -36,9 +36,11 @@
       this.onChange = this.onChange.bind(this);
       this.onClick = this.onClick.bind(this);
       this.onInput = this.onInput.bind(this);
+      this.onKeydown = this.onKeydown.bind(this);
       this.addEventListener('change', this.onChange);
       this.addEventListener('click', this.onClick);
       this.addEventListener('input', this.onInput);
+      this.addEventListener('keydown', this.onKeydown);
       this.offUpdated = V.on('vault:cart:updated', (e) => this.onUpdated(e));
 
       this.setup();
@@ -167,7 +169,7 @@
         }
         const qty = Math.max(0, parseInt(input.value, 10) || 0);
         if (qty === Number(input.defaultValue)) return;
-        if (qty === 0) this.remove(line);
+        if (qty === 0) this.removeLine(line);
         else this.updateLine(line, qty);
       }, QTY_DELAY));
     }
@@ -177,7 +179,17 @@
       if (!remove || !this.contains(remove)) return;
       e.preventDefault();
       const line = remove.closest('[data-cart-line]');
-      if (line && !line.classList.contains('is-removing')) this.remove(line);
+      if (line && !line.classList.contains('is-removing')) this.removeLine(line);
+    }
+
+    /* Enter in a quantity field: apply it through AJAX instead of implicitly submitting the form
+       (its first submit button is the no-JS Update button, hidden once enhanced). */
+    onKeydown(e) {
+      if (e.key !== 'Enter' || e.isComposing) return;
+      const input = e.target.closest('input[name="updates[]"]');
+      if (!input || !this.contains(input)) return;
+      e.preventDefault();
+      input.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     onInput(e) {
@@ -248,7 +260,7 @@
       });
     }
 
-    remove(line) {
+    removeLine(line) {
       const key = line.dataset.key;
       const title = line.dataset.title || '';
       const lines = Array.from(this.querySelectorAll('[data-cart-line]'));

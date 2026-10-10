@@ -207,7 +207,15 @@
       -%}
       <div class="pdp-block pdp-qty" data-block-id="{{ block.id }}" data-reveal="fade-up" {{ block.shopify_attributes }}>
         <label class="pdp-label" for="Quantity-{{ section_id }}">{{ 'products.product.quantity' | t }}</label>
-        <div class="pdp-qty__row" data-variant-swap="quantity">
+        {%- comment -%} A fieldset so one flag (disabled while the variant is sold out) locks the whole stepper. {%- endcomment -%}
+        <fieldset
+          class="pdp-qty__row"
+          data-variant-swap="quantity"
+          data-qty-fieldset
+          {% unless variant.available %}
+            disabled
+          {% endunless %}
+        >
           <quantity-input class="qty pdp-qty__input">
             <button type="button" data-qty="minus" aria-label="{{ 'accessibility.decrease_quantity' | t: product: product.title | escape }}">
               {%- render 'icon', name: 'minus', size: 16, stroke: 2 -%}
@@ -234,7 +242,7 @@
               {{ 'products.pdp.quantity.available' | t: count: q_max }}
             {%- endif -%}
           </span>
-        </div>
+        </fieldset>
       </div>
     {%- endunless -%}
 
@@ -249,7 +257,7 @@
           <p class="pdp-buy__note">{{ 'sections.featured_product.editor_note' | t }}</p>
         {%- endif -%}
       {%- else -%}
-        {%- form 'product', product, id: form_id, class: 'pdp-form', novalidate: 'novalidate', data-cart-form: '' -%}
+        {%- form 'product', product, id: form_id, class: 'pdp-form', novalidate: 'novalidate', data-cart-form: 'product' -%}
           <input type="hidden" name="id" value="{{ variant.id }}" data-variant-id>
           <noscript>
             <div class="select pdp-buy__noscript">
@@ -271,6 +279,9 @@
               </select>
             </div>
           </noscript>
+          {%- if product.gift_card? -%}
+            {%- render 'product-gift-card-recipient', section_id: section_id -%}
+          {%- endif -%}
           <div class="pdp-buy__atc" data-variant-swap="buy">
             <button
               type="submit"
@@ -299,6 +310,11 @@
             {%- endif -%}
           {%- endif -%}
         {%- endform -%}
+        {%- if ctx == 'main' and b.show_pickup != false -%}
+          <div class="pdp-buy__pickup" data-variant-swap="pickup">
+            {%- render 'product-pickup-availability', product: product, variant: variant, section_id: section_id -%}
+          </div>
+        {%- endif -%}
       {%- endif -%}
     </div>
 
@@ -482,7 +498,22 @@
         assign pop_title = b.page.title
         assign pop_body = b.page.content
       endif
+
+      # 'cards' = single cards only: skip sealed product and anything without card data (supplies).
+      assign pop_show = true
+      if b.show_on == 'cards' and is_demo == false
+        capture cd_raw
+          render 'product-collector-data', product: product, variant: variant
+        endcapture
+        assign cd = cd_raw | split: '~|~'
+        if cd[16] == 'sealed'
+          assign pop_show = false
+        elsif cd[3] == blank and cd[5] == blank and cd[12] == blank
+          assign pop_show = false
+        endif
+      endif
     -%}
+    {%- if pop_show -%}
     <div class="pdp-block pdp-popup" data-block-id="{{ block.id }}" data-reveal="fade" {{ block.shopify_attributes }}>
       <button
         type="button"
@@ -512,4 +543,5 @@
         </dialog>
       </vault-drawer>
     </div>
+    {%- endif -%}
 {%- endcase -%}

@@ -37,6 +37,8 @@ vault-footer.footer-host { display: block; }
 }
 
 /* ---------- Newsletter ---------- */
+/* A page that already has a newsletter section (e.g. home) gets one signup, not two in a row. */
+body:has(.section-newsletter) .footer-newsletter { display: none; }
 .footer-newsletter {
   display: grid;
   gap: 1.75rem;
@@ -93,7 +95,7 @@ vault-footer.footer-host { display: block; }
   grid-template-columns: minmax(0, 1fr);
   padding-block: clamp(2rem, 1.25rem + 3vw, 4rem);
 }
-.footer-block--brand { display: grid; gap: 1rem; justify-items: start; padding-bottom: 1.75rem; }
+.footer-block--brand { display: grid; gap: 1rem; align-content: start; justify-items: start; padding-bottom: 1.75rem; }
 .footer-block__logo .logo__img { width: var(--logo-width-mobile); object-position: left center; }
 .footer-block__brand-heading { font-size: var(--h3); max-width: 14ch; }
 .footer-block__text { color: var(--color-muted); font-size: var(--text-sm); max-width: 42ch; }
@@ -126,9 +128,11 @@ vault-footer.footer-host { display: block; }
 .footer-block__link:focus-visible { color: var(--color-text); }
 .footer-block__link[aria-current="page"] { color: var(--color-accent); }
 
+/* Tablets: a 2×2 grid — the brand takes the first cell like any other block, so neither the
+   brand row nor a lone last column is left half empty. */
 @media (min-width: 750px) {
   .footer__blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem 2rem; }
-  .footer-block--brand { grid-column: 1 / -1; padding-bottom: .5rem; }
+  .footer-block--brand { padding-bottom: 0; }
   .footer-block__link { min-height: 36px; }
 
   /* Columns are always open on tablet/desktop (JS sets [open] and blocks toggling). */
@@ -164,7 +168,7 @@ vault-footer.footer-host { display: block; }
 .payment-icon { display: block; width: auto; height: 24px; border-radius: 4px; }
 
 /* ---------- Wordmark ---------- */
-.footer__wordmark-wrap { overflow-x: clip; }
+.footer__wordmark-wrap { overflow-x: clip; padding-bottom: clamp(.75rem, 1.5vw, 1.5rem); }
 .footer-wordmark {
   position: relative;
   margin-top: clamp(.5rem, 2vw, 2rem);
@@ -199,7 +203,8 @@ vault-footer.footer-host { display: block; }
   background-clip: text;
   filter: drop-shadow(0 0 clamp(10px, 2vw, 28px) rgb(var(--color-accent-rgb) / .35));
 }
-/* The clip extends past the box so the glow is never cut into a hard rectangle. */
+/* Start of the scroll-linked fill (section-footer.js). The final clip reaches 45% past the box
+   on every side, beyond the drop-shadow blur, so the glow never ends in a hard rectangle. */
 html.motion-ok .footer-wordmark__fill { clip-path: inset(100% -12% 0% -12%); }
 @media (min-width: 750px) {
   .footer-wordmark__text { -webkit-text-stroke-width: 2px; }
@@ -256,3 +261,13 @@ html.motion-ok .footer-wordmark__fill { clip-path: inset(100% -12% 0% -12%); }
   .footer__totop:hover .footer__totop-icon { translate: 0 -2px; }
 }
 .footer__totop:active { background: var(--color-accent); color: var(--color-on-accent); }
+
+/* Touch targets + phone spacing (QA follow-up) */
+.footer-block__link { min-width: 44px; }
+@media (pointer: coarse) {
+  .footer__copyright a { display: inline-flex; align-items: center; min-height: 44px; }
+}
+@media (max-width: 749px) {
+  .footer__blocks:has(> .footer-block--collapsible:last-child) { padding-bottom: 0; }
+  .footer__blocks:has(> .footer-block--collapsible:last-child) + .footer__meta { border-top: 0; }
+}

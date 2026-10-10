@@ -13,6 +13,7 @@ import { resolveRoute, listRoutes } from './lib/routes.mjs';
 import { addItems, changeLine, updateCart, clearCart, cartJson, lineJsonByKey, CartError, cartDrop, cartContext } from './lib/cart.mjs';
 import { predictiveSearch, recommend } from './lib/storefront.mjs';
 import { productJson, paymentSvg, formatMoney, RS } from './lib/filters.mjs';
+import { fontFile } from './lib/fonts.mjs';
 const selfFor = (host) => ({ context: { globals: { [RS]: { host } } } });
 import { renderArt, esc } from './mock/art.mjs';
 import { customer as mockCustomer, productsByHandle, products } from './mock/store.mjs';
@@ -491,6 +492,13 @@ async function handle(req, res) {
   if (p === '/__sections') return send(res, 200, sectionsPage());
   if (p.startsWith('/__section/')) return serveSectionPreview(req, res, url);
   if (p === '/__status') return sendJson(res, 200, { ok: true, port: PORT, theme: THEME, products: products.length });
+  if (p.startsWith('/__font/')) {
+    // Shopify font library stand-in for font_url / font_face (see lib/fonts.mjs).
+    const handle = decodeURIComponent(p.slice('/__font/'.length)).replace(/\.woff2?$/, '');
+    const buf = await fontFile(handle);
+    if (!buf) return send(res, 404, 'Font not available offline', 'text/plain; charset=utf-8');
+    return send(res, 200, buf, 'font/woff2', { 'Cache-Control': 'public, max-age=86400', 'Access-Control-Allow-Origin': '*' });
+  }
 
   // static & stubs
   if (p.startsWith('/assets/')) return serveAsset(req, res, url);
@@ -570,7 +578,7 @@ const server = http.createServer(async (req, res) => {
   const started = Date.now();
   try {
     // One cart per visitor: a random id in the vault_cart cookie selects the in-memory cart.
-    const visitor = /(?:^|;s*)vault_cart=([a-f0-9]{16,64})/.exec(req.headers.cookie || '')?.[1] || crypto.randomBytes(16).toString('hex');
+    const visitor = /(?:^|;\s*)vault_cart=([a-f0-9]{16,64})/.exec(req.headers.cookie || '')?.[1] || crypto.randomBytes(16).toString('hex');
     if (!(req.headers.cookie || '').includes(`vault_cart=${visitor}`)) {
       res.appendHeader('Set-Cookie', `vault_cart=${visitor}; Path=/; Max-Age=86400; SameSite=Lax; HttpOnly`);
       // Make the id visible to this request's own cookie parsing too.

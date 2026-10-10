@@ -8,6 +8,7 @@
     "header": {
       "navigation": "Main",
       "shop_all": "Shop all {{ title }}",
+      "shop_everything": "Shop everything",
       "view_all": "View all",
       "close_menu": "Close menu",
       "featured": "Featured",

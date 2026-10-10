@@ -53,7 +53,7 @@
       })();
     </script>
 
-    <script src="{{ 'motion.js' | asset_url }}" defer></script>
+    {%- if settings.animations_enabled %}<script src="{{ 'motion.js' | asset_url }}" defer></script>{% endif %}
     <script src="{{ 'theme.js' | asset_url }}" defer></script>
     <script src="{{ 'vendor/qrcode.js' | shopify_asset_url }}" defer></script>
     <script src="{{ 'component-gift-card.js' | asset_url }}" defer></script>

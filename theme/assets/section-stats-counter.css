@@ -16,24 +16,34 @@
   z-index: -1;
   pointer-events: none;
 }
+/* Both layers fade out before the section edges: neighbours often share this scheme, and a glow or
+   grid that is still lit at the edge ends in a hard horizontal line against them. */
 .sc-atmos__glow {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(55% 60% at 50% 105%, rgb(var(--color-accent-rgb) / .2), transparent 70%),
-    radial-gradient(30% 35% at 50% -5%, rgb(var(--color-accent-rgb) / .08), transparent 70%);
+    radial-gradient(60% 46% at 50% 72%, rgb(var(--color-accent-rgb) / .2), transparent 72%),
+    radial-gradient(34% 30% at 50% 22%, rgb(var(--color-accent-rgb) / .06), transparent 70%);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 16%, #000 70%, transparent 97%);
+  mask-image: linear-gradient(180deg, transparent, #000 16%, #000 70%, transparent 97%);
 }
 .sc-atmos__grid {
   position: absolute;
   inset: 0;
-  -webkit-mask-image: radial-gradient(60% 70% at 50% 70%, #000 15%, transparent 75%);
-  mask-image: radial-gradient(60% 70% at 50% 70%, #000 15%, transparent 75%);
+  -webkit-mask-image: radial-gradient(60% 52% at 50% 58%, #000 15%, transparent 75%);
+  mask-image: radial-gradient(60% 52% at 50% 58%, #000 15%, transparent 75%);
 }
 
 .sc-grid {
+  --sc-pad-y: 1.6rem;
+  --sc-pad-x: .75rem;
   position: relative;
   display: grid;
   grid-template-columns: repeat(var(--sc-cols-mobile, 2), minmax(0, 1fr));
+  /* The last row's cell padding only lengthens the hairlines; let it overlap the section padding
+     (never more than there is) so the gap below the stats matches every other section instead of
+     stacking on top of it. */
+  margin-bottom: calc(min(var(--sc-pad-y), var(--section-space) * var(--pb, 1)) * -1);
 }
 
 .sc-stat {
@@ -45,7 +55,7 @@
   align-content: start;
   justify-items: start;
   gap: .55rem;
-  padding: 1.6rem .75rem;
+  padding: var(--sc-pad-y) var(--sc-pad-x);
   border-radius: var(--radius-lg);
   container-type: inline-size;
   background:
@@ -123,8 +133,12 @@ html.motion-ok .sc-stat:not(.is-revealed) .sc-stat__bar { transform: scaleX(0); 
   .sc-stat--span-mobile { grid-column: 1 / -1; }
 }
 @media (min-width: 750px) {
-  .sc-grid { grid-template-columns: repeat(var(--sc-cols-tablet, 4), minmax(0, 1fr)); }
-  .sc-stat { padding: 2rem 1.25rem; gap: .65rem; }
+  .sc-grid {
+    --sc-pad-y: 2rem;
+    --sc-pad-x: 1.25rem;
+    grid-template-columns: repeat(var(--sc-cols-tablet, 4), minmax(0, 1fr));
+  }
+  .sc-stat { gap: .65rem; }
   .sc-stat__label { font-size: var(--text-sm); letter-spacing: .12em; }
 }
 @media (min-width: 750px) and (max-width: 989px) {
@@ -132,8 +146,11 @@ html.motion-ok .sc-stat:not(.is-revealed) .sc-stat__bar { transform: scaleX(0); 
   .sc-b-t { --line-b: rgb(var(--color-text-rgb) / .14); }
 }
 @media (min-width: 990px) {
-  .sc-grid { grid-template-columns: repeat(var(--sc-cols-desktop, 4), minmax(0, 1fr)); }
-  .sc-stat { padding: 2.5rem 1.75rem; }
+  .sc-grid {
+    --sc-pad-y: 2.5rem;
+    --sc-pad-x: 1.75rem;
+    grid-template-columns: repeat(var(--sc-cols-desktop, 4), minmax(0, 1fr));
+  }
   .sc-r-d { --line-r: rgb(var(--color-text-rgb) / .14); }
   .sc-b-d { --line-b: rgb(var(--color-text-rgb) / .14); }
 }

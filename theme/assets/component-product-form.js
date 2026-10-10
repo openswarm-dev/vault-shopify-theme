@@ -86,13 +86,14 @@
       });
     }
 
-    matches(variant, options) {
-      return variant.options.every((o, i) => options[i] == null || o === options[i]);
+    /* Named so it never shadows Element.prototype.matches(). */
+    variantMatches(variant, options) {
+      return variant.options.every((o, i) => o === options[i]);
     }
 
     findVariant(options) {
       if (!this.product) return null;
-      return this.product.variants.find((v) => v.options.every((o, i) => o === options[i])) || null;
+      return this.product.variants.find((v) => this.variantMatches(v, options)) || null;
     }
 
     /* Nearest real variant that keeps the option the visitor just picked (prefers available, then earlier options). */
@@ -186,7 +187,10 @@
     /* Instant feedback before the server render lands. */
     applyQuickState(variant) {
       const s = strings();
-      this.classList.toggle('is-unavailable', !variant || !variant.available);
+      const unavailable = !variant || !variant.available;
+      this.classList.toggle('is-unavailable', unavailable);
+      // Sold out / missing: lock the quantity stepper too (the dynamic checkout hides via CSS).
+      this.querySelectorAll('[data-qty-fieldset]').forEach((set) => { set.disabled = unavailable; });
       this.atcButtons().forEach((btn) => {
         const label = btn.querySelector('[data-atc-label]');
         btn.disabled = !variant || !variant.available;
@@ -350,8 +354,12 @@
       // Portal out of <main>'s stacking context so the bar always layers above page content.
       document.body.appendChild(bar);
 
+      // 'mobile' mode = phones + tablets: narrow viewports, plus touch tablets in landscape (≥ 990px wide
+      // but no hover / coarse pointer), where the long info column also pushes Add to cart below the fold.
+      // Mirrors the CSS guard in section-main-product.css.
       const mqDesktop = window.matchMedia('(min-width: 990px)');
-      const enabled = () => bar.dataset.mode === 'all' || !mqDesktop.matches;
+      const mqTouch = window.matchMedia('(hover: none), (pointer: coarse)');
+      const enabled = () => bar.dataset.mode === 'all' || !mqDesktop.matches || mqTouch.matches;
       // "passed" = the buy buttons have scrolled above the viewport. A huge bottom root margin makes the
       // observed area run from the viewport top to far below the page, so the state flips exactly when
       // the block leaves past the top edge — even after a fast fling or an anchor jump over it.
@@ -388,7 +396,9 @@
 
       this.onMq = () => update();
       mqDesktop.addEventListener?.('change', this.onMq);
+      mqTouch.addEventListener?.('change', this.onMq);
       this.mqDesktop = mqDesktop;
+      this.mqTouch = mqTouch;
 
       const measure = () => html.style.setProperty('--pdp-sticky-h', `${Math.round(bar.offsetHeight)}px`);
       measure();
@@ -428,6 +438,7 @@
       this.stopStickyView?.();
       this.stickyRO?.disconnect();
       this.mqDesktop?.removeEventListener?.('change', this.onMq);
+      this.mqTouch?.removeEventListener?.('change', this.onMq);
       this.stickyAnim?.stop?.();
       if (this.sticky) {
         this.sticky.removeEventListener('click', this.onStickyClick);
@@ -489,4 +500,42 @@
     }
   }
   if (!customElements.get('product-share')) customElements.define('product-share', ProductShare);
+
+  /* ------------------------------------------------------------------ *
+   * <gift-card-recipient> (snippets/product-gift-card-recipient.liquid)
+   * Fields are disabled while "send to a recipient" is off, so no recipient
+   * properties are posted; the timezone offset lets Shopify honour "Send on".
+   * ------------------------------------------------------------------ */
+  class GiftCardRecipient extends HTMLElement {
+    connectedCallback() {
+      if (this._bound) return;
+      this.toggle = this.querySelector('[data-gift-toggle]');
+      if (!this.toggle) return;
+      this._bound = true;
+      const offset = this.querySelector('[data-gift-offset]');
+      if (offset) offset.value = String(new Date().getTimezoneOffset());
+      this.onToggle = () => this.sync(true);
+      this.toggle.addEventListener('change', this.onToggle);
+      this.sync(false);
+    }
+
+    disconnectedCallback() {
+      this.toggle?.removeEventListener('change', this.onToggle);
+      this._bound = false;
+    }
+
+    sync(animate) {
+      const on = this.toggle.checked;
+      this.classList.toggle('is-open', on);
+      this.querySelectorAll('[data-gift-input]').forEach((input) => { input.disabled = !on; });
+      const email = this.querySelector('input[type="email"][data-gift-input]');
+      if (email) email.required = on;
+      const fields = this.querySelector('[data-gift-fields]');
+      if (on && animate && fields && motionOK() && window.Motion) {
+        window.Motion.animate(fields, { opacity: [0, 1], y: [-8, 0] }, { duration: 0.35, ease: [0.16, 1, 0.3, 1] });
+      }
+      if (on && animate && email) email.focus({ preventScroll: true });
+    }
+  }
+  if (!customElements.get('gift-card-recipient')) customElements.define('gift-card-recipient', GiftCardRecipient);
 })();

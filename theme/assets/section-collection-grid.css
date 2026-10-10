@@ -88,6 +88,21 @@ html:has(vault-header[data-sticky="none"]) :is(.section-collection-grid, .sectio
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
+/* Narrowest phones: stack the number over a small label (a compact stat) instead of truncating
+   "29 RESULTS" to "29 RESUL…" once the filter badge widens the trigger. */
+@media (max-width: 359px) {
+  .collection-toolbar__count {
+    display: grid;
+    line-height: 1.05;
+  }
+  .collection-toolbar__count strong { font-size: var(--text-sm); }
+  .collection-toolbar__count-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--text-2xs);
+    letter-spacing: .1em;
+  }
+}
 
 .collection-toolbar__actions {
   display: flex;
@@ -240,6 +255,10 @@ grid-density { display: flex; align-items: center; }
   .density__group--tablet { display: none; }
   .density__group--desktop { display: flex; }
 }
+@media (min-width: 990px) and (max-width: 1199px) {
+  .collection-toolbar--sidebar .density__group--desktop { display: none; }
+  .collection-toolbar--sidebar .density__group--desktop-narrow { display: flex; }
+}
 @media (hover: hover) and (pointer: fine) {
   .density__btn:hover { color: var(--color-text); background: rgb(var(--color-text-rgb) / .07); }
 }
@@ -253,14 +272,17 @@ html[data-grid-desktop="3"] .product-grid[data-density] { --cols-desktop: 3 !imp
 html[data-grid-desktop="4"] .product-grid[data-density] { --cols-desktop: 4 !important; }
 html[data-grid-desktop="5"] .product-grid[data-density] { --cols-desktop: 5 !important; }
 
-/* iPad landscape / small laptops with the filter sidebar: one column fewer than the desktop
-   setting (4 → 3, 5 → 4) so cards keep room for slab labels, badges and titles. */
+/* iPad landscape / small laptops with the filter sidebar: every desktop density level renders one
+   column fewer (3 → 2, 4 → 3, 5 → 4) so cards keep room for slab labels, badges and titles. The
+   toolbar swaps in a matching button group (.density__group--desktop-narrow) whose icons and labels
+   show those real column counts. Section default first, then the visitor's saved choice wins. */
 @media (min-width: 990px) and (max-width: 1199px) {
   html .collection-layout--sidebar .product-grid.product-grid[data-density] { --cols-desktop: 3 !important; }
-  html .collection-layout--sidebar .product-grid.product-grid[data-density][data-cols-desktop="5"],
-  html[data-grid-desktop="5"] .collection-layout--sidebar .product-grid.product-grid[data-density] { --cols-desktop: 4 !important; }
-  html[data-grid-desktop="3"] .collection-layout--sidebar .product-grid.product-grid[data-density],
+  html .collection-layout--sidebar .product-grid.product-grid[data-density][data-cols-desktop="3"] { --cols-desktop: 2 !important; }
+  html .collection-layout--sidebar .product-grid.product-grid[data-density][data-cols-desktop="5"] { --cols-desktop: 4 !important; }
+  html[data-grid-desktop="3"] .collection-layout--sidebar .product-grid.product-grid[data-density] { --cols-desktop: 2 !important; }
   html[data-grid-desktop="4"] .collection-layout--sidebar .product-grid.product-grid[data-density] { --cols-desktop: 3 !important; }
+  html[data-grid-desktop="5"] .collection-layout--sidebar .product-grid.product-grid[data-density] { --cols-desktop: 4 !important; }
 }
 
 /* ---------- Layout ---------- */

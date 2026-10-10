@@ -276,8 +276,9 @@ predictive-search[data-has-results] .search-palette__idle { display: none; }
 @media (min-width: 750px) {
   .ps-results__grid { grid-template-columns: minmax(0, .9fr) minmax(0, 1.6fr); column-gap: 1.75rem; }
   .ps-results__grid--single { grid-template-columns: minmax(0, 1fr); }
+  /* minmax(0, 1fr): a long nowrap suggestion must ellipsize, not widen the column into the products. */
   .ps-results__aside,
-  .ps-results__main { display: grid; align-content: start; gap: 1.5rem; }
+  .ps-results__main { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 1.5rem; }
   .ps-results__aside { order: 1; }
   .ps-results__main { order: 2; }
   .ps-results__footer { grid-column: 1 / -1; }
@@ -291,7 +292,8 @@ predictive-search[data-has-results] .search-palette__idle { display: none; }
   text-transform: uppercase;
   color: var(--color-muted);
 }
-.ps-group__list { display: grid; gap: .2rem; margin: 0; padding: 0; list-style: none; }
+.ps-group { min-width: 0; }
+.ps-group__list { display: grid; grid-template-columns: minmax(0, 1fr); gap: .2rem; margin: 0; padding: 0; list-style: none; }
 
 /* Option base: active (keyboard) + hover share a style */
 .ps-option > a,

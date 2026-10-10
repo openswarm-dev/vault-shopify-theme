@@ -58,9 +58,16 @@ body.template-gift-card { overflow-x: clip; }
   text-transform: uppercase;
   letter-spacing: .04em;
   font-size: clamp(1rem, .9rem + .5vw, 1.3rem);
-  white-space: nowrap;
+  line-height: 1.1;
+  /* Up to two lines, broken between words, instead of an ellipsis mid-name. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
+}
+@media (max-width: 359px) {
+  .gift__wordmark { font-size: clamp(.8rem, 4.2vw, .95rem); }
 }
 .gift__tag {
   flex: none;
@@ -145,14 +152,18 @@ body.template-gift-card { overflow-x: clip; }
 }
 .gift-card__shop {
   min-width: 0;
+  /* Sized so a typical store name fits on one line; longer names wrap to two (between words). */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
   font-family: var(--font-display);
   font-weight: var(--font-display-weight);
   text-transform: uppercase;
-  font-size: 14px;
-  font-size: 5.6cqi;
+  font-size: 12px;
+  font-size: 4.3cqi;
+  line-height: 1.05;
   letter-spacing: .02em;
 }
 .gift-card__kind {

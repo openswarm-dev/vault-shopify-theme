@@ -8,17 +8,6 @@
 {%- liquid
   assign sid = section.id
   assign sort = section.settings.sort
-  case sort
-    when 'products_high', 'products_low'
-      assign sorted_collections = collections | sort: 'all_products_count'
-    when 'date', 'date_reversed'
-      assign sorted_collections = collections | sort: 'published_at'
-    else
-      assign sorted_collections = collections | sort_natural: 'title'
-  endcase
-  if sort == 'products_high' or sort == 'date_reversed' or sort == 'alphabetical_reversed'
-    assign sorted_collections = sorted_collections | reverse
-  endif
 
   assign cols_desktop = section.settings.columns_desktop
   assign cols_tablet = section.settings.columns_tablet
@@ -59,7 +48,25 @@
       {%- endif -%}
     </div>
 
-    {%- paginate sorted_collections by section.settings.per_page -%}
+    {%- comment -%}
+      Shopify can only paginate its own drops (a sorted copy is a plain array and raises
+      "Array is not paginateable"), so paginate `collections` and sort the current page.
+      Shopify's default order is already alphabetical, so A–Z is exact across pages.
+    {%- endcomment -%}
+    {%- paginate collections by section.settings.per_page -%}
+      {%- liquid
+        case sort
+          when 'products_high', 'products_low'
+            assign sorted_collections = collections | sort: 'all_products_count'
+          when 'date', 'date_reversed'
+            assign sorted_collections = collections | sort: 'published_at'
+          else
+            assign sorted_collections = collections | sort_natural: 'title'
+        endcase
+        if sort == 'products_high' or sort == 'date_reversed' or sort == 'alphabetical_reversed'
+          assign sorted_collections = sorted_collections | reverse
+        endif
+      -%}
       <ul
         class="grid list-collections__grid list-collections__grid--{{ section.settings.tile_size }}"
         role="list"
@@ -143,7 +150,8 @@
         { "value": "date_reversed", "label": "Date, new to old" },
         { "value": "date", "label": "Date, old to new" }
       ],
-      "default": "alphabetical"
+      "default": "alphabetical",
+      "info": "With more collections than fit on one page, sorting applies within each page."
     },
     { "type": "header", "content": "Grid" },
     {

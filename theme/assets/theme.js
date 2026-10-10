@@ -313,7 +313,56 @@
       });
       node.replaceWith(frag);
     });
+    glueWords(el);
     el.classList.add('is-split');
+  };
+
+  // Every inline-block word is a line-break opportunity of its own, so pieces of one word that meet at an
+  // element boundary ("<em>binder</em>," or "“<em>Grail</em>”") could wrap apart and start a line with ",".
+  // Each run of touching words (or words joined only by a no-break space) moves into a nowrap .split-glue;
+  // the Range carries partly covered wrappers such as <em> along as clones, so styling is untouched.
+  const NO_BREAK = /^[  ⁠]*$/;
+  const glueWords = (el) => {
+    const words = $$('.split-word', el);
+    const range = document.createRange();
+    const touching = (a, b) => {
+      range.setStartAfter(a);
+      range.setEndBefore(b);
+      return NO_BREAK.test(range.toString()) && !range.cloneContents().querySelector('br, wbr, img, svg, input');
+    };
+    const runs = [];
+    let run = null;
+    for (let i = 1; i < words.length; i += 1) {
+      if (touching(words[i - 1], words[i])) {
+        if (!run) runs.push((run = [words[i - 1]]));
+        run.push(words[i]);
+      } else {
+        run = null;
+      }
+    }
+    const pruneEmpty = (node, stop) => {
+      while (node && node !== stop && node !== el && node.nodeType === 1 && !node.hasChildNodes()) {
+        const up = node.parentNode;
+        node.remove();
+        node = up;
+      }
+    };
+    runs.forEach((words) => {
+      const first = words[0];
+      const last = words[words.length - 1];
+      range.setStartBefore(first);
+      range.setEndAfter(last);
+      const stop = range.commonAncestorContainer;
+      const before = first.parentNode;
+      const after = last.parentNode;
+      const glue = document.createElement('span');
+      glue.className = 'split-glue';
+      glue.appendChild(range.extractContents());
+      range.insertNode(glue);
+      pruneEmpty(before, stop);
+      pruneEmpty(after, stop);
+    });
+    range.detach?.();
   };
 
   const bindSplit = (el) => {
@@ -398,22 +447,33 @@
    *   <summary>…<span class="accordion__icon">+</span></summary>
    *   <div class="accordion__content"><div class="accordion__inner">…</div></div>
    * </details>
-   * Wrap several in [data-accordion-group] to keep only one open.
+   * Wrap several in [data-accordion-group] to keep only one open, or give them the same native
+   * name="…" (exclusive accordion — also works without JS). Single-open is enforced with or without
+   * motion; with motion the other item closes animated.
    * ------------------------------------------------------------------ */
+  const accordions = new WeakMap();
+  const accordionSiblings = (details) => {
+    const group = details.closest('[data-accordion-group]');
+    const name = details.dataset.accordionName;
+    if (!group && !name) return [];
+    return $$('details[data-accordion][open]', group || document).filter((d) => d !== details
+      && ((group && d.closest('[data-accordion-group]') === group) || (name && d.dataset.accordionName === name)));
+  };
+
   const bindAccordion = (details) => {
     const summary = details.querySelector(':scope > summary');
     const content = details.querySelector(':scope > .accordion__content');
     if (!summary || !content) return;
     let busy = false;
 
+    // A native exclusive group snaps the other item shut; with motion we close it ourselves, animated.
+    if (Vault.motionOK() && details.hasAttribute('name')) {
+      details.dataset.accordionName = details.getAttribute('name');
+      details.removeAttribute('name');
+    }
+
     const open = async () => {
       details.open = true;
-      const group = details.closest('[data-accordion-group]');
-      if (group) {
-        $$('details[data-accordion][open]', group)
-          .filter((d) => d !== details && d.closest('[data-accordion-group]') === group)
-          .forEach((d) => d.querySelector(':scope > summary')?.click());
-      }
       const h = content.scrollHeight;
       try {
         await M.animate(content, { height: [0, h], opacity: [0, 1] }, { duration: 0.45, ease: Vault.ease.out });
@@ -433,17 +493,37 @@
       }
     };
 
-    summary.addEventListener('click', async (e) => {
-      if (!Vault.motionOK()) return;
-      e.preventDefault();
-      if (busy) return;
+    const run = async (fn) => {
       busy = true;
       try {
-        if (details.open) await close();
-        else await open();
+        await fn();
       } finally {
         busy = false;
       }
+    };
+
+    accordions.set(details, {
+      close: () => {
+        if (busy || !Vault.motionOK()) details.open = false;
+        else run(close);
+      },
+    });
+
+    summary.addEventListener('click', (e) => {
+      if (!Vault.motionOK()) return;
+      e.preventDefault();
+      if (busy) return;
+      run(details.open ? close : open);
+    });
+
+    // Runs for clicks, keyboard, find-in-page and scripted opens alike.
+    details.addEventListener('toggle', () => {
+      if (!details.open) return;
+      accordionSiblings(details).forEach((d) => {
+        const api = accordions.get(d);
+        if (api) api.close();
+        else d.open = false;
+      });
     });
   };
 
@@ -960,6 +1040,8 @@
    *     <div class="marquee__track"><div class="marquee__group">…items…</div></div>
    *   </vault-marquee>
    * Without motion the group simply scrolls horizontally.
+   * Never keep state on a custom element under a built-in HTMLElement name (dir, title, hidden, lang,
+   * slot, role, translate…): those are reflected attributes, e.g. setting dir to -1 reads back as "".
    * ------------------------------------------------------------------ */
   class VaultMarquee extends HTMLElement {
     connectedCallback() {
@@ -969,7 +1051,7 @@
       if (!this.track || !this.group || !Vault.motionOK()) return;
       this._bound = true;
       this.speed = parseFloat(this.dataset.speed || 40);
-      this.dir = this.dataset.direction === 'right' ? 1 : -1;
+      this.direction = this.dataset.direction === 'right' ? 1 : -1;
       this.reactive = this.dataset.scrollVelocity !== 'false';
       this.x = 0;
       this.boost = 0;
@@ -1029,7 +1111,7 @@
         this.boost = lerp(this.boost, target, 0.08);
       }
       this.factor = lerp(this.factor, this.paused ? 0 : 1, 0.08);
-      const dir = this.reactive && this.dataset.flip === 'true' ? this.dir * Vault.scrollDirection : this.dir;
+      const dir = this.reactive && this.dataset.flip === 'true' ? this.direction * Vault.scrollDirection : this.direction;
       this.x += dir * this.speed * (1 + this.boost) * this.factor * dt;
       if (this.gw) {
         if (this.x <= -this.gw) this.x += this.gw;
@@ -1212,14 +1294,41 @@
     if (e.persisted) Vault.cart.refresh().catch(() => {});
   });
 
-  /* Fly-to-cart: clones an image and arcs it into the visible [data-cart-icon]. */
+  /* Where a cart icon sits once its header has slid back in: its rect minus the header's own
+   * translateY (the scroll-up header hides with transform), kept inside the viewport. */
+  const restingRect = (icon) => {
+    const r = icon.getBoundingClientRect();
+    const header = icon.closest('[data-header]');
+    let dy = 0;
+    if (header) {
+      try {
+        const t = getComputedStyle(header).transform;
+        if (t && t !== 'none') dy = new DOMMatrixReadOnly(t).m42;
+      } catch (_) { /* no transform */ }
+    }
+    const top = clamp(r.top - dy, 0, Math.max(0, window.innerHeight - r.height));
+    return { left: r.left, top, width: r.width, height: r.height };
+  };
+
+  /* Fly-to-cart: clones an image and arcs it into the visible [data-cart-icon]. When the only cart icon
+   * is in a header that hid itself on scroll, the header is asked back (vault:header:reveal) and the
+   * clone aims for the spot where that icon comes to rest. */
   Vault.flyToCart = (sourceEl) => {
     if (!Vault.motionOK() || !sourceEl) return;
     const img = sourceEl.tagName === 'IMG' ? sourceEl : sourceEl.querySelector?.('img');
-    const target = $$('[data-cart-icon]').find((el) => el.getClientRects().length && inViewport(el));
-    if (!img || !target) return;
+    if (!img) return;
+    const icons = $$('[data-cart-icon]').filter((el) => el.getClientRects().length);
+    let target = icons.find(inViewport);
+    let to;
+    if (target) {
+      to = target.getBoundingClientRect();
+    } else {
+      target = icons.find((el) => el.closest('[data-header]'));
+      if (!target) return;
+      Vault.emit('vault:header:reveal');
+      to = restingRect(target);
+    }
     const from = img.getBoundingClientRect();
-    const to = target.getBoundingClientRect();
     if (!from.width) return;
     const clone = document.createElement('img');
     clone.src = img.currentSrc || img.src;

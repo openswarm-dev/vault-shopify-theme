@@ -67,7 +67,9 @@
   filter: drop-shadow(0 30px 40px rgb(0 0 0 / .55));
 }
 .newsletter__card-inner svg { width: 100%; height: 100%; }
-.newsletter__card--left { top: calc(var(--section-space) * var(--pt, 1) * .35); left: max(-24px, calc(50% - 680px)); }
+/* Offsets leave room for the tilt, the idle bob and the small parallax drift towards the edge that
+   is still possible when the viewport is taller than the section (see the markup comment). */
+.newsletter__card--left { top: calc(var(--section-space) * var(--pt, 1) * .35 + clamp(1.5rem, 3vw, 2.5rem)); left: max(-24px, calc(50% - 680px)); }
 .newsletter__card--left .newsletter__card-inner { rotate: -14deg; }
 .newsletter__card--right { bottom: calc(var(--section-space) * var(--pb, 1) * .3); right: max(-24px, calc(50% - 680px)); }
 .newsletter__card--right .newsletter__card-inner { rotate: 12deg; }
@@ -78,13 +80,13 @@ html.motion-ok .newsletter__card--right .newsletter__card-inner { animation-dela
   50% { translate: 0 -12px; }
 }
 @media (max-width: 749px) {
-  .newsletter__card--left { top: 6px; left: -18px; }
-  .newsletter__card--right { bottom: 6px; right: -18px; }
+  .newsletter__card--left { top: 1.5rem; left: -18px; }
+  .newsletter__card--right { bottom: .75rem; right: -18px; }
 }
 @media (min-width: 750px) and (max-width: 989px) {
   .newsletter__card { width: 120px; }
-  .newsletter__card--left { left: -28px; }
-  .newsletter__card--right { right: -28px; }
+  .newsletter__card--left { top: 3.5rem; left: -28px; }
+  .newsletter__card--right { bottom: 3rem; right: -28px; }
 }
 
 /* ---------- Panel ---------- */

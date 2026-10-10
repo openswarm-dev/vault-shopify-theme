@@ -235,22 +235,50 @@
       }, { amount: 0.35 });
     }
 
-    /* Shopify 3D models need the model-viewer UI feature. */
+    /* Shopify 3D models: model-viewer UI (controls + its stylesheet) and Shopify XR ("View in your space"). */
     loadModels() {
       const models = Array.from(this.querySelectorAll('model-viewer'));
       const shopify = window.Shopify;
       if (!models.length || !shopify || typeof shopify.loadFeatures !== 'function') return;
-      shopify.loadFeatures([{
-        name: 'model-viewer-ui',
-        version: '1.0',
-        onLoad: (err) => {
-          if (err || !shopify.ModelViewerUI) return;
-          models.forEach((m) => {
-            if (m._vaultUI) return;
-            try { m._vaultUI = new shopify.ModelViewerUI(m); } catch (_) { /* unsupported */ }
-          });
+
+      const cssUrl = this.dataset.modelUiCss;
+      if (cssUrl && !document.querySelector('link[data-model-viewer-ui]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = cssUrl;
+        link.dataset.modelViewerUi = '';
+        document.head.appendChild(link);
+      }
+
+      shopify.loadFeatures([
+        {
+          name: 'model-viewer-ui',
+          version: '1.0',
+          onLoad: (err) => {
+            if (err || !shopify.ModelViewerUI) return;
+            models.forEach((m) => {
+              if (m._vaultUI) return;
+              try { m._vaultUI = new shopify.ModelViewerUI(m); } catch (_) { /* unsupported */ }
+            });
+          },
         },
-      }]);
+        { name: 'shopify-xr', version: '1.0', onLoad: (err) => { if (!err) this.setupXR(); } },
+      ]);
+    }
+
+    setupXR() {
+      if (!window.ShopifyXR) {
+        document.addEventListener('shopify_xr_initialized', () => this.setupXR(), { once: true });
+        return;
+      }
+      const json = this.querySelector('script[data-product-models]');
+      if (json && !this._xrModels) {
+        try {
+          window.ShopifyXR.addModels(JSON.parse(json.textContent));
+          this._xrModels = true;
+        } catch (_) { /* malformed */ }
+      }
+      window.ShopifyXR.setupXRElements();
     }
   }
   if (!customElements.get('product-gallery')) customElements.define('product-gallery', ProductGallery);

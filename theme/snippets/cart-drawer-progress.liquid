@@ -2,16 +2,32 @@
   Free-shipping progress (cart drawer). Shown when settings.free_shipping_threshold is a positive
   number (major units of the store currency) and the cart has items. The fill is animated by
   component-cart-drawer.js (from the previous value; sparkle burst when unlocked).
+  - The threshold is in the store currency, so the bar only shows when the cart is presented in
+    that currency (Markets visitors paying in another currency would see a wrong amount).
+  - "75", "75.00", "1,000" and the decimal-comma "75,00" all parse.
+  - Progress is integer math (basis points) so it is exact whatever the Liquid number types are.
 {%- endcomment -%}
 {%- liquid
-  assign threshold_cents = settings.free_shipping_threshold | strip | remove: ',' | times: 100 | round
+  assign threshold_raw = settings.free_shipping_threshold | strip | remove: ' '
+  assign threshold_parts = threshold_raw | split: ','
+  if threshold_parts.size == 2 and threshold_parts.last.size <= 2
+    assign threshold_raw = threshold_raw | remove: '.' | replace: ',', '.'
+  else
+    assign threshold_raw = threshold_raw | remove: ','
+  endif
+  assign threshold_cents = threshold_raw | times: 100 | round
+  assign same_currency = true
+  if cart.currency.iso_code != blank and shop.currency != blank and cart.currency.iso_code != shop.currency
+    assign same_currency = false
+  endif
 -%}
-{%- if threshold_cents > 0 and cart.item_count > 0 -%}
+{%- if threshold_cents > 0 and cart.item_count > 0 and same_currency -%}
   {%- liquid
     assign remaining = threshold_cents | minus: cart.total_price
     assign remaining_money = remaining | at_least: 0 | money
-    assign progress = cart.total_price | times: 1.0 | divided_by: threshold_cents | at_most: 1 | round: 4
-    assign progress_pct = progress | times: 100 | round
+    assign progress_bp = cart.total_price | times: 10000 | divided_by: threshold_cents | at_most: 10000 | at_least: 0
+    assign progress = progress_bp | divided_by: 10000.0
+    assign progress_pct = progress_bp | plus: 50 | divided_by: 100
     assign unlocked = false
     if remaining <= 0
       assign unlocked = true

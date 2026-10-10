@@ -23,6 +23,7 @@ Edits under `dev/` need a server restart.
 | `/__errors` | JSON ring buffer: `liquid` (render and syntax errors), `translations` (missing keys), `filters` (unknown filters), `assets` (missing assets, sections, templates or groups), `server`. Each entry has file, line, count and the URLs it happened on. `?clear=1` (or `DELETE`) empties it. |
 | `/__sections` | Lists every section file. `/__section/<name>` renders one section inside the layout using its first preset (`?preset=1` picks another one, `?product=<handle>` and `?collection=<handle>` set the page context). |
 | `/__status` | Health check. |
+| `/__font/<handle>.woff2` | Stand-in for Shopify's font CDN. `font_url` / `font_face` on `font_picker` settings point here; the file is fetched once from Google Fonts (latin subset) and cached in memory. Offline it answers 404 and the page falls back to the stack's generic family. |
 | `/__livereload` | Server-sent events stream (`reload` / `css`). The client script is injected before `</body>`. It does not run inside iframes or screenshot runs. |
 
 Every HTML response carries `X-Vault-Liquid-Errors: <n>` and `X-Vault-Template: templates/x.json`, so you
@@ -55,7 +56,7 @@ It uses `playwright-core` with the locally installed Edge (falling back to Chrom
 3. Waits 800 ms, scrolls back to the top and waits 1.2 s. It also gives reveals that are still running up to 4 s more.
 4. Saves a full-page PNG to `<out>/<viewport>/<route-slug>.png`.
 5. Audits the page:
-   - console errors and warnings, uncaught page errors, and failed requests (≥ 400; Google Fonts are ignored)
+   - console errors and warnings, uncaught page errors, and failed requests (≥ 400; Google Fonts and `/__font/` are ignored)
    - Liquid error boxes and `translation missing` occurrences
    - **horizontal overflow**: `scrollWidth > innerWidth + 1`, with the 8 outermost offending elements (selector path and how far past the edge they go). If overflow is hidden by `overflow-x` on html/body, `hiddenOffenders` lists the content being clipped.
    - **stuck reveals**: `[data-reveal]` elements that were actually in view, clipped like an IntersectionObserver would clip them, but never got `.is-revealed`. Only checked when `html.motion-ok` is set.

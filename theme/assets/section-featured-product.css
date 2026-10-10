@@ -2,6 +2,8 @@
    VAULT — section-featured-product.css
    Home-page spotlight: display-case gallery + glass info panel.
    Phones: stacked. Tablet ≥ 750: two columns (gallery ~half). Desktop ≥ 990: 55 / 45.
+   From tablet up the gallery is sticky, so it travels beside the (taller) info panel instead of
+   leaving an empty band under it.
    ========================================================================== */
 
 .featured-product { overflow: clip; }
@@ -52,7 +54,16 @@
   pointer-events: none;
 }
 .fp__blocks { --pdp-gap: 1.1rem; }
-.fp__details { margin-top: 1.4rem; }
+.fp__details {
+  position: relative;
+  margin-top: 1.4rem;
+}
+/* Extend the hit area to 44px tall without moving the underline away from the text. */
+.fp__details::before {
+  content: "";
+  position: absolute;
+  inset: -9px -8px;
+}
 .pdp-title--featured { font-size: var(--h3); }
 
 @media (min-width: 750px) {
@@ -61,6 +72,10 @@
     gap: 1.75rem;
   }
   .fp__layout--media-right .fp__media { order: 2; }
+  .fp__media {
+    position: sticky;
+    top: calc(var(--header-height) + 1rem);
+  }
   .pg--featured {
     --pg-pad: 28px;
     --pg-stage-h: min(60vh, 500px);

@@ -132,6 +132,28 @@
               </button>
             {%- endfor -%}
           </div>
+          {%- if tb_mode == 'sidebar' -%}
+            {%- comment -%}
+              990–1199px beside the filter sidebar each desktop level renders one column fewer
+              (section-collection-grid.css), so this group shows the real column counts. Same values.
+            {%- endcomment -%}
+            <div class="density__group density__group--desktop-narrow" role="group" aria-label="{{ 'collections.toolbar.density' | t }}">
+              {%- for n in (3..5) -%}
+                {%- assign shown = n | minus: 1 -%}
+                <button
+                  type="button"
+                  class="density__btn"
+                  data-density="desktop:{{ n }}"
+                  aria-pressed="false"
+                  aria-label="{{ 'collections.toolbar.columns' | t: count: shown }}"
+                >
+                  <span class="density__icon" style="--n: {{ shown }};" aria-hidden="true">
+                    {%- for i in (1..shown) -%}<i></i>{%- endfor -%}
+                  </span>
+                </button>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
         </grid-density>
       {%- endif -%}
 

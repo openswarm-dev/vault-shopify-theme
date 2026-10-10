@@ -110,7 +110,7 @@ body {
   font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: 1.6;
-  font-weight: 400;
+  font-weight: var(--font-body-weight, 400);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -1146,6 +1146,7 @@ html.motion-ok [data-reveal="card"]:not(.is-revealed) { transform: perspective(9
 
 .split-word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; }
 .split-word__inner { display: inline-block; will-change: transform; }
+.split-glue { white-space: nowrap; }
 html.motion-ok [data-split]:not(.is-split-done) .split-word__inner { transform: translateY(110%); }
 html.motion-ok [data-split]:not(.is-split) { opacity: 0; }
 .split-char { display: inline-block; will-change: transform; }

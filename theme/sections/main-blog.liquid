@@ -96,8 +96,31 @@
               if forloop.index <= 2
                 assign card_lazy = false
               endif
+
+              # Last card alone in its row → bookend (section-main-blog.css). Tablet: 2 columns,
+              # desktop: 3; a featured first card fills a row on tablet and two slots on desktop.
+              assign end_class = ''
+              if forloop.last and forloop.length > 1 and is_featured == false
+                assign n_mod2 = forloop.length | modulo: 2
+                assign n_mod3 = forloop.length | modulo: 3
+                if feature_first
+                  if n_mod2 == 0
+                    assign end_class = end_class | append: ' blog-grid__item--end-tablet'
+                  endif
+                  if n_mod3 == 0
+                    assign end_class = end_class | append: ' blog-grid__item--end-desktop'
+                  endif
+                else
+                  if n_mod2 == 1
+                    assign end_class = end_class | append: ' blog-grid__item--end-tablet'
+                  endif
+                  if n_mod3 == 1
+                    assign end_class = end_class | append: ' blog-grid__item--end-desktop'
+                  endif
+                endif
+              endif
             -%}
-            <li class="blog-grid__item{% if is_featured %} blog-grid__item--featured{% endif %}">
+            <li class="blog-grid__item{% if is_featured %} blog-grid__item--featured{% endif %}{{ end_class }}">
               {%- if is_featured -%}
                 {% render 'card-article',
                   article: article,
