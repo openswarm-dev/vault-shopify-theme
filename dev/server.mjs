@@ -596,7 +596,9 @@ server.on('error', (err) => {
   throw err;
 });
 
-server.listen(PORT, () => {
+// Hosts like Render route to 0.0.0.0:$PORT — bind explicitly (Node's default '::' can be IPv6-only in containers).
+const HOST = process.env.HOST || (PRODUCTION || process.env.RENDER ? '0.0.0.0' : undefined);
+server.listen(PORT, HOST, () => {
   console.log(`\n  \x1b[1m\x1b[31mVAULT\x1b[0m local preview  →  http://localhost:${PORT}`);
   console.log(`  gallery  http://localhost:${PORT}/__preview   routes  /__routes   errors  /__errors   sections  /__sections\n`);
 });
