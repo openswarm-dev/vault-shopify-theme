@@ -1,0 +1,43 @@
+{%- comment -%}
+  Sample product tiles for the theme editor when a collection has no products yet, so the page still
+  looks finished while merchandising. Uses core placeholder-card art inside <holo-card>. Never shown to shoppers
+  (the section only renders this when request.design_mode is true).
+  Usage: {% render 'facets-placeholder-products', count: 8, uid: section.id %}
+  Params:
+    count  number of tiles (default 8)
+    uid    (required) unique prefix for SVG ids
+{%- endcomment -%}
+{%- liquid
+  assign pp_count = count | default: 8
+  assign pp_names = 'collections.placeholder.product_names' | t | split: '|'
+  assign pp_prices = '34900,12500,8900,21000,4500,15900,16499,5999' | split: ','
+-%}
+{%- for i in (1..pp_count) -%}
+  {%- liquid
+    assign pp_index = i | minus: 1 | modulo: 8
+    assign pp_name = pp_names[pp_index]
+    assign pp_price = pp_prices[pp_index] | plus: 0
+    assign pp_variant = pp_index | modulo: 6 | plus: 1
+    assign pp_uid = uid | append: '-pp' | append: i
+    assign pp_graded = false
+    if pp_index == 0 or pp_index == 3
+      assign pp_graded = true
+    endif
+  -%}
+  <li class="product-grid__item">
+    <div class="placeholder-product" data-reveal="card">
+      <holo-card class="placeholder-product__holo" data-foil="rainbow">
+        <div class="holo placeholder-product__media">
+          {%- render 'placeholder-card', variant: pp_variant, uid: pp_uid, graded: pp_graded -%}
+          <span class="holo__shine"></span>
+          <span class="holo__glare"></span>
+        </div>
+      </holo-card>
+      <div class="placeholder-product__info">
+        <span class="placeholder-product__tag">{{ 'collections.placeholder.sample' | t }}</span>
+        <p class="placeholder-product__title">{{ pp_name | escape }}</p>
+        <p class="placeholder-product__price tabular">{{ pp_price | money }}</p>
+      </div>
+    </div>
+  </li>
+{%- endfor -%}

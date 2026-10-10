@@ -1,0 +1,201 @@
+{%- comment -%}
+  Desktop navigation (≥990px), rendered inside <nav class="header__nav"> by sections/header.liquid.
+  - Items without children → plain links.
+  - Items with children → <details> dropdown (works without JS; enhanced by section-header.js
+    with hover intent, keyboard support and Motion reveals).
+  - Items with grandchildren, or with a matching "mega_promo" block → full-width mega menu.
+  Params:
+    menu     required — linklist
+    section  required — the header section (for mega_promo blocks and unique ids)
+{%- endcomment -%}
+<ul class="header__menu" role="list" data-nav-menu>
+  {%- for link in menu.links -%}
+    {%- liquid
+      assign item_index = forloop.index
+      assign is_active = false
+      if link.active or link.child_active
+        assign is_active = true
+      endif
+      assign has_grandchildren = false
+      for child in link.links
+        if child.links.size > 0
+          assign has_grandchildren = true
+          break
+        endif
+      endfor
+      assign link_key = link.title | strip | downcase
+      assign promo_count = 0
+      for block in section.blocks
+        assign promo_key = block.settings.menu_item | strip | downcase
+        if block.type == 'mega_promo' and promo_key != blank and promo_key == link_key
+          assign promo_count = promo_count | plus: 1
+        endif
+      endfor
+      assign panel_type = 'dropdown'
+      if has_grandchildren or promo_count > 0
+        assign panel_type = 'mega'
+      endif
+      assign panel_id = 'HeaderPanel-' | append: section.id | append: '-' | append: item_index
+    -%}
+    <li
+      class="header__item{% if link.links.size > 0 %} header__item--{{ panel_type }}{% endif %}"
+      data-nav-item
+    >
+      {%- if link.links.size > 0 -%}
+        <details class="header__details" data-nav-details>
+          <summary
+            class="header__link"
+            data-nav-link
+            aria-controls="{{ panel_id }}"
+            {% if is_active %}
+              data-active
+            {% endif %}
+          >
+            <span class="header__link-text">{{ link.title | escape }}</span>
+            {%- render 'icon', name: 'chevron-down', size: 14, stroke: 2, class: 'header__chevron' -%}
+          </summary>
+
+          {%- if panel_type == 'mega' -%}
+            <div class="header__panel header__panel--mega" id="{{ panel_id }}" data-nav-panel>
+              <div class="mega page-width{% if promo_count > 0 %} mega--has-promos{% endif %}">
+                {%- liquid
+                  assign col_count = link.links.size | at_most: 4
+                  unless has_grandchildren
+                    assign col_count = 1
+                  endunless
+                -%}
+                <div class="mega__cols" style="--mega-cols: {{ col_count }};">
+                  {%- if has_grandchildren -%}
+                    {%- for child in link.links -%}
+                      <div class="mega__col" data-panel-item>
+                        <a
+                          href="{{ child.url }}"
+                          class="mega__heading{% if child.active or child.child_active %} is-active{% endif %}"
+                          {% if child.current %}
+                            aria-current="page"
+                          {% endif %}
+                        >
+                          {{- child.title | escape -}}
+                        </a>
+                        {%- if child.links.size > 0 -%}
+                          <ul class="mega__list" role="list">
+                            {%- for grandchild in child.links -%}
+                              <li>
+                                <a
+                                  href="{{ grandchild.url }}"
+                                  class="mega__link"
+                                  {% if grandchild.current %}
+                                    aria-current="page"
+                                  {% endif %}
+                                >
+                                  <span>{{ grandchild.title | escape }}</span>
+                                </a>
+                              </li>
+                            {%- endfor -%}
+                          </ul>
+                        {%- endif -%}
+                      </div>
+                    {%- endfor -%}
+                  {%- else -%}
+                    <ul class="mega__list mega__list--flat" role="list">
+                      {%- for child in link.links -%}
+                        <li data-panel-item>
+                          <a
+                            href="{{ child.url }}"
+                            class="mega__link mega__link--lg"
+                            {% if child.current %}
+                              aria-current="page"
+                            {% endif %}
+                          >
+                            <span>{{ child.title | escape }}</span>
+                            {%- render 'icon', name: 'arrow-right', size: 16 -%}
+                          </a>
+                        </li>
+                      {%- endfor -%}
+                    </ul>
+                  {%- endif -%}
+                </div>
+
+                {%- if promo_count > 0 -%}
+                  <div class="mega__promos">
+                    {%- assign promos_rendered = 0 -%}
+                    {%- for block in section.blocks -%}
+                      {%- assign promo_key = block.settings.menu_item | strip | downcase -%}
+                      {%- if block.type == 'mega_promo'
+                        and promo_key != blank
+                        and promo_key == link_key
+                        and promos_rendered < 2
+                      -%}
+                        {%- assign promos_rendered = promos_rendered | plus: 1 -%}
+                        {%- render 'header-promo',
+                          block: block,
+                          index: forloop.index,
+                          attrs: true,
+                          layout: 'stack',
+                          sizes: '(min-width: 1400px) 300px, 260px',
+                          class: 'mega__promo'
+                        -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </div>
+                {%- endif -%}
+              </div>
+
+              {%- if link.url != '#' and link.url != blank -%}
+                <div class="mega__footer">
+                  <div class="page-width mega__footer-inner">
+                    <a href="{{ link.url }}" class="mega__all" data-panel-item>
+                      <span>{{ 'sections.header.shop_all' | t: title: link.title }}</span>
+                      {%- render 'icon', name: 'arrow-right', size: 16 -%}
+                    </a>
+                    <span class="mega__count mono" aria-hidden="true">{{ link.links.size | prepend: '0' | slice: -2, 2 }}</span>
+                  </div>
+                </div>
+              {%- endif -%}
+            </div>
+          {%- else -%}
+            <div class="header__panel header__panel--dropdown" id="{{ panel_id }}" data-nav-panel>
+              <ul class="dropdown__list" role="list">
+                {%- for child in link.links -%}
+                  <li data-panel-item>
+                    <a
+                      href="{{ child.url }}"
+                      class="dropdown__link"
+                      {% if child.current %}
+                        aria-current="page"
+                      {% endif %}
+                    >
+                      <span>{{ child.title | escape }}</span>
+                      {%- render 'icon', name: 'arrow-right', size: 14 -%}
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+              {%- if link.url != '#' and link.url != blank -%}
+                <a href="{{ link.url }}" class="dropdown__all" data-panel-item>
+                  {{- 'sections.header.view_all' | t -}}
+                  {%- render 'icon', name: 'arrow-up-right', size: 14 -%}
+                </a>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </details>
+      {%- else -%}
+        <a
+          href="{{ link.url }}"
+          class="header__link"
+          data-nav-link
+          {% if is_active %}
+            data-active
+          {% endif %}
+          {% if link.current %}
+            aria-current="page"
+          {% endif %}
+        >
+          <span class="header__link-text">{{ link.title | escape }}</span>
+        </a>
+      {%- endif -%}
+    </li>
+  {%- endfor -%}
+</ul>
+<span class="header__indicator" data-nav-indicator aria-hidden="true"></span>

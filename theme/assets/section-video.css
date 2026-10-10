@@ -1,0 +1,325 @@
+/* ==========================================================================
+   Video — poster + magnetic play button, iframe/video injected on demand.
+   Phones: title sits under the frame so it never fights the play button.
+   ========================================================================== */
+
+video-player.video { display: block; position: relative; }
+.video { --video-ratio: 16 / 9; }
+.video--21-9 { --video-ratio: 16 / 9; }
+.video--4-3 { --video-ratio: 4 / 3; }
+.video--9-16 { --video-ratio: 9 / 16; }
+@media (min-width: 750px) {
+  .video--21-9 { --video-ratio: 21 / 9; }
+}
+
+/* ---------- Frame ---------- */
+.video__frame {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  aspect-ratio: var(--video-ratio);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 40px 80px -40px rgb(0 0 0 / .85), 0 0 0 1px rgb(var(--color-text-rgb) / .08);
+}
+.video:not(.video--empty):not(.video--ambient):not(.is-playing) .video__frame { cursor: pointer; }
+.video--9-16 .video__frame { width: min(100%, 420px); margin-inline: auto; }
+@supports (height: 1svh) {
+  .video--9-16 .video__frame { width: min(100%, 420px, calc(78svh * 9 / 16)); }
+}
+.video-section--bleed .video__frame { border-radius: 0; box-shadow: none; }
+.video-section--bleed.video-section .video--9-16 .video__frame { border-radius: var(--radius-lg); }
+
+.video__poster {
+  position: absolute;
+  inset: 0;
+  transition: opacity .6s var(--ease-out), visibility 0s linear .6s;
+}
+.video__poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.4s var(--ease-out);
+}
+.video__shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 35%, rgb(0 0 0 / .28)),
+    linear-gradient(180deg, transparent 55%, rgb(0 0 0 / .35));
+}
+@media (min-width: 750px) {
+  .video__shade {
+    background:
+      radial-gradient(circle at 50% 50%, transparent 35%, rgb(0 0 0 / .3)),
+      linear-gradient(180deg, transparent 35%, rgb(0 0 0 / .72));
+  }
+  .video--9-16 .video__shade {
+    background:
+      radial-gradient(circle at 50% 50%, transparent 35%, rgb(0 0 0 / .3)),
+      linear-gradient(180deg, transparent 60%, rgb(0 0 0 / .4));
+  }
+}
+
+.video__ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video__slot {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: #000;
+}
+.video__slot:empty { display: none; }
+.video__slot > iframe,
+.video__slot > video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: contain;
+}
+
+/* ---------- Placeholder poster: a fanned spread of cards ---------- */
+.video__scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(55% 70% at 50% 62%, rgb(var(--color-accent-rgb) / .38), transparent 70%),
+    linear-gradient(180deg, var(--color-surface), var(--color-bg));
+}
+.video__scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(var(--color-text-rgb) / .06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--color-text-rgb) / .06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: center;
+  -webkit-mask-image: radial-gradient(60% 70% at 50% 50%, #000 15%, transparent 100%);
+  mask-image: radial-gradient(60% 70% at 50% 50%, #000 15%, transparent 100%);
+}
+.video__scene-glow {
+  position: absolute;
+  left: 50%;
+  bottom: 6%;
+  width: 60%;
+  height: 14%;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--color-accent-rgb) / .7), transparent);
+  filter: blur(16px);
+}
+.video__scene-card {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  height: 56%;
+  aspect-ratio: 63 / 88;
+  filter: drop-shadow(0 24px 30px rgb(0 0 0 / .55));
+}
+.video__scene-card svg { width: 100%; height: 100%; }
+.video__scene-card--1 { translate: -238% -44%; rotate: -18deg; opacity: .75; }
+.video__scene-card--2 { translate: -146% -49%; rotate: -9deg; opacity: .9; }
+.video__scene-card--3 { z-index: 2; height: 64%; translate: -50% -53%; }
+.video__scene-card--4 { translate: 46% -49%; rotate: 9deg; opacity: .9; }
+.video__scene-card--5 { translate: 138% -44%; rotate: 18deg; opacity: .75; }
+
+/* ---------- Play button ---------- */
+.video__controls {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  transition: opacity .45s var(--ease-out), visibility 0s linear .45s;
+}
+.video__play {
+  pointer-events: auto;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  color: #fff;
+  -webkit-tap-highlight-color: transparent;
+}
+.video__play--static { pointer-events: none; }
+.video__play::before {
+  content: "";
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / .5), rgb(0 0 0 / .32));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12);
+}
+.video__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: rgb(255 255 255 / .82);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+html.motion-ok .video__ring { animation: video-spin 16s linear infinite; }
+.video__play-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow:
+    0 0 0 8px rgb(var(--color-accent-rgb) / .2),
+    0 18px 40px -10px rgb(var(--color-accent-rgb) / .95),
+    inset 0 1px 0 rgb(255 255 255 / .25);
+  transition: transform .5s var(--ease-back), box-shadow .5s var(--ease-out);
+}
+.video__play-btn .icon { translate: 2px 0; }
+.video__play-btn .icon path { fill: currentColor; }
+.video__play-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--color-accent-rgb) / .8);
+  pointer-events: none;
+}
+html.motion-ok .video__play-btn::before { animation: video-pulse 2.4s var(--ease-out) infinite; }
+.video__play:focus-visible { outline-offset: 6px; border-radius: 50%; }
+.video__play:active .video__play-btn { transform: scale(.94); }
+
+@media (min-width: 750px) {
+  .video__play { width: 148px; height: 148px; }
+  .video__play-btn { width: 84px; height: 84px; }
+  .video__play-btn .icon { width: 34px; height: 34px; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .video__frame:hover .video__play-btn {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 12px rgb(var(--color-accent-rgb) / .22),
+      0 22px 50px -10px rgb(var(--color-accent-rgb) / 1),
+      inset 0 1px 0 rgb(255 255 255 / .3);
+  }
+  .video__frame:hover .video__poster-img { transform: scale(1.035); }
+}
+
+/* Ambient (background) mode pause toggle */
+.video__toggle {
+  pointer-events: auto;
+  position: absolute;
+  right: clamp(.75rem, .5rem + 1vw, 1.25rem);
+  bottom: clamp(.75rem, .5rem + 1vw, 1.25rem);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  background: rgb(0 0 0 / .45);
+  border: 1px solid rgb(255 255 255 / .2);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: background-color var(--dur), border-color var(--dur);
+}
+.video__toggle:hover { background: rgb(0 0 0 / .65); border-color: rgb(255 255 255 / .4); }
+.video__toggle-icon { display: grid; place-items: center; }
+.video__toggle-icon .icon path { fill: currentColor; }
+.video__toggle-icon--play,
+.video__toggle.is-paused .video__toggle-icon--pause { display: none; }
+.video__toggle.is-paused .video__toggle-icon--play { display: grid; }
+@media (min-width: 750px) {
+  .video__toggle { top: clamp(.75rem, .5rem + 1vw, 1.25rem); bottom: auto; }
+}
+
+/* ---------- Playing ---------- */
+.video.is-playing .video__poster,
+.video.is-playing .video__controls { opacity: 0; visibility: hidden; }
+
+/* ---------- Caption ---------- */
+.video__caption {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+.video__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 30px;
+  padding: .3rem .8rem;
+  border-radius: 99px;
+  border: 1px solid rgb(var(--color-text-rgb) / .14);
+  background: rgb(var(--color-text-rgb) / .05);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.video__eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 3px rgb(var(--color-accent-rgb) / .2), 0 0 10px rgb(var(--color-accent-rgb) / .9);
+}
+html.motion-ok .video__eyebrow-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+.video__title { max-width: 20ch; }
+.video-section--bleed .video__caption { padding-inline: var(--gutter); }
+
+@media (min-width: 750px) {
+  /* Overlay the title on the poster (always light text on the darkened poster) */
+  .video:not(.video--9-16) .video__caption {
+    --color-text: #fff;
+    --color-text-rgb: 255 255 255;
+    position: absolute;
+    z-index: 4;
+    left: clamp(1.5rem, .5rem + 3vw, 3.5rem);
+    right: 38%;
+    bottom: clamp(1.5rem, .5rem + 3vw, 3.5rem);
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    pointer-events: none;
+    transition: opacity .45s var(--ease-out), visibility 0s linear .45s;
+  }
+  .video-section--bleed .video:not(.video--9-16) .video__caption {
+    left: max(var(--gutter), (100% - var(--page-width)) / 2);
+  }
+  .video:not(.video--9-16) .video__eyebrow {
+    border-color: rgb(255 255 255 / .18);
+    background: rgb(0 0 0 / .4);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+  .video:not(.video--9-16) .video__title { text-shadow: 0 2px 30px rgb(0 0 0 / .5); }
+  .video.is-playing .video__caption { opacity: 0; visibility: hidden; }
+  .video--9-16 .video__caption { justify-items: center; text-align: center; }
+  .video--21-9 .video__title.h1 { font-size: var(--h2); }
+}
+
+@keyframes video-spin { to { transform: rotate(360deg); } }
+@keyframes video-pulse {
+  from { transform: scale(1); opacity: .9; }
+  to { transform: scale(1.85); opacity: 0; }
+}

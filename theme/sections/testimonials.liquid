@@ -1,0 +1,375 @@
+{{ 'section-testimonials.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign ts_reviews = section.blocks | where: 'type', 'review'
+  assign ts_count = ts_reviews.size
+  assign ts_layout = section.settings.layout | default: 'marquee'
+  assign ts_heading_id = 'ReviewsHeading-' | append: section.id
+  assign ts_verified_label = 'sections.testimonials.verified' | t
+  assign ts_row_a = ''
+  assign ts_row_b = ''
+  assign ts_slides = ''
+-%}
+
+{%- comment -%} Build each review card once, then place it in the marquee rows or the carousel. {%- endcomment -%}
+{%- for block in ts_reviews -%}
+  {%- liquid
+    assign rating = block.settings.rating | default: 5 | at_least: 1 | at_most: 5
+    assign rating_label = 'accessibility.rating' | t: rating: rating
+    assign r_name = block.settings.name | default: ''
+    assign name_parts = r_name | split: ' '
+    assign initials = ''
+    if name_parts.size > 0
+      assign initials = name_parts.first | slice: 0 | upcase
+      if name_parts.size > 1
+        assign last_initial = name_parts.last | slice: 0 | upcase
+        assign initials = initials | append: last_initial
+      endif
+    endif
+    assign r_product = block.settings.product
+  -%}
+  {%- capture card -%}
+    <figure class="ts-card" {{ block.shopify_attributes }}>
+      <div class="ts-card__top">
+        <span class="ts-stars" role="img" aria-label="{{ rating_label | escape }}">
+          {%- for s in (1..5) -%}
+            <span class="ts-star{% if s <= rating %} is-on{% endif %}">{% render 'icon', name: 'star-filled', size: 16 %}</span>
+          {%- endfor -%}
+        </span>
+        {%- if section.settings.show_product and r_product != blank -%}
+          <a
+            class="ts-card__product"
+            href="{{ r_product.url }}"
+            aria-label="{{ 'sections.testimonials.view_product' | t: product: r_product.title | escape }}"
+          >
+            {%- if r_product.featured_image != blank -%}
+              {{
+                r_product.featured_image
+                | image_url: width: 144
+                | image_tag:
+                  widths: '48, 96, 144',
+                  sizes: '48px',
+                  loading: 'lazy',
+                  alt: '',
+                  class: 'ts-card__product-img'
+              }}
+            {%- else -%}
+              {% render 'placeholder-card', variant: forloop.index, uid: block.id %}
+            {%- endif -%}
+          </a>
+        {%- endif -%}
+      </div>
+
+      {%- if block.settings.title != blank -%}
+        <p class="ts-card__title">{{ block.settings.title | escape }}</p>
+      {%- endif -%}
+
+      {%- if block.settings.quote != blank -%}
+        <blockquote class="ts-card__quote">
+          <p>{{ block.settings.quote | escape | newline_to_br }}</p>
+        </blockquote>
+      {%- endif -%}
+
+      <figcaption class="ts-card__author">
+        <span class="ts-avatar" aria-hidden="true">
+          {%- if block.settings.avatar != blank -%}
+            {{
+              block.settings.avatar
+              | image_url: width: 126
+              | image_tag:
+                widths: '42, 84, 126',
+                sizes: '42px',
+                loading: 'lazy',
+                alt: '',
+                class: 'ts-avatar__img'
+            }}
+          {%- else -%}
+            {{ initials | escape }}
+          {%- endif -%}
+        </span>
+        <span class="ts-card__who">
+          <span class="ts-card__name">
+            <span>{{ r_name | escape }}</span>
+            {%- if block.settings.verified -%}
+              <span class="ts-verified">
+                {%- render 'icon', name: 'verified', size: 14 -%}
+                {{- ts_verified_label -}}
+              </span>
+            {%- endif -%}
+          </span>
+          {%- if block.settings.location != blank -%}
+            <span class="ts-card__meta">{{ block.settings.location | escape }}</span>
+          {%- endif -%}
+        </span>
+      </figcaption>
+    </figure>
+  {%- endcapture -%}
+  {%- liquid
+    assign row_slot = forloop.index0 | modulo: 2
+    if ts_count < 4 or row_slot == 0
+      assign ts_row_a = ts_row_a | append: card
+    else
+      assign ts_row_b = ts_row_b | append: card
+    endif
+    assign ts_slides = ts_slides | append: '<div class="carousel__slide ts-slide" data-reveal="fade-up">' | append: card | append: '</div>'
+  -%}
+{%- endfor -%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-testimonials color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+>
+  <div class="ts-atmos" aria-hidden="true"></div>
+
+  <div class="page-width">
+    <div class="ts-head">
+      {% render 'section-header',
+        eyebrow: section.settings.eyebrow,
+        heading: section.settings.heading,
+        text: section.settings.text,
+        link_label: section.settings.link_label,
+        link_url: section.settings.link_url,
+        align: 'left',
+        size: 'h2',
+        tag: 'h2',
+        id: ts_heading_id
+      %}
+
+      {%- if section.settings.show_aggregate and section.settings.rating_value != blank -%}
+        {%- liquid
+          assign agg_value = section.settings.rating_value | strip
+          assign agg_num = agg_value | plus: 0 | at_least: 0 | at_most: 5
+          assign agg_pct = agg_num | divided_by: 5.0 | times: 100 | round: 1
+        -%}
+        <div class="ts-aggregate glass" data-reveal="fade">
+          <p class="ts-aggregate__score">
+            <span class="ts-aggregate__value">{{ agg_value | escape }}</span>
+            <span class="ts-aggregate__max">{{ 'sections.testimonials.rating_max' | t }}</span>
+          </p>
+          <div class="ts-aggregate__meta">
+            <span
+              class="ts-stars ts-stars--partial"
+              role="img"
+              aria-label="{{ 'accessibility.rating' | t: rating: agg_value | escape }}"
+              style="--fill: {{ agg_pct }}%;"
+            >
+              <span class="ts-stars__base">
+                {%- for s in (1..5) -%}
+                  <span class="ts-star">{% render 'icon', name: 'star-filled', size: 16 %}</span>
+                {%- endfor -%}
+              </span>
+              <span class="ts-stars__fill">
+                {%- for s in (1..5) -%}
+                  <span class="ts-star is-on">{% render 'icon', name: 'star-filled', size: 16 %}</span>
+                {%- endfor -%}
+              </span>
+            </span>
+            {%- if section.settings.rating_count != blank -%}
+              <p class="ts-aggregate__count">
+                {{- 'sections.testimonials.aggregate' | t: count: section.settings.rating_count -}}
+              </p>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if ts_count > 0 -%}
+    <testimonial-reel class="ts-reel ts-reel--{{ ts_layout }}" data-layout="{{ ts_layout }}">
+      {%- if ts_layout == 'carousel' -%}
+        <div class="page-width">
+          <vault-carousel
+            class="ts-carousel carousel--bleed"
+            style="--per-view-mobile: 1.1; --per-view-tablet: 2.2; --per-view-desktop: 3;"
+          >
+            <div
+              class="carousel__track"
+              data-carousel-track
+              tabindex="0"
+              role="region"
+              aria-label="{{ 'sections.testimonials.reviews_label' | t | escape }}"
+            >
+              {{ ts_slides }}
+            </div>
+            <div class="carousel__controls">
+              <button type="button" class="carousel__btn" data-carousel-prev aria-label="{{ 'accessibility.previous_slide' | t | escape }}">
+                {% render 'icon', name: 'arrow-left', size: 18 %}
+              </button>
+              <div class="carousel__progress"><span data-carousel-progress></span></div>
+              <button type="button" class="carousel__btn" data-carousel-next aria-label="{{ 'accessibility.next_slide' | t | escape }}">
+                {% render 'icon', name: 'arrow-right', size: 18 %}
+              </button>
+            </div>
+          </vault-carousel>
+        </div>
+      {%- else -%}
+        <div class="ts-rows" data-reveal="fade" role="region" aria-label="{{ 'sections.testimonials.reviews_label' | t | escape }}">
+          <vault-marquee
+            class="ts-marquee"
+            data-speed="{{ section.settings.speed }}"
+            data-direction="left"
+            data-scroll-velocity="false"
+            data-pause-hover
+            data-fade
+          >
+            <div class="marquee__track">
+              <div class="marquee__group">{{ ts_row_a }}</div>
+            </div>
+          </vault-marquee>
+          {%- if ts_row_b != '' -%}
+            <vault-marquee
+              class="ts-marquee"
+              data-speed="{{ section.settings.speed | times: 0.85 | round }}"
+              data-direction="right"
+              data-scroll-velocity="false"
+              data-pause-hover
+              data-fade
+            >
+              <div class="marquee__track">
+                <div class="marquee__group">{{ ts_row_b }}</div>
+              </div>
+            </vault-marquee>
+          {%- endif -%}
+        </div>
+        <div class="page-width ts-reel__controls">
+          <button
+            type="button"
+            class="ts-toggle"
+            data-ts-toggle
+            data-paused="false"
+            data-pause-label="{{ 'sections.testimonials.pause' | t | escape }}"
+            data-play-label="{{ 'sections.testimonials.play' | t | escape }}"
+          >
+            <span class="ts-toggle__icon ts-toggle__icon--pause">{% render 'icon', name: 'pause', size: 16 %}</span>
+            <span class="ts-toggle__icon ts-toggle__icon--play">{% render 'icon', name: 'play', size: 16 %}</span>
+            <span class="ts-toggle__label">{{ 'sections.testimonials.pause' | t }}</span>
+          </button>
+        </div>
+      {%- endif -%}
+    </testimonial-reel>
+  {%- endif -%}
+</section>
+
+<script src="{{ 'section-testimonials.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Testimonials",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Collector reviews" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Italicize words to highlight them in the accent color.", "default": "Loved by <em>collectors</em>" },
+    { "type": "richtext", "id": "text", "label": "Text" },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "Read all reviews" },
+    { "type": "url", "id": "link_url", "label": "Link" },
+    { "type": "header", "content": "Rating summary" },
+    { "type": "checkbox", "id": "show_aggregate", "label": "Show rating summary", "default": true },
+    { "type": "text", "id": "rating_value", "label": "Average rating", "info": "Out of 5, e.g. 4.9", "default": "4.9" },
+    { "type": "text", "id": "rating_count", "label": "Number of collectors", "default": "2,300+" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "marquee", "label": "Drifting rows" },
+        { "value": "carousel", "label": "Carousel" }
+      ],
+      "default": "marquee"
+    },
+    { "type": "range", "id": "speed", "min": 15, "max": 80, "step": 5, "unit": "px", "label": "Drift speed", "info": "Pixels per second", "default": 35 },
+    { "type": "checkbox", "id": "show_product", "label": "Show product thumbnails", "default": true },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        { "type": "range", "id": "rating", "min": 1, "max": 5, "step": 1, "label": "Rating", "default": 5 },
+        { "type": "text", "id": "title", "label": "Headline", "default": "Slab arrived flawless" },
+        { "type": "textarea", "id": "quote", "label": "Review", "default": "Ordered a PSA 10 and it showed up double-boxed, in a team bag, with corner protectors on the slab. Not a scratch on the case. This is how graded cards should ship." },
+        { "type": "text", "id": "name", "label": "Name", "default": "Marcus T." },
+        { "type": "text", "id": "location", "label": "Location or handle", "default": "Austin, TX" },
+        { "type": "checkbox", "id": "verified", "label": "Verified collector badge", "default": true },
+        { "type": "image_picker", "id": "avatar", "label": "Avatar", "info": "Initials are shown when empty." },
+        { "type": "product", "id": "product", "label": "Product" }
+      ]
+    }
+  ],
+  "max_blocks": 24,
+  "presets": [
+    {
+      "name": "Testimonials",
+      "blocks": [
+        {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Slab arrived flawless",
+            "quote": "Ordered a PSA 10 and it showed up double-boxed, in a team bag, with corner protectors on the slab. Not a scratch on the case. This is how graded cards should ship.",
+            "name": "Marcus T.",
+            "location": "Austin, TX"
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Grading you can trust",
+            "quote": "Every raw single I bought was exactly as listed. The Near Mint cards were genuinely Near Mint — sharp corners, clean surfaces, no surprises under the loupe.",
+            "name": "Priya S.",
+            "location": "@priyapulls"
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Fast, insured, perfect",
+            "quote": "Ordered Sunday night, tracking was live Monday morning and the box was on my porch Wednesday. Insured, signed for, and the booster box shrink was perfect.",
+            "name": "Daniel R.",
+            "location": "Leeds, UK"
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Top-loaders for everything",
+            "quote": "Every card came in a penny sleeve and a top-loader, then a team bag, sandwiched between cardboard. Even the bulk commons. The care that goes into packing is unreal.",
+            "name": "Sofia M.",
+            "location": "Toronto, ON"
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Painless trade-in",
+            "quote": "Traded part of my Lorcana binder for store credit. The offer was fair, the bonus credit was real and the prepaid insured label made it completely painless.",
+            "name": "Jordan K.",
+            "location": "@lorcanajordan"
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "rating": 4,
+            "title": "Drop day done right",
+            "quote": "Grabbed a Japanese alt-art on drop day before it hit the secondary market. Support answered my centering questions within the hour. Only wish the drop lasted longer.",
+            "name": "Kenji A.",
+            "location": "San Diego, CA"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

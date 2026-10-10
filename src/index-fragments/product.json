@@ -1,0 +1,86 @@
+{
+  "order_hint": 35,
+  "sections": {
+    "featured_product_spotlight": {
+      "type": "featured-product",
+      "settings": {
+        "product": "base-set-holo-dragon-psa-10",
+        "eyebrow": "Vault spotlight",
+        "heading": "This week's <em>grail</em>",
+        "text": "Gem-mint, freshly slabbed and photographed in-house. One copy, one new owner.",
+        "header_align": "left",
+        "media_position": "left",
+        "gallery_foil": "intense",
+        "enable_flip": true,
+        "enable_zoom": true,
+        "show_details_link": true,
+        "show_glow": true,
+        "show_grid": true,
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "game_line": {
+          "type": "game_line",
+          "settings": {
+            "show_game": true,
+            "show_set": true,
+            "show_number": true,
+            "vendor_fallback": true
+          }
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "badges": {
+          "type": "badges",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {
+            "show_tax_note": false
+          }
+        },
+        "inventory": {
+          "type": "inventory",
+          "settings": {
+            "in_stock_note": "Ships in 24h",
+            "low_stock_note": "Once it's gone, it's gone",
+            "show_meter": true
+          }
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {
+            "picker_type": "pills"
+          }
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_dynamic_checkout": false
+          }
+        },
+        "collector_specs": {
+          "type": "collector_specs",
+          "settings": {
+            "heading": "Card details"
+          }
+        }
+      },
+      "block_order": [
+        "game_line",
+        "title",
+        "badges",
+        "price",
+        "inventory",
+        "variant_picker",
+        "buy_buttons",
+        "collector_specs"
+      ]
+    }
+  }
+}

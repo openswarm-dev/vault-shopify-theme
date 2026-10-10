@@ -1,0 +1,325 @@
+{{ 'section-marquee.css' | asset_url | stylesheet_tag }}
+{%- comment -%}
+  Marquee — <vault-marquee> ticker in three styles (ribbon · giant · pills).
+  Optional rotation tilts the band edge-to-edge; a second row runs the other way
+  (stacked inside the band when flat, crossing it as an "X" when rotated).
+  Motion is handled by core; without motion the row is static and scrolls horizontally.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign style = s.style | default: 'ribbon'
+  assign rotation = s.rotation | default: 0
+  assign rotation_abs = rotation | abs
+  # Vertical room a rotated full-width band needs: half the viewport × tan(angle) ≈ 0.875vw per degree.
+  assign clearance = rotation_abs | times: 0.875
+  assign rotated = false
+  if rotation_abs > 0
+    assign rotated = true
+  endif
+
+  assign direction = s.direction | default: 'left'
+  assign reverse_direction = 'right'
+  if direction == 'right'
+    assign reverse_direction = 'left'
+  endif
+
+  assign row_count = 1
+  if s.second_row
+    assign row_count = 2
+  endif
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-marquee color-{{ s.color_scheme }}"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }}; --mq-rotate: {{ rotation }}deg; --mq-clear: {{ clearance }}vw;"
+  data-section-id="{{ section.id }}"
+  aria-label="{{ 'sections.marquee.label' | t }}"
+>
+  {%- for row in (1..row_count) -%}
+    {%- liquid
+      assign row_direction = direction
+      if row == 2
+        assign row_direction = reverse_direction
+      endif
+    -%}
+    {%- capture row_markup -%}
+      <vault-marquee
+        class="mq__marquee{% if row == 2 %} mq__marquee--reverse{% endif %}"
+        data-speed="{{ s.speed }}"
+        data-direction="{{ row_direction }}"
+        data-scroll-velocity="{{ s.scroll_velocity }}"
+        data-flip="{{ s.flip_on_scroll }}"
+        {% if s.pause_on_hover %}
+          data-pause-hover
+        {% endif %}
+        {% if s.edge_fade %}
+          data-fade
+        {% endif %}
+        {% if row == 2 %}
+          aria-hidden="true"
+        {% endif %}
+      >
+        <div class="marquee__track">
+          <div class="marquee__group">
+            {%- for block in section.blocks -%}
+              {%- liquid
+                assign b = block.settings
+                assign outlined = b.outline
+                # Giant style alternates filled / outlined words automatically.
+                if style == 'giant'
+                  assign position = forloop.index | plus: row | modulo: 2
+                  if position == 1
+                    assign outlined = true
+                  endif
+                endif
+              -%}
+              {%- case block.type -%}
+                {%- when 'text' -%}
+                  {%- if b.text != blank -%}
+                    <span
+                      class="mq-item mq-item--text{% if outlined %} mq-item--outline{% endif %}"
+                      {% if row == 1 %}
+                        {{ block.shopify_attributes }}
+                      {% endif %}
+                    >
+                      {%- if style == 'pills' and b.icon != 'none' -%}
+                        {% render 'icon', name: b.icon, size: 16, class: 'mq-item__icon' %}
+                      {%- endif -%}
+                      <span class="mq-item__text">{{ b.text | escape }}</span>
+                    </span>
+                    {%- if style != 'pills' and b.icon != 'none' -%}
+                      <span class="mq-sep" aria-hidden="true">
+                        {%- render 'icon', name: b.icon, size: 24, class: 'mq-sep__icon', stroke: 1.5 -%}
+                      </span>
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- when 'image' -%}
+                  <span
+                    class="mq-item mq-item--image"
+                    style="--mq-logo-h: {{ b.height }}px;"
+                    {% if row == 1 %}
+                      {{ block.shopify_attributes }}
+                    {% endif %}
+                  >
+                    {%- if b.image != blank -%}
+                      {%- assign logo_height = b.height | times: 2 -%}
+                      {{
+                        b.image
+                        | image_url: height: logo_height
+                        | image_tag: height: b.height, loading: 'lazy', class: 'mq-item__logo', alt: b.image.alt
+                      }}
+                    {%- else -%}
+                      {{ 'image' | placeholder_svg_tag: 'mq-item__logo mq-item__logo--placeholder' }}
+                    {%- endif -%}
+                  </span>
+              {%- endcase -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      </vault-marquee>
+    {%- endcapture -%}
+    {%- liquid
+      if row == 1
+        assign row_one = row_markup
+      else
+        assign row_two = row_markup
+      endif
+    -%}
+  {%- endfor -%}
+
+  <div class="mq mq--{{ style }}{% if rotated %} mq--rotated{% endif %}{% if row_count == 2 %} mq--double{% endif %}">
+    {%- if rotated and row_count == 2 -%}
+      <div class="mq__band">{{ row_one }}</div>
+      <div class="mq__band mq__band--cross" aria-hidden="true">{{ row_two }}</div>
+    {%- else -%}
+      <div class="mq__band">{{ row_one }}{{ row_two }}</div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Marquee",
+  "settings": [
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "options": [
+        { "value": "ribbon", "label": "Ribbon" },
+        { "value": "giant", "label": "Giant type" },
+        { "value": "pills", "label": "Pills" }
+      ],
+      "default": "ribbon",
+      "info": "Giant type alternates filled and outlined words."
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "min": 10,
+      "max": 200,
+      "step": 5,
+      "unit": "px",
+      "label": "Speed (per second)",
+      "default": 45
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "Direction",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "scroll_velocity",
+      "label": "Speed up while scrolling",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "flip_on_scroll",
+      "label": "Reverse when scrolling up",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "second_row",
+      "label": "Second row in the opposite direction",
+      "info": "Crosses the first band when the band is rotated.",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "rotation",
+      "min": -3,
+      "max": 3,
+      "step": 0.5,
+      "unit": "°",
+      "label": "Rotate band",
+      "default": -2
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Pause on hover",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "edge_fade",
+      "label": "Fade the edges",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-4"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 20
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Sealed boosters"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "info": "Separator after the text (inside the chip for the pills style).",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "flame", "label": "Flame" },
+            { "value": "star", "label": "Star" },
+            { "value": "bolt", "label": "Bolt" },
+            { "value": "award", "label": "Award" },
+            { "value": "verified", "label": "Verified" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "dot", "label": "Dot" }
+          ],
+          "default": "sparkle"
+        },
+        {
+          "type": "checkbox",
+          "id": "outline",
+          "label": "Outlined text",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Logo"
+        },
+        {
+          "type": "range",
+          "id": "height",
+          "min": 16,
+          "max": 96,
+          "step": 4,
+          "unit": "px",
+          "label": "Height",
+          "default": 32
+        }
+      ]
+    }
+  ],
+  "max_blocks": 16,
+  "presets": [
+    {
+      "name": "Marquee",
+      "blocks": [
+        { "type": "text", "settings": { "text": "PSA 10 Gem Mint", "icon": "sparkle" } },
+        { "type": "text", "settings": { "text": "Sealed boosters", "icon": "sparkle" } },
+        { "type": "text", "settings": { "text": "Vintage holos", "icon": "sparkle" } },
+        { "type": "text", "settings": { "text": "Japanese exclusives", "icon": "sparkle" } },
+        { "type": "text", "settings": { "text": "Alt arts", "icon": "sparkle" } },
+        { "type": "text", "settings": { "text": "Sports rookies", "icon": "sparkle" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

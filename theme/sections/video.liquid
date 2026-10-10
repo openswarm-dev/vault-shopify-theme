@@ -1,0 +1,247 @@
+{{ 'section-video.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign s = section.settings
+  assign hosted = s.video
+  assign source = 'none'
+  if hosted != blank
+    assign source = 'hosted'
+  elsif s.video_url != blank
+    assign source = s.video_url.type | downcase
+  endif
+
+  assign ambient = false
+  if s.ambient and source == 'hosted'
+    assign ambient = true
+  endif
+
+  assign title_text = s.title | strip_html | strip
+  if title_text != blank
+    assign play_label = 'sections.video.play_named' | t: title: title_text
+  else
+    assign play_label = 'sections.video.play' | t
+  endif
+  assign ring_word = 'sections.video.play' | t | upcase
+  assign ring_text = ring_word | append: ' · ' | append: ring_word | append: ' · ' | append: ring_word | append: ' · '
+
+  assign poster = s.poster
+  if poster == blank and hosted != blank
+    assign poster = hosted.preview_image
+  endif
+
+  assign fallback_url = ''
+  assign embed_url = ''
+  case source
+    when 'youtube'
+      assign fallback_url = 'https://www.youtube.com/watch?v=' | append: s.video_url.id
+      assign embed_url = 'https://www.youtube-nocookie.com/embed/' | append: s.video_url.id | append: '?autoplay=1&rel=0&playsinline=1&modestbranding=1'
+    when 'vimeo'
+      assign fallback_url = 'https://vimeo.com/' | append: s.video_url.id
+      assign embed_url = 'https://player.vimeo.com/video/' | append: s.video_url.id | append: '?autoplay=1&dnt=1&title=0&byline=0&portrait=0'
+    when 'hosted'
+      assign mp4 = hosted.sources | where: 'format', 'mp4' | first
+      if mp4 == blank
+        assign mp4 = hosted.sources | first
+      endif
+      assign fallback_url = mp4.url
+  endcase
+
+  if s.full_width
+    assign poster_sizes = '100vw'
+  else
+    assign poster_sizes = '(min-width: 1500px) 1440px, calc(100vw - 2rem)'
+  endif
+  if s.aspect_ratio == '9-16'
+    assign poster_sizes = '(min-width: 750px) 420px, 100vw'
+  endif
+
+  assign heading_id = 'VideoHeading-' | append: section.id
+  assign ring_id = 'VideoRing-' | append: section.id
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-video video-section{% if s.full_width %} video-section--bleed{% endif %} color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if title_text != blank %}aria-labelledby="{{ heading_id }}"{% else %}aria-label="{{ 'sections.video.label' | t }}"{% endif %}
+>
+  <div class="{% if s.full_width %}video-section__bleed{% else %}page-width{% endif %}">
+    <video-player
+      class="video video--{{ s.aspect_ratio }}{% if ambient %} video--ambient{% endif %}{% if source == 'none' %} video--empty{% endif %}"
+      data-source="{{ source }}"
+      data-reveal="fade-up"
+    >
+      <div class="video__frame" data-video-frame>
+        <div class="video__poster" data-video-poster>
+          {%- if poster != blank -%}
+            {{- poster | image_url: width: 2400 | image_tag: loading: 'lazy', widths: '375, 550, 750, 1100, 1500, 1920, 2400', sizes: poster_sizes, alt: '', class: 'video__poster-img' -}}
+          {%- else -%}
+            <div class="video__scene" aria-hidden="true">
+              <span class="video__scene-glow"></span>
+              <div class="video__scene-card video__scene-card--1">{%- render 'placeholder-card', variant: 2, uid: section.id -%}</div>
+              <div class="video__scene-card video__scene-card--2">{%- render 'placeholder-card', variant: 4, uid: section.id -%}</div>
+              <div class="video__scene-card video__scene-card--4">{%- render 'placeholder-card', variant: 3, uid: section.id -%}</div>
+              <div class="video__scene-card video__scene-card--5">{%- render 'placeholder-card', variant: 6, uid: section.id -%}</div>
+              <div class="video__scene-card video__scene-card--3">{%- render 'placeholder-card', variant: 5, uid: section.id -%}</div>
+            </div>
+          {%- endif -%}
+          <span class="video__shade" aria-hidden="true"></span>
+        </div>
+
+        {%- if ambient -%}
+          {{- hosted | video_tag: autoplay: true, loop: true, muted: true, controls: false, playsinline: true, image_size: '1920x', class: 'video__ambient' -}}
+        {%- endif -%}
+
+        <div class="video__slot" data-video-slot></div>
+
+        <div class="video__controls">
+          {%- if ambient -%}
+            <button
+              type="button"
+              class="video__toggle"
+              data-video-toggle
+              aria-label="{{ 'sections.video.pause_background' | t }}"
+              data-label-pause="{{ 'sections.video.pause_background' | t }}"
+              data-label-play="{{ 'sections.video.play_background' | t }}"
+            >
+              <span class="video__toggle-icon video__toggle-icon--pause">{%- render 'icon', name: 'pause', size: 18, stroke: 2 -%}</span>
+              <span class="video__toggle-icon video__toggle-icon--play">{%- render 'icon', name: 'play', size: 18, stroke: 2 -%}</span>
+            </button>
+          {%- else -%}
+            {%- capture play_inner -%}
+              <svg class="video__ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+                <defs>
+                  <path id="{{ ring_id }}" d="M100 100m-80 0a80 80 0 1 1 160 0a80 80 0 1 1-160 0"/>
+                </defs>
+                <text><textPath href="#{{ ring_id }}" textLength="500" lengthAdjust="spacing">{{ ring_text | escape }}</textPath></text>
+              </svg>
+              <span class="video__play-btn">
+                {%- render 'icon', name: 'play', size: 30, stroke: 1.5 -%}
+              </span>
+            {%- endcapture -%}
+            {%- if source != 'none' -%}
+              <a
+                class="video__play"
+                href="{{ fallback_url }}"
+                target="_blank"
+                rel="noopener"
+                data-video-play
+                aria-label="{{ play_label | escape }}"
+              >
+                {{- play_inner -}}
+              </a>
+            {%- else -%}
+              <span class="video__play video__play--static" aria-hidden="true">{{- play_inner -}}</span>
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+
+        {%- if source != 'none' and ambient == false -%}
+          <template data-video-template>
+            {%- if source == 'hosted' -%}
+              {{- hosted | video_tag: controls: true, playsinline: true, autoplay: true, image_size: '1920x', class: 'video__media' -}}
+            {%- else -%}
+              <iframe
+                class="video__media"
+                src="{{ embed_url }}"
+                title="{{ title_text | default: play_label | escape }}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allowfullscreen
+              ></iframe>
+            {%- endif -%}
+          </template>
+        {%- endif -%}
+      </div>
+
+      {%- if s.eyebrow != blank or s.title != blank -%}
+        <div class="video__caption">
+          {%- if s.eyebrow != blank -%}
+            <p class="video__eyebrow">
+              <span class="video__eyebrow-dot" aria-hidden="true"></span>
+              {{- s.eyebrow | escape -}}
+            </p>
+          {%- endif -%}
+          {%- if s.title != blank -%}
+            <h2 id="{{ heading_id }}" class="video__title {{ s.title_size }}" data-split>{{ s.title }}</h2>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </video-player>
+  </div>
+</section>
+
+<script src="{{ 'section-video.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Video",
+  "settings": [
+    {
+      "type": "video_url",
+      "id": "video_url",
+      "label": "YouTube or Vimeo link",
+      "accept": ["youtube", "vimeo"],
+      "info": "Loads only when a visitor presses play (faster pages, no tracking until then)."
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Shopify-hosted video",
+      "info": "Used instead of the link when both are set."
+    },
+    {
+      "type": "image_picker",
+      "id": "poster",
+      "label": "Cover image",
+      "info": "Shown before playback. Hosted videos fall back to their own preview image."
+    },
+    {
+      "type": "checkbox",
+      "id": "ambient",
+      "label": "Background mode",
+      "info": "Hosted videos only: autoplays muted on a loop with a pause button. Visitors who prefer reduced motion see the cover image.",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Shape",
+      "options": [
+        { "value": "16-9", "label": "Widescreen 16:9" },
+        { "value": "21-9", "label": "Cinematic 21:9" },
+        { "value": "4-3", "label": "Classic 4:3" },
+        { "value": "9-16", "label": "Vertical 9:16 (shorts)" }
+      ],
+      "default": "16-9"
+    },
+    { "type": "checkbox", "id": "full_width", "label": "Full page width", "default": false },
+    { "type": "header", "content": "Title overlay" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Vault sessions · 12:48" },
+    {
+      "type": "inline_richtext",
+      "id": "title",
+      "label": "Title",
+      "info": "Italicize words to highlight them in the accent color.",
+      "default": "Cracking a 1st Edition <em>booster box</em>"
+    },
+    {
+      "type": "select",
+      "id": "title_size",
+      "label": "Title size",
+      "options": [
+        { "value": "h1", "label": "Large" },
+        { "value": "h2", "label": "Medium" },
+        { "value": "h3", "label": "Small" }
+      ],
+      "default": "h2"
+    },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "presets": [
+    { "name": "Video" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,168 @@
+{%- comment -%}
+  Sticky glass toolbar above product grids (collection + search):
+  result count · sort select (tablet+) · grid density toggle · "Filter & sort" drawer trigger.
+  <collection-toolbar> and <grid-density> are defined in assets/section-collection-grid.js.
+
+  Usage:
+    {% render 'facets-toolbar',
+      results: collection,
+      section_id: section.id,
+      count: collection.products_count,
+      action_url: collection.url,
+      enable_sorting: true,
+      has_filters: true,
+      filter_layout: 'sidebar',
+      active_count: active_count,
+      show_density: true,
+      cols_mobile: 2,
+      cols_tablet: 3,
+      cols_desktop: 4
+    %}
+  Params:
+    results         (required) collection or search object
+    section_id      (required) section.id
+    count           (required) total number of results
+    action_url      (required) collection.url or routes.search_url (no-JS sort form)
+    enable_sorting  show the sort select
+    has_filters     filtering is enabled and filters exist
+    filter_layout   'sidebar' | 'drawer'
+    active_count    number of active filters (badge on the drawer trigger)
+    show_density    show the grid density toggle
+    cols_mobile, cols_tablet, cols_desktop   section defaults for the density toggle
+    search_terms, search_type                search page only
+{%- endcomment -%}
+{%- liquid
+  assign tb_drawer_id = 'FacetsDrawer-' | append: section_id
+  assign tb_inline_form = 'FacetsForm-inline-' | append: section_id
+  assign tb_sort_id = 'FacetsSort-toolbar-' | append: section_id
+  assign tb_can_sort = false
+  if enable_sorting and results.sort_options.size > 0
+    assign tb_can_sort = true
+  endif
+  assign tb_has_drawer = false
+  if has_filters or tb_can_sort
+    assign tb_has_drawer = true
+  endif
+-%}
+{%- liquid
+  assign tb_mode = 'sidebar'
+  if has_filters == false
+    assign tb_mode = 'sort-only'
+  elsif filter_layout == 'drawer'
+    assign tb_mode = 'drawer'
+  endif
+-%}
+<collection-toolbar class="collection-toolbar collection-toolbar--{{ tb_mode }}" data-toolbar>
+  <div class="collection-toolbar__inner" role="group" aria-label="{{ 'collections.toolbar.label' | t }}">
+    <p class="collection-toolbar__count" data-facets-swap="count">
+      {{- 'collections.toolbar.results_html' | t: count: count -}}
+    </p>
+
+    <div class="collection-toolbar__actions">
+      {%- if tb_can_sort -%}
+        <div class="collection-toolbar__sort">
+          {%- if has_filters -%}
+            {%- render 'facets-sort', results: results, id: tb_sort_id, form_id: tb_inline_form -%}
+            <button type="submit" form="{{ tb_inline_form }}" class="btn btn--secondary btn--sm nojs-only">
+              {{- 'general.actions.apply' | t -}}
+            </button>
+          {%- else -%}
+            <form
+              id="FacetsSortForm-{{ section_id }}"
+              class="collection-toolbar__sort-form"
+              action="{{ action_url }}"
+              method="get"
+              data-facets-form="sort"
+            >
+              {%- render 'facets-search-params', terms: search_terms, type: search_type -%}
+              {%- render 'facets-sort', results: results, id: tb_sort_id -%}
+              <button type="submit" class="btn btn--secondary btn--sm nojs-only">{{ 'general.actions.apply' | t }}</button>
+            </form>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if show_density -%}
+        <grid-density
+          class="density js-only"
+          data-default-mobile="{{ cols_mobile | default: 2 }}"
+          data-default-tablet="{{ cols_tablet | default: 3 }}"
+          data-default-desktop="{{ cols_desktop | default: 4 }}"
+        >
+          <div class="density__group density__group--mobile" role="group" aria-label="{{ 'collections.toolbar.density' | t }}">
+            <button
+              type="button"
+              class="density__btn density__btn--toggle"
+              data-density="mobile:1"
+              data-density-toggle
+              aria-pressed="false"
+              aria-label="{{ 'collections.toolbar.columns' | t: count: 1 }}"
+            >
+              <span class="density__icon density__icon--one" style="--n: 1;" aria-hidden="true"><i></i></span>
+              <span class="density__icon density__icon--two" style="--n: 2;" aria-hidden="true"><i></i><i></i></span>
+            </button>
+          </div>
+          <div class="density__group density__group--tablet" role="group" aria-label="{{ 'collections.toolbar.density' | t }}">
+            {%- for n in (2..3) -%}
+              <button
+                type="button"
+                class="density__btn"
+                data-density="tablet:{{ n }}"
+                aria-pressed="false"
+                aria-label="{{ 'collections.toolbar.columns' | t: count: n }}"
+              >
+                <span class="density__icon" style="--n: {{ n }};" aria-hidden="true">
+                  {%- for i in (1..n) -%}<i></i>{%- endfor -%}
+                </span>
+              </button>
+            {%- endfor -%}
+          </div>
+          <div class="density__group density__group--desktop" role="group" aria-label="{{ 'collections.toolbar.density' | t }}">
+            {%- for n in (3..5) -%}
+              <button
+                type="button"
+                class="density__btn"
+                data-density="desktop:{{ n }}"
+                aria-pressed="false"
+                aria-label="{{ 'collections.toolbar.columns' | t: count: n }}"
+              >
+                <span class="density__icon" style="--n: {{ n }};" aria-hidden="true">
+                  {%- for i in (1..n) -%}<i></i>{%- endfor -%}
+                </span>
+              </button>
+            {%- endfor -%}
+          </div>
+        </grid-density>
+      {%- endif -%}
+
+      {%- if tb_has_drawer -%}
+        <button
+          type="button"
+          class="btn btn--secondary btn--sm collection-toolbar__filter js-only"
+          data-drawer-open="{{ tb_drawer_id }}"
+          aria-controls="{{ tb_drawer_id }}"
+          aria-expanded="false"
+          aria-haspopup="dialog"
+        >
+          {%- render 'icon', name: 'sliders', size: 18 -%}
+          {%- if has_filters -%}
+            <span class="collection-toolbar__filter-label collection-toolbar__filter-label--short">{{ 'collections.facets.heading' | t }}</span>
+            <span class="collection-toolbar__filter-label collection-toolbar__filter-label--long">{{ 'collections.toolbar.filter_and_sort' | t }}</span>
+          {%- else -%}
+            <span class="collection-toolbar__filter-label">{{ 'collections.toolbar.sort' | t }}</span>
+          {%- endif -%}
+          <span
+            class="collection-toolbar__badge"
+            data-facets-swap="filter-count"
+            {% if active_count == 0 %}
+              hidden
+            {% endif %}
+          >
+            <span aria-hidden="true">{{ active_count }}</span>
+            <span class="visually-hidden">{{ 'collections.toolbar.active_filters' | t: count: active_count }}</span>
+          </span>
+        </button>
+      {%- endif -%}
+    </div>
+  </div>
+</collection-toolbar>

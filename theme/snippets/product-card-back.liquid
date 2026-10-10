@@ -1,0 +1,66 @@
+{%- comment -%}
+  Stylised card-back artwork (optionally inside a grading slab, seen from behind).
+  Used as the "flip" face of the demo / placeholder gallery so the flip interaction works with zero merchant media.
+  Usage: {% render 'product-card-back', uid: section.id, graded: true %}
+  Params:
+    uid     unique string for SVG ids (required when several render on one page)
+    graded  true → draws the slab back (barcode label) around the card
+{%- endcomment -%}
+{%- assign cb = uid | default: 'cb' | append: '-back' | handleize -%}
+<svg
+  class="placeholder-card"
+  viewBox="0 0 {% if graded %}760 1180{% else %}630 880{% endif %}"
+  xmlns="http://www.w3.org/2000/svg"
+  preserveAspectRatio="xMidYMid meet"
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <radialGradient id="{{ cb }}-core" cx="50%" cy="50%" r="60%">
+      <stop offset="0" stop-color="#ff4b5c"/>
+      <stop offset=".28" stop-color="#b10f1f"/>
+      <stop offset=".7" stop-color="#2b0509"/>
+      <stop offset="1" stop-color="#0b0c0f"/>
+    </radialGradient>
+    <linearGradient id="{{ cb }}-frame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a3c44"/>
+      <stop offset=".5" stop-color="#16171b"/>
+      <stop offset="1" stop-color="#2c2e35"/>
+    </linearGradient>
+    <pattern id="{{ cb }}-grid" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M18 0H0V18" fill="none" stroke="#fff" stroke-opacity=".05" stroke-width="1"/>
+    </pattern>
+  </defs>
+  {%- if graded -%}
+    <rect x="4" y="4" width="752" height="1172" rx="34" fill="#d9dbe1" fill-opacity=".1" stroke="#e7e8ec" stroke-opacity=".35" stroke-width="3"/>
+    <rect x="34" y="34" width="692" height="190" rx="14" fill="#f4f4f5"/>
+    <g fill="#111214">
+      <rect x="64" y="70" width="6" height="96"/><rect x="76" y="70" width="3" height="96"/><rect x="85" y="70" width="9" height="96"/>
+      <rect x="100" y="70" width="3" height="96"/><rect x="109" y="70" width="6" height="96"/><rect x="121" y="70" width="3" height="96"/>
+      <rect x="130" y="70" width="9" height="96"/><rect x="145" y="70" width="3" height="96"/><rect x="154" y="70" width="6" height="96"/>
+      <rect x="166" y="70" width="3" height="96"/><rect x="175" y="70" width="9" height="96"/><rect x="190" y="70" width="6" height="96"/>
+      <rect x="202" y="70" width="3" height="96"/><rect x="211" y="70" width="9" height="96"/><rect x="226" y="70" width="3" height="96"/>
+    </g>
+    <text x="64" y="196" font-family="Consolas, Menlo, monospace" font-size="20" fill="#55565e">0482 1390 7</text>
+    <text x="700" y="112" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="800" fill="#111214" letter-spacing="3">AUTHENTIC</text>
+    <text x="700" y="148" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#55565e" letter-spacing="2">TAMPER-EVIDENT SEAL</text>
+    <circle cx="660" cy="186" r="22" fill="#d50f25"/>
+    <path d="m650 186 7 7 13-14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <g transform="translate(65 262)">
+  {%- else -%}
+    <g>
+  {%- endif -%}
+    <rect width="630" height="880" rx="34" fill="url(#{{ cb }}-frame)"/>
+    <rect x="22" y="22" width="586" height="836" rx="22" fill="url(#{{ cb }}-core)"/>
+    <rect x="22" y="22" width="586" height="836" rx="22" fill="url(#{{ cb }}-grid)"/>
+    <g fill="none" stroke="#fff" stroke-linecap="round">
+      <ellipse cx="315" cy="440" rx="230" ry="300" stroke-opacity=".12" stroke-width="2"/>
+      <ellipse cx="315" cy="440" rx="180" ry="236" stroke-opacity=".2" stroke-width="2" stroke-dasharray="4 10"/>
+      <ellipse cx="315" cy="440" rx="128" ry="168" stroke-opacity=".45" stroke-width="4"/>
+      <path d="M315 252v40M315 588v40M175 440h40M415 440h40" stroke-opacity=".6" stroke-width="4"/>
+    </g>
+    <circle cx="315" cy="440" r="86" fill="#0b0c0f" fill-opacity=".55" stroke="#fff" stroke-opacity=".7" stroke-width="3"/>
+    <text x="315" y="452" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="900" fill="#fff" letter-spacing="6">VAULT</text>
+    <path d="M60 60h44M60 60v44M570 60h-44M570 60v44M60 820h44M60 820v-44M570 820h-44M570 820v-44" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>
+  </g>
+</svg>

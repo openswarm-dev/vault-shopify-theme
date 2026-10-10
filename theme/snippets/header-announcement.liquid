@@ -1,0 +1,23 @@
+{%- comment -%}
+  Inner content of one announcement (icon + text + optional link arrow).
+  Usage: {% render 'header-announcement', block: block %}
+  Params: block (required) — an "announcement" block of sections/announcement-bar.liquid
+{%- endcomment -%}
+{%- liquid
+  assign a_icon = block.settings.icon
+  assign a_link = block.settings.link
+-%}
+{%- capture a_inner -%}
+  {%- if a_icon != blank and a_icon != 'none' -%}
+    {%- render 'icon', name: a_icon, size: 15, class: 'announcement__icon' -%}
+  {%- endif -%}
+  <span class="announcement__text">{{ block.settings.text }}</span>
+  {%- if a_link != blank -%}
+    {%- render 'icon', name: 'arrow-right', size: 13, stroke: 2, class: 'announcement__go' -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- if a_link != blank -%}
+  <a href="{{ a_link }}" class="announcement__content announcement__content--link">{{ a_inner }}</a>
+{%- else -%}
+  <p class="announcement__content">{{ a_inner }}</p>
+{%- endif -%}

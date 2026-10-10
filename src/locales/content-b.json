@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "newsletter": {
+      "success_title": "Welcome to the Vault"
+    },
+    "video": {
+      "label": "Video",
+      "play": "Play video",
+      "play_named": "Play video: {{ title }}",
+      "pause_background": "Pause background video",
+      "play_background": "Play background video"
+    },
+    "custom_liquid": {
+      "empty": "Add Liquid code in the section settings to show it here. This note is only visible in the theme editor."
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "products": {
+    "pdp": {
+      "breadcrumb": "Breadcrumb",
+      "home": "Home",
+      "gallery": {
+        "label": "Product media",
+        "slide_role": "slide",
+        "slide": "Media {{ index }} of {{ count }}",
+        "show_media": "Show media {{ index }}",
+        "previous": "Previous image",
+        "next": "Next image",
+        "open_zoom": "Open zoom view",
+        "zoom_title": "Zoomed product images",
+        "zoom_in": "Toggle zoom",
+        "zoom_hint_touch": "Tap to zoom · Pinch or drag to pan",
+        "zoom_hint_pointer": "Click to zoom · Move to pan",
+        "flip": "Flip",
+        "flip_label": "Flip the card to see the back"
+      },
+      "stock": {
+        "in_stock": "In stock",
+        "low": {
+          "one": "Only 1 left",
+          "other": "Only {{ count }} left"
+        },
+        "sold_out": "Sold out",
+        "sold_out_note": "This one's been pulled. New stock lands every week.",
+        "backorder": "Available on backorder",
+        "backorder_note": "Ships as soon as it's restocked"
+      },
+      "price": {
+        "tax_included": "Tax included.",
+        "tax_excluded": "Taxes calculated at checkout.",
+        "shipping_policy_html": "<a href=\"{{ link }}\">Shipping</a> calculated at checkout."
+      },
+      "variant": {
+        "label": "Variant",
+        "sold_out": "sold out",
+        "unavailable": "unavailable"
+      },
+      "quantity": {
+        "available": {
+          "one": "Last one available",
+          "other": "{{ count }} available"
+        }
+      },
+      "specs": {
+        "verify": "Verify"
+      },
+      "cert": {
+        "kicker": "Certified authentic",
+        "verify_html": "Verify cert <span class=\"mono\">#{{ cert }}</span> on {{ grader }}"
+      },
+      "share": {
+        "label": "Share",
+        "share": "Share",
+        "copy": "Copy link",
+        "copied": "Link copied to clipboard",
+        "copy_error": "Couldn't copy the link. Copy it from the address bar instead."
+      },
+      "sticky": {
+        "label": "Quick add to cart",
+        "back_to_top": "Back to product images"
+      }
+    }
+  },
+  "sections": {
+    "featured_product": {
+      "view_details": "View full details",
+      "editor_note": "Pick a product in the theme editor to feature it here.",
+      "demo": {
+        "title": "Ember Drake Holo — 1st Edition",
+        "game": "Pokémon",
+        "set": "Base Set",
+        "number": "4/102",
+        "rarity": "Holo Rare",
+        "condition": "Gem Mint",
+        "language": "English"
+      }
+    },
+    "product_recommendations": {
+      "label": "Recommended products",
+      "loading": "Loading recommendations",
+      "editor_empty": "Recommendations appear here once your store has products that sell together. They're hidden from customers when there's nothing to show."
+    }
+  }
+}

@@ -1,0 +1,331 @@
+{{ 'section-grade-scale.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign gs_tiers = section.blocks | where: 'type', 'tier'
+  assign gs_count = gs_tiers.size
+  assign gs_grader = section.settings.grader | default: 'PSA' | strip
+  assign gs_grader_key = gs_grader | downcase
+  assign gs_known = 'psa,bgs,cgc,sgc,tag' | split: ','
+  assign gs_variant = section.settings.card_variant | default: 1
+  assign gs_heading_id = 'GradeHeading-' | append: section.id
+
+  assign gs_first = gs_tiers | first
+  if gs_first
+    assign gs_first_score = gs_first.settings.score | default: '10' | strip
+    assign gs_first_abbr = gs_first.settings.abbr | default: gs_first.settings.label | strip
+    assign gs_first_num = gs_first_score | plus: 0
+    assign gs_first_wear = 10 | minus: gs_first_num | divided_by: 9.0 | at_least: 0 | at_most: 1 | round: 2
+  endif
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-grade-scale color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+>
+  <div class="gs-atmos" aria-hidden="true"></div>
+
+  <div class="page-width">
+    {% render 'section-header',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      text: section.settings.text,
+      link_label: section.settings.link_label,
+      link_url: section.settings.link_url,
+      align: 'left',
+      size: 'h2',
+      tag: 'h2',
+      id: gs_heading_id
+    %}
+
+    {%- if gs_count > 0 -%}
+      <grade-scale
+        class="gs"
+        style="--gs-count: {{ gs_count }}; --gs-color: {{ gs_first.settings.color | default: '#e11d2e' }}; --gs-wear: {% if section.settings.show_wear %}{{ gs_first_wear }}{% else %}0{% endif %};"
+        data-reveal
+      >
+        <div class="gs-rail" data-gs-rail>
+          <div
+            class="gs-rail__inner"
+            role="tablist"
+            aria-label="{{ 'sections.grade_scale.tablist_label' | t | escape }}"
+            aria-orientation="horizontal"
+          >
+            <span class="gs-rail__indicator" data-gs-indicator aria-hidden="true"></span>
+            {%- for block in gs_tiers -%}
+              {%- liquid
+                assign t_score = block.settings.score | default: '10' | strip
+                assign t_label = block.settings.label | default: t_score
+                assign t_abbr = block.settings.abbr | default: t_label | strip
+                assign t_num = t_score | plus: 0
+                assign t_wear = 10 | minus: t_num | divided_by: 9.0 | at_least: 0 | at_most: 1 | round: 2
+                unless section.settings.show_wear
+                  assign t_wear = 0
+                endunless
+              -%}
+              <button
+                type="button"
+                role="tab"
+                class="gs-tab{% if forloop.first %} is-active{% endif %}"
+                id="GradeTab-{{ block.id }}"
+                aria-controls="GradePanel-{{ block.id }}"
+                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                tabindex="{% if forloop.first %}0{% else %}-1{% endif %}"
+                style="--tier: {{ block.settings.color }};"
+                data-score="{{ t_score | escape }}"
+                data-abbr="{{ t_abbr | escape }}"
+                data-wear="{{ t_wear }}"
+                data-color="{{ block.settings.color }}"
+                {{ block.shopify_attributes }}
+              >
+                <span class="gs-tab__tick" aria-hidden="true"></span>
+                <span class="gs-tab__score">{{ t_score | escape }}</span>
+                <span class="gs-tab__label">
+                  <span class="visually-hidden">{{ t_label | escape }}</span>
+                  <span class="gs-tab__label-abbr" aria-hidden="true">{{ t_abbr | escape }}</span>
+                </span>
+              </button>
+            {%- endfor -%}
+          </div>
+        </div>
+
+        <div class="gs-stage">
+          <div class="gs-detail">
+            <div class="gs-panels">
+              {%- for block in gs_tiers -%}
+                {%- liquid
+                  assign t_score = block.settings.score | default: '10' | strip
+                  assign t_label = block.settings.label | default: t_score
+                  assign t_num = t_score | plus: 0
+                  assign t_fill = t_num | divided_by: 10.0 | at_least: 0 | at_most: 1 | round: 3
+                  assign t_gem = false
+                  if t_num >= 10
+                    assign t_gem = true
+                  elsif gs_grader_key == 'bgs' and t_num >= 9.5
+                    assign t_gem = true
+                  endif
+                -%}
+                <div
+                  class="gs-panel{% if forloop.first %} is-active{% endif %}"
+                  id="GradePanel-{{ block.id }}"
+                  role="tabpanel"
+                  aria-labelledby="GradeTab-{{ block.id }}"
+                  tabindex="0"
+                  style="--tier: {{ block.settings.color }}; --gs-fill: {{ t_fill }};"
+                >
+                  <div class="gs-panel__head">
+                    <span class="gs-panel__score" aria-hidden="true" data-gs-stagger>{{ t_score | escape }}</span>
+                    <div class="gs-panel__title" data-gs-stagger>
+                      <span
+                        class="badge badge--grade"
+                        {% if gs_known contains gs_grader_key %}
+                          data-grader="{{ gs_grader_key }}"
+                        {% endif %}
+                        {% if t_gem %}
+                          data-gem
+                        {% endif %}
+                      >
+                        <span class="badge__grader">{{ gs_grader | escape }}</span>
+                        <span class="badge__score">{{ t_score | escape }}</span>
+                      </span>
+                      <h3 class="h3 gs-panel__label">{{ t_label | escape }}</h3>
+                    </div>
+                  </div>
+
+                  {%- if block.settings.description != blank -%}
+                    <p class="gs-panel__desc" data-gs-stagger>{{ block.settings.description | escape | newline_to_br }}</p>
+                  {%- endif -%}
+
+                  <div class="gs-meter" data-gs-stagger>
+                    <span class="gs-meter__label">{{ 'sections.grade_scale.condition' | t }}</span>
+                    <span class="gs-meter__track" aria-hidden="true">
+                      <span class="gs-meter__fill" data-gs-fill data-value="{{ t_fill }}"></span>
+                    </span>
+                    <span class="gs-meter__value mono">
+                      {{- 'sections.grade_scale.out_of_ten' | t: score: t_score -}}
+                    </span>
+                  </div>
+                </div>
+              {%- endfor -%}
+            </div>
+
+            <div class="gs-slab-wrap" aria-hidden="true">
+              <span class="gs-slab-glow"></span>
+              <holo-card class="gs-slab-holo" data-foil="subtle" data-max-tilt="10">
+                <div class="holo gs-slab">
+                  <div class="gs-slab__inner">
+                    {% render 'placeholder-card', variant: gs_variant, uid: section.id, graded: true %}
+                    <span class="gs-slab__wear">
+                      <span class="gs-slab__scuffs"></span>
+                      <span class="gs-slab__crease"></span>
+                    </span>
+                    <span class="gs-slab__grade">
+                      <span class="gs-slab__abbr" data-gs-abbr>{{ gs_first_abbr | escape }}</span>
+                      <span class="gs-slab__score" data-gs-score>{{ gs_first_score | escape }}</span>
+                    </span>
+                  </div>
+                  <span class="holo__shine"></span>
+                  <span class="holo__glare"></span>
+                </div>
+              </holo-card>
+            </div>
+          </div>
+        </div>
+
+        {%- if section.settings.note != blank -%}
+          <p class="gs-note">
+            {% render 'icon', name: 'info', size: 16 %}
+            <span>{{ section.settings.note | escape }}</span>
+          </p>
+        {%- endif -%}
+      </grade-scale>
+    {%- endif -%}
+  </div>
+</section>
+
+<script src="{{ 'section-grade-scale.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Grade scale",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Grading 101" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Italicize words to highlight them in the accent color.", "default": "Know your <em>grade</em>" },
+    { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Every slab tells a story. Step through the scale to see exactly what separates a Gem Mint 10 from a well-loved 1.</p>" },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "Shop graded slabs" },
+    { "type": "url", "id": "link_url", "label": "Link", "default": "/collections/all" },
+    { "type": "header", "content": "Slab" },
+    { "type": "text", "id": "grader", "label": "Grading company", "info": "Shown on the grade badge, e.g. PSA, BGS, CGC, SGC or TAG.", "default": "PSA" },
+    { "type": "range", "id": "card_variant", "min": 1, "max": 6, "step": 1, "label": "Card artwork style", "default": 1 },
+    { "type": "checkbox", "id": "show_wear", "label": "Show wear on lower grades", "default": true },
+    { "type": "text", "id": "note", "label": "Footnote", "default": "Descriptions follow PSA's published standards. BGS, CGC, SGC and TAG use similar 1–10 scales with half-point grades in between." },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "tier",
+      "name": "Grade",
+      "settings": [
+        { "type": "text", "id": "score", "label": "Score", "info": "Half points like 9.5 work too.", "default": "10" },
+        { "type": "text", "id": "label", "label": "Name", "default": "Gem Mint" },
+        { "type": "text", "id": "abbr", "label": "Short label", "info": "Used on small screens and the slab label.", "default": "GEM MT" },
+        { "type": "textarea", "id": "description", "label": "Description", "default": "A virtually perfect card: four sharp corners, sharp focus, full original gloss and no staining. Centering around 55/45 or better on the front." },
+        { "type": "color", "id": "color", "label": "Highlight color", "default": "#e11d2e" }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Grade scale",
+      "blocks": [
+        {
+          "type": "tier",
+          "settings": {
+            "score": "10",
+            "label": "Gem Mint",
+            "abbr": "GEM MT",
+            "description": "A virtually perfect card: four sharp corners, sharp focus, full original gloss and no staining. Centering around 55/45 or better on the front.",
+            "color": "#e11d2e"
+          }
+        },
+        {
+          "type": "tier",
+          "settings": {
+            "score": "9",
+            "label": "Mint",
+            "abbr": "MINT",
+            "description": "A superb card with just one minor flaw — a tiny wax stain on the back, a small print spot or slightly off-white borders. Centering about 60/40 or better.",
+            "color": "#f2545b"
+          }
+        },
+        {
+          "type": "tier",
+          "settings": {
+            "score": "8",
+            "label": "Near Mint–Mint",
+            "abbr": "NM-MT",
+            "description": "Looks Mint at a glance. Allows a very slight fray on one or two corners, a minor print imperfection or slightly off-white borders. Centering about 65/35.",
+            "color": "#f97316"
+          }
+        },
+        {
+          "type": "tier",
+          "settings": {
+            "score": "7",
+            "label": "Near Mint",
+            "abbr": "NM",
+            "description": "Slight surface wear visible on close inspection and light fraying on some corners. Most of the original gloss remains. Centering about 70/30.",
+            "color": "#f59e0b"
+          }
+        },
+        {
+          "type": "tier",
+          "settings": {
+            "score": "6",
+            "label": "Excellent–Mint",
+            "abbr": "EX-MT",
+            "description": "Visible surface wear or a print defect, light scratches, slight edge notching and some loss of gloss. Corners may show fraying. Centering about 80/20.",
+            "color": "#d4d4d8"
+          }
+        },
+        {
+          "type": "tier",
+          "settings": {
+            "score": "5",
+            "label": "Excellent",
+            "abbr": "EX",
+            "description": "Very minor corner rounding becomes evident, with surface wear, light scratches and some chipping along the edges. Centering about 85/15.",
+            "color": "#b8b8c0"
+          }
+        },
+        {
+          "type": "tier",
+          "settings": {
+            "score": "4",
+            "label": "Very Good–Excellent",
+            "abbr": "VG-EX",
+            "description": "Slightly rounded corners, noticeable surface wear and scuffing, and some loss of gloss. A light crease may be visible. Centering about 85/15.",
+            "color": "#9d9da6"
+          }
+        },
+        {
+          "type": "tier",
+          "settings": {
+            "score": "3",
+            "label": "Very Good",
+            "abbr": "VG",
+            "description": "Rounded corners, obvious surface wear and possible light creasing. Most of the original gloss is gone and borders may be yellowed. Centering about 90/10.",
+            "color": "#83838d"
+          }
+        },
+        {
+          "type": "tier",
+          "settings": {
+            "score": "2",
+            "label": "Good",
+            "abbr": "GOOD",
+            "description": "Heavy corner wear, scratching, surface staining and several creases, with significant gloss loss — but the card is still fully intact.",
+            "color": "#6a6a74"
+          }
+        },
+        {
+          "type": "tier",
+          "settings": {
+            "score": "1",
+            "label": "Poor",
+            "abbr": "PR",
+            "description": "Extreme wear: heavy creases, scuffing, missing pieces or major defects that affect the card's structure. Still identifiable — and often still treasured.",
+            "color": "#55555e"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

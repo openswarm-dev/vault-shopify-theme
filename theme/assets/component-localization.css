@@ -1,0 +1,24 @@
+/* ==========================================================================
+   VAULT — component-localization.css (loaded by snippets/footer-localization.liquid)
+   Country/currency + language selects; the Update button only shows without JS.
+   ========================================================================== */
+localization-form.localization { display: block; min-width: 0; }
+.localization__form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; }
+.localization__field { display: grid; gap: .35rem; min-width: 0; flex: 1 1 200px; max-width: 320px; }
+.localization__label {
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.localization__select .select__select {
+  min-height: 44px;
+  padding-block: .6rem;
+  border-radius: var(--radius-btn);
+  background: rgb(var(--color-text-rgb) / .04);
+  text-overflow: ellipsis;
+}
+.localization__submit { flex: none; }
+.js .localization__submit { display: none; }
+.localization--drawer .localization__field { flex-basis: 100%; max-width: none; }

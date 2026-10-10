@@ -1,0 +1,103 @@
+{%- comment -%}
+  "Filter & sort" drawer: left side panel on tablet (and on desktop with the drawer layout),
+  bottom sheet with a drag handle on phones. Holds the active chips, sort and the filter form,
+  with a sticky footer: "Clear" + "Show N results" (updated live while filtering).
+
+  Usage:
+    {% render 'facets-drawer',
+      results: collection,
+      section_id: section.id,
+      count: collection.products_count,
+      action_url: collection.url,
+      clear_url: clear_url,
+      has_filters: true,
+      enable_sorting: true,
+      active_count: active_count,
+      open_count: 1,
+      show_more_limit: 6
+    %}
+  Params:
+    results, section_id, count, action_url, clear_url  (required)
+    has_filters, enable_sorting, active_count, open_count, show_more_limit
+    search_terms, search_type  search page only
+{%- endcomment -%}
+{%- liquid
+  assign fd_id = 'FacetsDrawer-' | append: section_id
+  assign fd_form = 'FacetsForm-drawer-' | append: section_id
+  assign fd_sort = false
+  if enable_sorting and results.sort_options.size > 0
+    assign fd_sort = true
+  endif
+-%}
+<vault-drawer
+  id="{{ fd_id }}"
+  class="facets-drawer"
+  data-placement="left"
+  data-mobile-placement="bottom"
+>
+  <dialog class="drawer" aria-labelledby="{{ fd_id }}-title">
+    <div class="drawer__overlay" data-drawer-close></div>
+    <div class="drawer__panel facets-drawer__panel">
+      <div class="drawer__handle" data-drawer-handle></div>
+      <div class="drawer__header">
+        <h2 class="drawer__title facets-drawer__title" id="{{ fd_id }}-title">
+          {%- if has_filters -%}
+            {{- 'collections.toolbar.filter_and_sort' | t -}}
+          {%- else -%}
+            {{- 'collections.toolbar.sort' | t -}}
+          {%- endif -%}
+          <span
+            class="facets-drawer__badge"
+            data-facets-swap="filter-count"
+            {% if active_count == 0 %}
+              hidden
+            {% endif %}
+          >
+            <span aria-hidden="true">{{ active_count }}</span>
+            <span class="visually-hidden">{{ 'collections.toolbar.active_filters' | t: count: active_count }}</span>
+          </span>
+        </h2>
+        <button type="button" class="btn btn--ghost btn--icon" data-drawer-close aria-label="{{ 'accessibility.close' | t }}">
+          {%- render 'icon', name: 'close', size: 20 -%}
+        </button>
+      </div>
+
+      <div class="drawer__body facets-drawer__body">
+        {%- if has_filters -%}
+          {%- render 'facets-active',
+            results: results,
+            clear_url: clear_url,
+            active_count: active_count,
+            show_clear: false,
+            class: 'facets-active--drawer'
+          -%}
+        {%- endif -%}
+        {%- render 'facets',
+          results: results,
+          section_id: section_id,
+          context: 'drawer',
+          action_url: action_url,
+          clear_url: clear_url,
+          active_count: active_count,
+          show_filters: has_filters,
+          show_sort: fd_sort,
+          open_count: open_count,
+          show_more_limit: show_more_limit,
+          search_terms: search_terms,
+          search_type: search_type
+        -%}
+      </div>
+
+      <div class="drawer__footer facets-drawer__footer{% unless has_filters %} facets-drawer__footer--single{% endunless %}">
+        {%- if has_filters -%}
+          <a href="{{ clear_url }}" class="btn btn--secondary facets-drawer__clear" data-facets-link>
+            {{- 'collections.facets.clear' | t -}}
+          </a>
+        {%- endif -%}
+        <button type="submit" form="{{ fd_form }}" class="btn btn--primary facets-drawer__apply" data-facets-apply>
+          <span data-facets-swap="drawer-results">{{ 'collections.facets.show_results' | t: count: count }}</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+</vault-drawer>

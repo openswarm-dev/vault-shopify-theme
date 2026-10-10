@@ -1,0 +1,36 @@
+{%- comment -%}
+  One swappable region of the cart drawer. Rendered by snippets/cart-drawer.liquid (page load) and
+  sections/cart-drawer.liquid (Section Rendering API) with identical wrappers, so core's
+  Vault.applySections can replace [data-cart-swap="cart-drawer"][data-cart-swap-key="…"] in place.
+  Params:
+    key  required — header | progress | items | upsell | footer
+{%- endcomment -%}
+<div
+  class="cart-drawer__region cart-drawer__region--{{ key }}"
+  data-cart-swap="cart-drawer"
+  data-cart-swap-key="{{ key }}"
+>
+  {%- case key -%}
+    {%- when 'header' -%}
+      <h2 class="drawer__title cart-drawer__title" id="CartDrawerTitle">{{ 'cart.general.title' | t }}</h2>
+      <span class="cart-drawer__count" data-cart-item-count="{{ cart.item_count }}">
+        {{- 'cart.general.item_count' | t: count: cart.item_count -}}
+      </span>
+    {%- when 'progress' -%}
+      {%- render 'cart-drawer-progress' -%}
+    {%- when 'items' -%}
+      {%- if cart.item_count > 0 -%}
+        <ul class="cart-items" role="list">
+          {%- for item in cart.items -%}
+            {%- render 'cart-drawer-line', item: item, index: forloop.index -%}
+          {%- endfor -%}
+        </ul>
+      {%- else -%}
+        {%- render 'cart-drawer-empty' -%}
+      {%- endif -%}
+    {%- when 'upsell' -%}
+      {%- render 'cart-drawer-upsell' -%}
+    {%- when 'footer' -%}
+      {%- render 'cart-drawer-footer' -%}
+  {%- endcase -%}
+</div>

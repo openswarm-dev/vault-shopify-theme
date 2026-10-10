@@ -1,0 +1,303 @@
+{%- comment -%}
+  Collection list — "Shop by game".
+  Layouts: grid · bento (first tile 2×2, the last tile widens to close any gap) · carousel.
+  With no blocks it shows six sample game tiles linking to /collections/all.
+{%- endcomment -%}
+{{ 'section-collection-list.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign layout = section.settings.layout
+  assign cols_d = section.settings.columns_desktop
+  assign cols_m = section.settings.columns_mobile | plus: 0
+  assign tile_size = section.settings.tile_size
+  assign show_count = section.settings.show_count
+  assign heading_id = 'Heading-' | append: section.id
+
+  assign tile_count = section.blocks.size
+  assign use_defaults = false
+  if tile_count == 0
+    assign use_defaults = true
+    assign tile_count = 6
+  endif
+  assign item_role = ''
+  if layout != 'carousel'
+    assign item_role = 'role="listitem"'
+  endif
+
+  # ---- Bento maths: the hero tile spans 2×2; the last tile spans whatever the last row has left ----
+  # Mobile + tablet: 2 columns, hero takes two full rows, the remaining tiles pair up.
+  assign rest = tile_count | minus: 1
+  assign last_span_m = 1
+  assign rest_mod = rest | modulo: 2
+  if rest_mod == 1
+    assign last_span_m = 2
+  endif
+
+  # Desktop: hero is 2×2 when the column beside it can be filled, else 2×1.
+  assign side_cols = cols_d | minus: 2
+  assign needed_beside = side_cols | times: 2
+  assign hero_rows_d = 2
+  assign hero_cells = 4
+  if rest < needed_beside
+    assign hero_rows_d = 1
+    assign hero_cells = 2
+  endif
+  assign used_cells = rest | plus: hero_cells
+  assign leftover_d = used_cells | modulo: cols_d
+  assign last_span_d = 1
+  if leftover_d > 0
+    assign last_span_d = cols_d | minus: leftover_d | plus: 1
+  endif
+
+  case cols_d
+    when 2
+      assign bento_ratio_d = 0.5
+    when 3
+      assign bento_ratio_d = 0.6
+    when 4
+      assign bento_ratio_d = 0.78
+    else
+      assign bento_ratio_d = 0.95
+  endcase
+
+  # ---- Carousel per-view ----
+  if cols_m == 1
+    assign pv_m = 1.15
+  else
+    assign pv_m = 1.6
+  endif
+  if cols_d > 3
+    assign pv_t = 2.6
+  else
+    assign pv_t = 2.2
+  endif
+
+  # ---- Image sizes (approximate rendered widths) ----
+  assign page_px = settings.page_width | plus: 80
+  assign col_px = settings.page_width | divided_by: cols_d
+  assign mob_vw = 100 | divided_by: cols_m
+  case layout
+    when 'carousel'
+      assign tile_sizes = '(min-width: ' | append: page_px | append: 'px) ' | append: col_px | append: 'px, (min-width: 990px) calc((100vw - 80px) / ' | append: cols_d | append: '), (min-width: 750px) calc((100vw - 64px) / ' | append: pv_t | append: '), calc((100vw - 32px) / ' | append: pv_m | append: ')'
+    when 'bento'
+      assign tile_sizes = '(min-width: ' | append: page_px | append: 'px) ' | append: col_px | append: 'px, (min-width: 990px) calc((100vw - 80px) / ' | append: cols_d | append: '), 50vw'
+      assign hero_px = col_px | times: 2
+      assign hero_sizes = '(min-width: ' | append: page_px | append: 'px) ' | append: hero_px | append: 'px, (min-width: 990px) calc((100vw - 80px) * 2 / ' | append: cols_d | append: '), 100vw'
+    else
+      assign tile_sizes = '(min-width: ' | append: page_px | append: 'px) ' | append: col_px | append: 'px, (min-width: 990px) calc((100vw - 80px) / ' | append: cols_d | append: '), (min-width: 750px) 33vw, ' | append: mob_vw | append: 'vw'
+  endcase
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-collection-list color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if section.settings.heading != blank %}
+    aria-labelledby="{{ heading_id }}"
+  {% else %}
+    aria-label="{{ 'sections.collection_list.label' | t }}"
+  {% endif %}
+>
+  <div class="page-width">
+    {%- render 'section-header',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      text: section.settings.text,
+      link_label: section.settings.link_label,
+      link_url: section.settings.link_url,
+      align: section.settings.header_align,
+      id: heading_id
+    -%}
+
+    {%- capture tiles -%}
+      {%- if use_defaults -%}
+        {%- for i in (1..6) -%}
+          {%- liquid
+            assign i0 = forloop.index0
+            assign d_title_key = 'sections.collection_list.defaults.title_' | append: i
+            assign d_caption_key = 'sections.collection_list.defaults.caption_' | append: i
+            assign d_title = d_title_key | t
+            assign d_caption = d_caption_key | t
+            assign this_size = tile_size
+            assign this_sizes = tile_sizes
+            if layout == 'bento' and forloop.first
+              assign this_size = 'lg'
+              assign this_sizes = hero_sizes
+            endif
+          -%}
+          <div class="cl__item{% if layout == 'carousel' %} carousel__slide{% endif %}{% if forloop.first %} cl__item--hero{% endif %}{% if forloop.last %} cl__item--last{% endif %}" {{ item_role }}>
+            {%- render 'card-collection',
+              title: d_title,
+              caption: d_caption,
+              url: routes.all_products_collection_url,
+              index: i0,
+              size: this_size,
+              sizes: this_sizes,
+              show_count: false,
+              section_id: section.id
+            -%}
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign this_size = tile_size
+            assign this_sizes = tile_sizes
+            if layout == 'bento' and forloop.first
+              assign this_size = 'lg'
+              assign this_sizes = hero_sizes
+            endif
+            assign b_title = block.settings.title
+            if b_title == blank and block.settings.collection == blank
+              assign fallback_n = forloop.index0 | modulo: 6 | plus: 1
+              assign fallback_key = 'sections.collection_list.defaults.title_' | append: fallback_n
+              assign b_title = fallback_key | t
+            endif
+          -%}
+          <div
+            class="cl__item{% if layout == 'carousel' %} carousel__slide{% endif %}{% if forloop.first %} cl__item--hero{% endif %}{% if forloop.last %} cl__item--last{% endif %}"
+            {{ item_role }}
+            {{ block.shopify_attributes }}
+          >
+            {%- render 'card-collection',
+              collection: block.settings.collection,
+              image: block.settings.image,
+              title: b_title,
+              caption: block.settings.caption,
+              index: forloop.index0,
+              size: this_size,
+              sizes: this_sizes,
+              show_count: show_count,
+              section_id: section.id
+            -%}
+          </div>
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endcapture -%}
+
+    {%- if layout == 'carousel' -%}
+      <vault-carousel
+        class="cl__carousel carousel--bleed"
+        style="--per-view-mobile: {{ pv_m }}; --per-view-tablet: {{ pv_t }}; --per-view-desktop: {{ cols_d }};"
+      >
+        <div
+          class="carousel__track"
+          data-carousel-track
+          tabindex="0"
+          role="region"
+          aria-label="{{ 'sections.collection_list.label' | t }}"
+        >
+          {{ tiles }}
+        </div>
+        <div class="carousel__controls">
+          <button type="button" class="carousel__btn" data-carousel-prev aria-label="{{ 'accessibility.previous_slide' | t }}">
+            {%- render 'icon', name: 'arrow-left', size: 18 -%}
+          </button>
+          <div class="carousel__progress"><span data-carousel-progress></span></div>
+          <button type="button" class="carousel__btn" data-carousel-next aria-label="{{ 'accessibility.next_slide' | t }}">
+            {%- render 'icon', name: 'arrow-right', size: 18 -%}
+          </button>
+        </div>
+      </vault-carousel>
+    {%- else -%}
+      <div class="cl__wrap">
+        <div
+          class="cl__grid cl__grid--{{ layout }}"
+          role="list"
+          style="--cols-m: {{ cols_m }}; --cols-d: {{ cols_d }}; --hero-rows-d: {{ hero_rows_d }}; --last-span-m: {{ last_span_m }}; --last-span-d: {{ last_span_d }}; --bento-ratio-d: {{ bento_ratio_d }};"
+        >
+          {{ tiles }}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection list",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Shop by game" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Wrap words in italics to highlight them in red.", "default": "Every game. <em>One vault.</em>" },
+    { "type": "inline_richtext", "id": "text", "label": "Text", "default": "From vintage holos to this week's chase cards — singles, graded slabs and sealed product, sorted by game." },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "All collections" },
+    { "type": "url", "id": "link_url", "label": "Link", "default": "/collections" },
+    {
+      "type": "select",
+      "id": "header_align",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "left"
+    },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "bento", "label": "Bento (feature first tile)" },
+        { "value": "grid", "label": "Grid" },
+        { "value": "carousel", "label": "Carousel" }
+      ],
+      "default": "bento"
+    },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 6, "step": 1, "label": "Columns on desktop", "default": 3 },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "info": "Grid and carousel layouts. Bento always uses two.",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "tile_size",
+      "label": "Tile shape",
+      "options": [
+        { "value": "sm", "label": "Square" },
+        { "value": "md", "label": "Portrait" },
+        { "value": "lg", "label": "Tall" }
+      ],
+      "default": "md"
+    },
+    { "type": "checkbox", "id": "show_count", "label": "Show product count", "default": true },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "Optional. Defaults to the collection image, or stylised card art." },
+        { "type": "text", "id": "title", "label": "Title", "info": "Optional. Defaults to the collection title." },
+        { "type": "text", "id": "caption", "label": "Caption" }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Shop by game",
+      "blocks": [
+        { "type": "collection", "settings": { "title": "Pokémon", "caption": "Vintage holos to modern chase cards" } },
+        { "type": "collection", "settings": { "title": "Magic: The Gathering", "caption": "Reserved List to Commander staples" } },
+        { "type": "collection", "settings": { "title": "Yu-Gi-Oh!", "caption": "Ghost rares and 1st Editions" } },
+        { "type": "collection", "settings": { "title": "One Piece", "caption": "Manga rares and alt arts" } },
+        { "type": "collection", "settings": { "title": "Lorcana", "caption": "Enchanted and cold-foil singles" } },
+        { "type": "collection", "settings": { "title": "Sports Cards", "caption": "Rookies, autos and numbered parallels" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

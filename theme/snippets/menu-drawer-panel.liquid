@@ -1,0 +1,67 @@
+{%- comment -%}
+  One sliding sub-level of the menu drawer (see snippets/header-menu-drawer.liquid).
+  Panels are rendered as siblings (not nested) so the level underneath can be made inert while
+  a panel is open. Without JS every level shows as a static list (no-JS fallback).
+  Params:
+    link          required — a link (or linklist) with .title and .links
+    panel_id      required — unique id of this panel
+    child_prefix  id prefix of nested panels for children that have links (omit for the deepest level)
+    view_all_url  optional — "Shop all" link target
+{%- endcomment -%}
+<div
+  class="menu-drawer__level menu-drawer__level--sub"
+  id="{{ panel_id }}"
+  data-menu-level
+  role="group"
+  aria-labelledby="{{ panel_id }}-Title"
+>
+  <div class="menu-drawer__level-head">
+    <button type="button" class="menu-drawer__back js-only" data-submenu-back>
+      {%- render 'icon', name: 'arrow-left', size: 18 -%}
+      <span>{{ 'general.actions.back' | t }}</span>
+    </button>
+    <p class="menu-drawer__title" id="{{ panel_id }}-Title" tabindex="-1" data-submenu-heading>
+      {{- link.title | escape -}}
+    </p>
+    {%- if view_all_url != blank and view_all_url != '#' -%}
+      <a href="{{ view_all_url }}" class="menu-drawer__view-all" data-submenu-item>
+        <span>{{ 'sections.header.shop_all' | t: title: link.title }}</span>
+        {%- render 'icon', name: 'arrow-right', size: 16 -%}
+      </a>
+    {%- endif -%}
+  </div>
+  <ul class="menu-drawer__sublist" role="list">
+    {%- for child in link.links -%}
+      <li class="menu-drawer__subitem" data-submenu-item>
+        {%- if child.links.size > 0 and child_prefix != blank -%}
+          {%- assign child_panel_id = child_prefix | append: '-' | append: forloop.index -%}
+          <button
+            type="button"
+            class="menu-drawer__sublink js-only"
+            data-submenu-open
+            aria-controls="{{ child_panel_id }}"
+            aria-expanded="false"
+          >
+            <span>{{ child.title | escape }}</span>
+            <span class="menu-drawer__sub-count mono" aria-hidden="true">{{ child.links.size }}</span>
+            {%- render 'icon', name: 'chevron-right', size: 18 -%}
+          </button>
+          <a href="{{ child.url }}" class="menu-drawer__sublink no-js-only">
+            <span>{{ child.title | escape }}</span>
+          </a>
+        {%- else -%}
+          <a
+            href="{{ child.url }}"
+            class="menu-drawer__sublink"
+            {% if child.current %}
+              aria-current="page"
+            {% endif %}
+          >
+            <span>{{ child.title | escape }}</span>
+            {%- render 'icon', name: 'arrow-right', size: 16 -%}
+          </a>
+        {%- endif -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+</div>

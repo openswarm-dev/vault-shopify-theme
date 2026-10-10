@@ -1,0 +1,336 @@
+{{ 'section-image-with-text.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign s = section.settings
+  assign style = s.image_style
+  assign img = s.image
+  assign img_w = s.image_width | plus: 0
+  assign text_w = 100 | minus: img_w
+  if s.layout == 'text_first'
+    assign col_a = text_w
+    assign col_b = img_w
+  else
+    assign col_a = img_w
+    assign col_b = text_w
+  endif
+
+  case s.image_ratio
+    when 'square'
+      assign ratio = '1 / 1'
+    when 'landscape'
+      assign ratio = '4 / 3'
+    when 'adapt'
+      if img != blank
+        assign ratio = img.aspect_ratio
+      else
+        assign ratio = '4 / 5'
+      endif
+    else
+      assign ratio = '4 / 5'
+  endcase
+
+  if style == 'card'
+    assign sizes = '(min-width: 990px) 420px, (min-width: 750px) 340px, 70vw'
+  elsif style == 'bleed'
+    assign sizes = '(min-width: 820px) ' | append: img_w | append: 'vw, 100vw'
+  else
+    assign sizes = '(min-width: 820px) ' | append: img_w | append: 'vw, calc(100vw - 2rem)'
+  endif
+
+  if img != blank
+    assign img_alt = img.alt | default: s.heading | strip_html
+  endif
+
+  assign heading_id = 'IwtHeading-' | append: section.id
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-image-with-text iwt iwt--{{ style }} iwt--{{ s.layout }} iwt--v-{{ s.vertical_align }} color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }}; --iwt-a: {{ col_a }}fr; --iwt-b: {{ col_b }}fr;"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}aria-labelledby="{{ heading_id }}"{% endif %}
+>
+  <div class="iwt__grid">
+    <div class="iwt__media-col" data-parallax-root>
+      {%- if style == 'card' -%}
+        {%- comment -%} Trading card / slab on a glowing pedestal with 3D holo tilt {%- endcomment -%}
+        <div class="iwt__stage" data-reveal="scale">
+          <span class="iwt__pedestal" aria-hidden="true"><span class="iwt__pedestal-shadow"></span></span>
+          <div class="iwt__parallax"{% if s.parallax %} data-parallax="0.05"{% endif %}>
+            <div class="iwt__float">
+              <holo-card
+                class="iwt__card{% if img == blank %} iwt__card--slab{% endif %}"
+                data-foil="{{ s.foil }}"
+                data-tilt="true"
+                data-max-tilt="14"
+              >
+                <div class="holo">
+                  {%- if img != blank -%}
+                    <div class="media iwt__card-media" style="--ratio: {{ img.aspect_ratio }};">
+                      {{- img | image_url: width: 1000 | image_tag: loading: 'lazy', widths: '360, 480, 640, 800, 1000', sizes: sizes, alt: img_alt -}}
+                    </div>
+                  {%- else -%}
+                    <div class="iwt__card-placeholder">
+                      {%- render 'placeholder-card', variant: 1, uid: section.id, graded: true -%}
+                    </div>
+                  {%- endif -%}
+                  <span class="holo__shine"></span>
+                  <span class="holo__glare"></span>
+                </div>
+              </holo-card>
+            </div>
+          </div>
+        </div>
+      {%- else -%}
+        <div
+          class="iwt__media{% if s.parallax %} iwt__media--parallax{% endif %}"
+          style="--iwt-ratio: {{ ratio }};"
+          data-reveal="clip"
+        >
+          <div class="iwt__parallax"{% if s.parallax %} data-parallax="0.06"{% endif %}>
+            {%- if img != blank -%}
+              {{- img | image_url: width: 2400 | image_tag: loading: 'lazy', widths: '375, 550, 750, 1000, 1250, 1500, 1800, 2200, 2400', sizes: sizes, alt: img_alt, class: 'iwt__img' -}}
+            {%- else -%}
+              {%- comment -%} Finished-looking art when no image is chosen: a fanned trio of cards in the vault {%- endcomment -%}
+              <div class="iwt__scene" aria-hidden="true">
+                <span class="iwt__scene-glow"></span>
+                <div class="iwt__scene-card iwt__scene-card--l">
+                  {%- render 'placeholder-card', variant: 4, uid: section.id -%}
+                </div>
+                <div class="iwt__scene-card iwt__scene-card--r">
+                  {%- render 'placeholder-card', variant: 6, uid: section.id -%}
+                </div>
+                <div class="iwt__scene-card iwt__scene-card--c">
+                  {%- render 'placeholder-card', variant: 1, uid: section.id, graded: true -%}
+                </div>
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="iwt__content">
+      {%- if s.eyebrow != blank -%}
+        <p class="eyebrow" data-reveal="fade">{{ s.eyebrow | escape }}</p>
+      {%- endif -%}
+      {%- if s.heading != blank -%}
+        <h2 id="{{ heading_id }}" class="iwt__heading {{ s.heading_size }}" data-split>{{ s.heading }}</h2>
+      {%- endif -%}
+      {%- if s.text != blank -%}
+        <div class="iwt__text rte" data-reveal>{{ s.text }}</div>
+      {%- endif -%}
+
+      {%- if section.blocks.size > 0 -%}
+        <ul class="iwt__features{% if section.blocks.size > 1 %} iwt__features--multi{% endif %}" role="list">
+          {%- for block in section.blocks -%}
+            <li class="iwt__feature" data-reveal="left" {{ block.shopify_attributes }}>
+              <span class="iwt__feature-icon">
+                {%- render 'icon', name: block.settings.icon, size: 18 -%}
+              </span>
+              <span class="iwt__feature-body">
+                {%- if block.settings.title != blank -%}
+                  <span class="iwt__feature-title">{{ block.settings.title | escape }}</span>
+                {%- endif -%}
+                {%- if block.settings.text != blank -%}
+                  <span class="iwt__feature-text">{{ block.settings.text }}</span>
+                {%- endif -%}
+              </span>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- if s.button_label_1 != blank or s.button_label_2 != blank -%}
+        <div class="iwt__buttons" data-reveal>
+          {%- if s.button_label_1 != blank -%}
+            <a
+              {% if s.button_link_1 != blank %}href="{{ s.button_link_1 }}"{% else %}role="link" aria-disabled="true"{% endif %}
+              class="btn btn--primary"
+              data-magnetic="0.25"
+            >
+              <span>{{ s.button_label_1 | escape }}</span>
+              {%- render 'icon', name: 'arrow-right', size: 18 -%}
+            </a>
+          {%- endif -%}
+          {%- if s.button_label_2 != blank -%}
+            <a
+              {% if s.button_link_2 != blank %}href="{{ s.button_link_2 }}"{% else %}role="link" aria-disabled="true"{% endif %}
+              class="btn btn--secondary"
+            >
+              <span>{{ s.button_label_2 | escape }}</span>
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Image with text",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    {
+      "type": "select",
+      "id": "image_style",
+      "label": "Image style",
+      "options": [
+        { "value": "card", "label": "Trading card with 3D holo" },
+        { "value": "rounded", "label": "Rounded" },
+        { "value": "bleed", "label": "Full bleed" }
+      ],
+      "default": "card",
+      "info": "Trading card works best with a card or slab photo on a transparent or dark background."
+    },
+    {
+      "type": "select",
+      "id": "foil",
+      "label": "Card foil",
+      "options": [
+        { "value": "subtle", "label": "Subtle" },
+        { "value": "rainbow", "label": "Rainbow" },
+        { "value": "intense", "label": "Intense" },
+        { "value": "none", "label": "None" }
+      ],
+      "default": "rainbow",
+      "info": "Trading card style only"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image shape",
+      "options": [
+        { "value": "adapt", "label": "Adapt to image" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "square", "label": "Square" },
+        { "value": "landscape", "label": "Landscape" }
+      ],
+      "default": "portrait",
+      "info": "Rounded and full bleed styles"
+    },
+    {
+      "type": "select",
+      "id": "image_width",
+      "label": "Image width on desktop",
+      "options": [
+        { "value": "40", "label": "40%" },
+        { "value": "50", "label": "50%" },
+        { "value": "60", "label": "60%" }
+      ],
+      "default": "50"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "image_first", "label": "Image left" },
+        { "value": "text_first", "label": "Image right" }
+      ],
+      "default": "image_first",
+      "info": "On phones and small tablets the image always sits above the text."
+    },
+    {
+      "type": "select",
+      "id": "vertical_align",
+      "label": "Text alignment",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Middle" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "center"
+    },
+    { "type": "checkbox", "id": "parallax", "label": "Parallax scroll effect", "default": true },
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Our story" },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Italicize words to highlight them in the accent color.",
+      "default": "From our vault <em>to yours</em>"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        { "value": "h1", "label": "Large" },
+        { "value": "h2", "label": "Medium" },
+        { "value": "h3", "label": "Small" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>We started trading binders across a kitchen table. Today every card that leaves the vault is still hand-checked, photographed front and back, and packed like it is going into our own collection.</p>"
+    },
+    { "type": "text", "id": "button_label_1", "label": "First button label", "default": "Shop the vault" },
+    { "type": "url", "id": "button_link_1", "label": "First button link", "default": "/collections/all" },
+    { "type": "text", "id": "button_label_2", "label": "Second button label", "default": "Browse sets" },
+    { "type": "url", "id": "button_link_2", "label": "Second button link", "default": "/collections" },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Feature",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "check", "label": "Check" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "verified", "label": "Verified seal" },
+            { "value": "award", "label": "Award" },
+            { "value": "trophy", "label": "Trophy" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "box", "label": "Box" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "return", "label": "Return" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "star", "label": "Star" },
+            { "value": "flame", "label": "Flame" },
+            { "value": "bolt", "label": "Bolt" },
+            { "value": "gift", "label": "Gift" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "layers", "label": "Layers" },
+            { "value": "tag", "label": "Price tag" },
+            { "value": "clock", "label": "Clock" },
+            { "value": "calendar", "label": "Calendar" },
+            { "value": "chat", "label": "Chat" },
+            { "value": "camera", "label": "Camera" },
+            { "value": "eye", "label": "Eye" },
+            { "value": "globe", "label": "Globe" },
+            { "value": "heart", "label": "Heart" }
+          ],
+          "default": "check"
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Hand-inspected under loupe and UV" },
+        { "type": "inline_richtext", "id": "text", "label": "Text" }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Image with text",
+      "blocks": [
+        { "type": "feature", "settings": { "icon": "verified", "title": "Hand-inspected under loupe and UV" } },
+        { "type": "feature", "settings": { "icon": "camera", "title": "Real photos of the exact card you get" } },
+        { "type": "feature", "settings": { "icon": "award", "title": "Every slab verified against its cert" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

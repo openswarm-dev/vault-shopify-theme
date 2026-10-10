@@ -1,0 +1,220 @@
+{%- comment -%}
+  Resolves a product's collector data (metafields → tag fallback → variant options, per ARCHITECTURE §8)
+  and prints it as ONE delimited string so callers can capture and split it (render can't return values).
+
+  Usage:
+    {%- capture cd_raw -%}{%- render 'product-collector-data', product: product, variant: variant -%}{%- endcapture -%}
+    {%- assign cd = cd_raw | split: '~|~' -%}
+
+  Params:
+    product  (required)
+    variant  (optional) — Condition / Language / Grade options of the variant override product data
+
+  Index map of the split array:
+    0 game · 1 set · 2 card number · 3 rarity · 4 rarity tier (common|uncommon|rare|holo|ultra|secret|promo)
+    5 grade label ("PSA 10") · 6 grader key (psa|bgs|cgc|sgc|tag|other) · 7 grader label ("PSA") · 8 score ("10")
+    9 gem ("gem" or blank) · 10 cert number · 11 cert verify URL · 12 condition · 13 language · 14 year
+    15 population · 16 sealed ("sealed" or blank) · 17 "end" (sentinel so trailing blanks survive split)
+{%- endcomment -%}
+{%- liquid
+  assign ns = settings.collector_namespace | default: 'custom'
+  assign mf = product.metafields[ns]
+
+  assign game = mf.game.value | default: ''
+  assign set_name = mf.set_name.value | default: ''
+  assign card_number = mf.card_number.value | default: ''
+  assign rarity = mf.rarity.value | default: ''
+  assign grade = mf.grade.value | default: ''
+  assign grader = mf.grading_company.value | default: ''
+  assign cert = mf.cert_number.value | default: ''
+  assign condition = mf.condition.value | default: ''
+  assign language = mf.language.value | default: ''
+  assign year = mf.year.value | default: ''
+  assign population = mf.population.value | default: ''
+  assign sealed = ''
+
+  assign type_lc = product.type | downcase | strip
+  if type_lc == 'sealed' or type_lc contains 'sealed '
+    assign sealed = 'sealed'
+  endif
+
+  if settings.collector_tag_fallback
+    for tag in product.tags
+      assign tag_lc = tag | downcase | strip
+      if tag_lc == 'sealed'
+        assign sealed = 'sealed'
+      endif
+      if tag contains ':'
+        assign tag_head = tag | split: ':' | first
+        assign tag_key = tag_head | strip | downcase
+        assign tag_val = tag | remove_first: tag_head | remove_first: ':' | strip
+        case tag_key
+          when 'game'
+            if game == blank
+              assign game = tag_val
+            endif
+          when 'set'
+            if set_name == blank
+              assign set_name = tag_val
+            endif
+          when 'number'
+            if card_number == blank
+              assign card_number = tag_val
+            endif
+          when 'rarity'
+            if rarity == blank
+              assign rarity = tag_val
+            endif
+          when 'grade'
+            if grade == blank
+              assign grade = tag_val
+            endif
+          when 'grader'
+            if grader == blank
+              assign grader = tag_val
+            endif
+          when 'cert'
+            if cert == blank
+              assign cert = tag_val
+            endif
+          when 'condition'
+            if condition == blank
+              assign condition = tag_val
+            endif
+          when 'language'
+            if language == blank
+              assign language = tag_val
+            endif
+          when 'year'
+            if year == blank
+              assign year = tag_val
+            endif
+          when 'pop', 'population'
+            if population == blank
+              assign population = tag_val
+            endif
+        endcase
+      endif
+    endfor
+  endif
+
+  # Raw singles often sell Condition / Language as variant options — the selected variant wins.
+  if variant != blank
+    for opt_name in product.options
+      assign opt_lc = opt_name | downcase
+      assign opt_val = variant.options[forloop.index0]
+      if opt_lc contains 'condition'
+        assign condition = opt_val
+      elsif opt_lc contains 'language'
+        assign language = opt_val
+      elsif opt_lc == 'grade'
+        assign grade = opt_val
+      endif
+    endfor
+  endif
+
+  # ---- Grade → grader + score ("PSA 10", "BGS 9.5", or "10" with a separate grader)
+  assign grader_label = ''
+  assign score = ''
+  assign gem = ''
+  assign grade_str = grade | append: '' | strip
+  assign grader_str = grader | append: '' | strip
+  if grade_str != blank
+    assign first_tok = grade_str | split: ' ' | first
+    assign first_lc = first_tok | downcase
+    assign known_graders = 'psa,bgs,beckett,cgc,sgc,tag,ace,ags,hga,csg' | split: ','
+    if known_graders contains first_lc
+      assign grader_label = first_tok | upcase
+      assign score = grade_str | remove_first: first_tok | strip
+    else
+      assign score = grade_str
+      assign grader_label = grader_str | upcase
+    endif
+  elsif grader_str != blank
+    assign grader_label = grader_str | upcase
+  endif
+
+  assign grader_lc = grader_label | downcase
+  assign grader_key = 'other'
+  if grader_lc contains 'psa'
+    assign grader_key = 'psa'
+  elsif grader_lc contains 'bgs' or grader_lc contains 'beckett'
+    assign grader_key = 'bgs'
+  elsif grader_lc contains 'cgc'
+    assign grader_key = 'cgc'
+  elsif grader_lc contains 'sgc'
+    assign grader_key = 'sgc'
+  elsif grader_lc contains 'tag'
+    assign grader_key = 'tag'
+  endif
+  if grader_label == blank
+    assign grader_key = ''
+  endif
+
+  assign score_num = 0
+  assign score_tokens = score | split: ' '
+  for tok in score_tokens
+    assign tok_num = tok | plus: 0
+    if tok_num > 0
+      assign score_num = tok_num
+      break
+    endif
+  endfor
+  if score_num >= 10
+    assign gem = 'gem'
+  elsif grader_key == 'bgs' and score_num >= 9.5
+    assign gem = 'gem'
+  endif
+
+  assign grade_label = ''
+  if score != blank
+    assign grade_label = grader_label | append: ' ' | append: score | strip
+  endif
+
+  # ---- Cert verification URL
+  assign cert = cert | append: '' | strip
+  assign cert_url = ''
+  if cert != blank
+    assign cert_q = cert | url_encode
+    case grader_key
+      when 'psa'
+        assign cert_url = 'https://www.psacard.com/cert/' | append: cert_q
+      when 'bgs'
+        assign cert_url = 'https://www.beckett.com/grading/card-lookup?item_type=BGS&item_id=' | append: cert_q
+      when 'cgc'
+        assign cert_url = 'https://www.cgccards.com/certlookup/' | append: cert_q | append: '/'
+      when 'sgc'
+        assign cert_url = 'https://gosgc.com/cert-code-lookup?certCode=' | append: cert_q
+      when 'tag'
+        assign cert_url = 'https://my.taggrading.com/card/' | append: cert_q
+    endcase
+  endif
+
+  # ---- Rarity → tier
+  assign tier = ''
+  if rarity != blank
+    assign r = rarity | append: '' | downcase
+    assign rp = ' ' | append: r | append: ' '
+    assign tier = 'common'
+    if r contains 'secret' or r contains 'hyper' or r contains 'gold' or r contains 'special illustration' or rp contains ' sir ' or r contains 'alt art' or r contains 'manga'
+      assign tier = 'secret'
+    elsif r contains 'ultra' or r contains 'full art' or rp contains ' ex ' or rp contains ' gx ' or r contains 'v max' or r contains 'vmax' or r contains 'vstar' or r contains 'mythic' or r contains 'ghost' or r contains 'starlight' or r contains 'quarter century' or r contains 'collector'
+      assign tier = 'ultra'
+    elsif r contains 'holo' or r contains 'foil' or r contains 'reverse'
+      assign tier = 'holo'
+    elsif r contains 'uncommon'
+      assign tier = 'uncommon'
+    elsif r contains 'rare'
+      assign tier = 'rare'
+    elsif r contains 'promo'
+      assign tier = 'promo'
+    endif
+  endif
+
+  assign d = '~|~'
+  assign out = game | append: d | append: set_name | append: d | append: card_number | append: d | append: rarity | append: d | append: tier
+  assign out = out | append: d | append: grade_label | append: d | append: grader_key | append: d | append: grader_label | append: d | append: score | append: d | append: gem
+  assign out = out | append: d | append: cert | append: d | append: cert_url | append: d | append: condition | append: d | append: language
+  assign out = out | append: d | append: year | append: d | append: population | append: d | append: sealed | append: d | append: 'end'
+  echo out | strip_newlines
+-%}

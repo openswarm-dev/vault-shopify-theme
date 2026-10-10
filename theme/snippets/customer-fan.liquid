@@ -1,0 +1,17 @@
+{%- comment -%}
+  Decorative fan of three placeholder trading cards that peeks out behind customer auth cards.
+  Usage: {% render 'customer-fan', uid: section.id %}
+  Params:
+    uid   unique string for SVG ids (required when several fans render on one page)
+{%- endcomment -%}
+{%- liquid
+  assign fan_uid = uid | default: 'customer'
+  assign fan_a = 'cf-a-' | append: fan_uid
+  assign fan_b = 'cf-b-' | append: fan_uid
+  assign fan_c = 'cf-c-' | append: fan_uid
+-%}
+<div class="customer-fan" aria-hidden="true">
+  <span class="customer-fan__card customer-fan__card--1">{% render 'placeholder-card', variant: 4, uid: fan_a %}</span>
+  <span class="customer-fan__card customer-fan__card--2">{% render 'placeholder-card', variant: 1, uid: fan_b %}</span>
+  <span class="customer-fan__card customer-fan__card--3">{% render 'placeholder-card', variant: 2, uid: fan_c %}</span>
+</div>

@@ -1,0 +1,21 @@
+{%- comment -%}
+  Empty cart state: stacked card outlines with a slow float, heading, copy and a CTA.
+{%- endcomment -%}
+<div class="cart-empty" data-cart-empty>
+  <div class="cart-empty__stack" aria-hidden="true">
+    <span class="cart-empty__card cart-empty__card--back"></span>
+    <span class="cart-empty__card cart-empty__card--mid"></span>
+    <span class="cart-empty__card cart-empty__card--front">
+      {%- render 'icon', name: 'plus', size: 26, stroke: 1.5 -%}
+    </span>
+  </div>
+  <h3 class="cart-empty__title h4">{{ 'cart.general.empty' | t }}</h3>
+  <p class="cart-empty__text">{{ 'sections.cart_drawer.empty_text' | t }}</p>
+  <a href="{{ routes.all_products_collection_url }}" class="btn btn--primary cart-empty__cta">
+    <span>{{ 'sections.cart_drawer.shop_all' | t }}</span>
+    {%- render 'icon', name: 'arrow-right', size: 16 -%}
+  </a>
+  {%- if shop.customer_accounts_enabled and customer == nil -%}
+    <p class="cart-empty__login">{{ 'sections.cart_drawer.login_html' | t: link: routes.account_login_url }}</p>
+  {%- endif -%}
+</div>

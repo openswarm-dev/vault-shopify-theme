@@ -1,0 +1,91 @@
+{%- comment -%}
+  Values of a list or boolean filter: styled checkboxes with counts (list) or switches (boolean).
+  Values with no matching products are disabled unless already active. Long lists collapse behind "Show more".
+  Usage: {% render 'facets-filter-list', filter: filter, id_prefix: 'Facet-inline-…-2', limit: 6 %}
+  Params:
+    filter     (required) filter object (type 'list' or 'boolean')
+    id_prefix  (required) unique id prefix for the group
+    limit      values shown before "Show more" (default 6)
+{%- endcomment -%}
+{%- liquid
+  assign fl_limit = limit | default: 6
+  assign fl_total = filter.values.size
+  assign fl_list_id = id_prefix | append: '-values'
+  assign fl_switch = false
+  if filter.type == 'boolean'
+    assign fl_switch = true
+  endif
+  assign fl_swatch = false
+  if filter.presentation == 'swatch'
+    assign fl_swatch = true
+  endif
+-%}
+<ul
+  id="{{ fl_list_id }}"
+  class="facets__list list-reset{% if fl_switch %} facets__list--switches{% endif %}"
+  role="list"
+  {% if fl_total > fl_limit %}
+    data-collapsible
+  {% endif %}
+>
+  {%- for value in filter.values -%}
+    {%- liquid
+      assign value_disabled = false
+      if value.count == 0 and value.active == false
+        assign value_disabled = true
+      endif
+      assign value_id = id_prefix | append: '-' | append: forloop.index
+    -%}
+    <li class="facets__item{% if forloop.index > fl_limit %} facets__item--overflow{% endif %}">
+      <label
+        class="facet-option{% if fl_switch %} facet-option--switch{% endif %}{% if value_disabled %} is-disabled{% endif %}"
+        for="{{ value_id }}"
+      >
+        <input
+          type="checkbox"
+          class="facet-option__input"
+          id="{{ value_id }}"
+          name="{{ value.param_name | escape }}"
+          value="{{ value.value | escape }}"
+          {% if fl_switch %}
+            role="switch"
+          {% endif %}
+          {% if value.active %}
+            checked
+          {% endif %}
+          {% if value_disabled %}
+            disabled
+          {% endif %}
+        >
+        {%- if fl_switch -%}
+          <span class="facet-switch" aria-hidden="true"><span class="facet-switch__thumb"></span></span>
+        {%- else -%}
+          <span class="facet-check" aria-hidden="true">{% render 'icon', name: 'check', size: 12, stroke: 3 %}</span>
+        {%- endif -%}
+        {%- if fl_swatch and value.swatch.color -%}
+          <span class="facet-swatch" style="--swatch: {{ value.swatch.color }};" aria-hidden="true"></span>
+        {%- endif -%}
+        <span class="facet-option__label">{{ value.label | escape }}</span>
+        <span class="facet-option__count" data-value-count>
+          <span aria-hidden="true">{{ value.count }}</span>
+          <span class="visually-hidden">{{ 'collections.facets.product_count' | t: count: value.count }}</span>
+        </span>
+      </label>
+    </li>
+  {%- endfor -%}
+</ul>
+{%- if fl_total > fl_limit -%}
+  {%- assign fl_more = fl_total | minus: fl_limit -%}
+  <button
+    type="button"
+    class="facets__more"
+    aria-expanded="false"
+    aria-controls="{{ fl_list_id }}"
+    data-show-more
+    data-label-more="{{ 'collections.facets.show_more' | t: count: fl_more | escape }}"
+    data-label-less="{{ 'collections.facets.show_less' | t | escape }}"
+  >
+    <span data-show-more-label>{{ 'collections.facets.show_more' | t: count: fl_more }}</span>
+    {%- render 'icon', name: 'chevron-down', size: 14 -%}
+  </button>
+{%- endif -%}

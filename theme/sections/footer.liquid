@@ -1,0 +1,401 @@
+{%- comment -%}
+  Global footer (footer group).
+  Newsletter band · brand / link / text columns (accordions on phones, 2 columns on tablets, a row
+  on desktop) · localization + payment icons · oversized outline wordmark that fills with the red
+  gradient as it scrolls into view · copyright, policies and a magnetic back-to-top button.
+  JS: section-footer.js (<vault-footer>, <localization-form>).
+{%- endcomment -%}
+{{ 'section-footer.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign wordmark = section.settings.statement | strip
+  if wordmark == blank
+    assign wordmark = shop.name
+  endif
+  assign wordmark_chars = wordmark.size | at_least: 3
+  assign newsletter_id = 'FooterNewsletter-' | append: section.id
+  assign newsletter_form_id = newsletter_id | append: '-Form'
+  assign footer_loc_id = 'Footer-' | append: section.id
+  assign show_loc = false
+  if section.settings.show_country or section.settings.show_language
+    assign show_loc = true
+  endif
+-%}
+
+<vault-footer class="footer-host">
+  <footer
+    class="footer color-{{ section.settings.color_scheme }} section-bg"
+    style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --wm-chars: {{ wordmark_chars }};"
+  >
+    <div class="footer__glow" aria-hidden="true"></div>
+
+    <div class="page-width">
+      {%- if section.settings.newsletter_enable -%}
+        <div class="footer-newsletter" id="{{ newsletter_id }}">
+          <div class="footer-newsletter__copy">
+            {%- if section.settings.newsletter_eyebrow != blank -%}
+              <p class="eyebrow" data-reveal="fade">{{ section.settings.newsletter_eyebrow | escape }}</p>
+            {%- endif -%}
+            {%- if section.settings.newsletter_heading != blank -%}
+              <h2 class="h2 footer-newsletter__heading" data-split>{{ section.settings.newsletter_heading }}</h2>
+            {%- endif -%}
+            {%- if section.settings.newsletter_text != blank -%}
+              <p class="footer-newsletter__text" data-reveal>{{ section.settings.newsletter_text | escape }}</p>
+            {%- endif -%}
+          </div>
+
+          <div class="footer-newsletter__form-wrap" data-reveal>
+            {%- form 'customer', id: newsletter_form_id, class: 'footer-newsletter__form' -%}
+              <input type="hidden" name="contact[tags]" value="newsletter">
+              <div class="field footer-newsletter__field">
+                <input
+                  id="FooterEmail-{{ section.id }}"
+                  type="email"
+                  name="contact[email]"
+                  class="field__input"
+                  value="{{ form.email }}"
+                  placeholder=" "
+                  autocomplete="email"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  required
+                  {% if form.errors %}
+                    aria-invalid="true"
+                    aria-describedby="FooterNewsletterMsg-{{ section.id }}"
+                  {% elsif form.posted_successfully? %}
+                    aria-describedby="FooterNewsletterMsg-{{ section.id }}"
+                  {% endif %}
+                >
+                <label class="field__label" for="FooterEmail-{{ section.id }}">{{ 'general.newsletter.email_label' | t }}</label>
+                <button type="submit" class="field__button footer-newsletter__submit" name="commit" aria-label="{{ 'general.newsletter.button' | t }}">
+                  {%- render 'icon', name: 'arrow-right', size: 20, stroke: 2 -%}
+                </button>
+              </div>
+              {%- if form.errors -%}
+                <p class="form-message form-message--error footer-newsletter__msg" id="FooterNewsletterMsg-{{ section.id }}" role="alert" tabindex="-1">
+                  {%- render 'icon', name: 'alert', size: 16 -%}
+                  <span>{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</span>
+                </p>
+              {%- elsif form.posted_successfully? -%}
+                <p class="form-message form-message--success footer-newsletter__msg" id="FooterNewsletterMsg-{{ section.id }}" role="status" tabindex="-1" data-newsletter-success>
+                  {%- render 'icon', name: 'check', size: 16 -%}
+                  <span>{{ 'general.newsletter.success' | t }}</span>
+                </p>
+              {%- endif -%}
+              <p class="footer-newsletter__fine">{{ 'sections.footer.newsletter_fine' | t }}</p>
+            {%- endform -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if section.blocks.size > 0 -%}
+        <div class="footer__blocks">
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'brand' -%}
+                <div class="footer-block footer-block--brand" {{ block.shopify_attributes }}>
+                  {%- if block.settings.show_logo and settings.logo != blank -%}
+                    {%- render 'header-logo', class: 'footer-block__logo' -%}
+                  {%- endif -%}
+                  {%- if block.settings.heading != blank -%}
+                    <p class="h3 footer-block__brand-heading">{{ block.settings.heading }}</p>
+                  {%- endif -%}
+                  {%- if block.settings.text != blank -%}
+                    <div class="rte footer-block__text">{{ block.settings.text }}</div>
+                  {%- endif -%}
+                  {%- if block.settings.show_social -%}
+                    {%- render 'social-icons', class: 'social-icons--footer' -%}
+                  {%- endif -%}
+                </div>
+              {%- when 'link_list' -%}
+                <details class="accordion footer-block footer-block--collapsible" data-accordion data-footer-accordion {{ block.shopify_attributes }}>
+                  <summary class="footer-block__summary">
+                    <h2 class="footer-block__heading">{{ block.settings.heading | escape }}</h2>
+                    <span class="accordion__icon" aria-hidden="true">{% render 'icon', name: 'plus', size: 14, stroke: 2 %}</span>
+                  </summary>
+                  <div class="accordion__content">
+                    <div class="accordion__inner">
+                      <ul class="footer-block__list" role="list">
+                        {%- for link in block.settings.menu.links -%}
+                          <li>
+                            <a
+                              href="{{ link.url }}"
+                              class="footer-block__link"
+                              {% if link.current %}
+                                aria-current="page"
+                              {% endif %}
+                            >
+                              {{- link.title | escape -}}
+                            </a>
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    </div>
+                  </div>
+                </details>
+              {%- when 'text' -%}
+                <details class="accordion footer-block footer-block--collapsible" data-accordion data-footer-accordion {{ block.shopify_attributes }}>
+                  <summary class="footer-block__summary">
+                    <h2 class="footer-block__heading">{{ block.settings.heading | escape }}</h2>
+                    <span class="accordion__icon" aria-hidden="true">{% render 'icon', name: 'plus', size: 14, stroke: 2 %}</span>
+                  </summary>
+                  <div class="accordion__content">
+                    <div class="accordion__inner">
+                      <div class="rte footer-block__text">{{ block.settings.text }}</div>
+                    </div>
+                  </div>
+                </details>
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      <div class="footer__meta">
+        {%- if show_loc -%}
+          {%- render 'footer-localization',
+            id_prefix: footer_loc_id,
+            class: 'localization--footer',
+            show_country: section.settings.show_country,
+            show_language: section.settings.show_language
+          -%}
+        {%- endif -%}
+        {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
+          <ul class="payment-icons footer__payments" role="list" aria-label="{{ 'sections.footer.payment_methods' | t }}">
+            {%- for type in shop.enabled_payment_types -%}
+              <li class="payment-icons__item">{{ type | payment_type_svg_tag: class: 'payment-icon' }}</li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- if section.settings.show_wordmark -%}
+      <div class="page-width footer__wordmark-wrap">
+        <div class="footer-wordmark" data-wordmark aria-hidden="true">
+          <span class="footer-wordmark__text" data-wordmark-text>{{ wordmark | escape }}</span>
+          <span class="footer-wordmark__fill" data-wordmark-fill>{{ wordmark | escape }}</span>
+        </div>
+      </div>
+    {%- endif -%}
+
+    <div class="page-width footer__bottom">
+      <div class="footer__legal">
+        <p class="footer__copyright">
+          <small>
+            &copy; {{ 'now' | date: '%Y' }}, {{ shop.name | link_to: routes.root_url }}
+            {%- if section.settings.copyright_text != blank %} · {{ section.settings.copyright_text }}{% endif -%}
+          </small>
+          <small class="footer__powered">{{ powered_by_link }}</small>
+        </p>
+        {%- if section.settings.show_policies and shop.policies.size > 0 -%}
+          <nav class="footer__policies-nav" aria-label="{{ 'sections.footer.policies' | t }}">
+            <ul class="footer__policies" role="list">
+              {%- for policy in shop.policies -%}
+                <li><a href="{{ policy.url }}" class="footer__policy">{{ policy.title | escape }}</a></li>
+              {%- endfor -%}
+            </ul>
+          </nav>
+        {%- endif -%}
+      </div>
+      {%- if section.settings.show_back_to_top -%}
+        <a href="#" class="footer__totop" data-back-to-top data-magnetic="0.4">
+          {%- render 'icon', name: 'arrow-left', size: 20, class: 'footer__totop-icon' -%}
+          <span class="visually-hidden">{{ 'sections.footer.back_to_top' | t }}</span>
+        </a>
+      {%- endif -%}
+    </div>
+  </footer>
+</vault-footer>
+
+<script src="{{ 'section-footer.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Footer",
+  "class": "vault-footer-section",
+  "enabled_on": {
+    "groups": ["footer"]
+  },
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Newsletter"
+    },
+    {
+      "type": "checkbox",
+      "id": "newsletter_enable",
+      "label": "Show newsletter signup",
+      "info": "Subscribers are added to your customer list with the tag \"newsletter\".",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "newsletter_eyebrow",
+      "label": "Eyebrow",
+      "default": "The drop list"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "newsletter_heading",
+      "label": "Heading",
+      "info": "Wrap words in italics to highlight them in red.",
+      "default": "Never miss a <em>drop</em>"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_text",
+      "label": "Text",
+      "default": "Early access to new releases, restocks and vault-only grails. One email a week, never spam."
+    },
+    {
+      "type": "header",
+      "content": "Wordmark"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_wordmark",
+      "label": "Show oversized wordmark",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "statement",
+      "label": "Wordmark text",
+      "info": "Leave blank to use your store name. Short words look best."
+    },
+    {
+      "type": "header",
+      "content": "Utilities"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_country",
+      "label": "Show country/region selector",
+      "info": "Requires more than one market.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_language",
+      "label": "Show language selector",
+      "info": "Requires more than one published language.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "Show payment icons",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_policies",
+      "label": "Show policy links",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_back_to_top",
+      "label": "Show back to top button",
+      "default": true
+    },
+    {
+      "type": "inline_richtext",
+      "id": "copyright_text",
+      "label": "Copyright note"
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-2"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 100
+    }
+  ],
+  "blocks": [
+    {
+      "type": "brand",
+      "name": "Brand",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_logo",
+          "label": "Show logo",
+          "info": "Uses the logo from Theme settings.",
+          "default": false
+        },
+        {
+          "type": "inline_richtext",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Pulled fresh from the <em>vault</em>"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Authenticated singles, graded slabs and factory-sealed product for serious collectors. Every order ships sleeved, top-loaded and fully insured.</p>"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_social",
+          "label": "Show social icons",
+          "info": "Add accounts in Theme settings › Social media.",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "link_list",
+      "name": "Menu",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Shop"
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "Menu",
+          "default": "footer"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Collector support"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Questions about grading, condition or a trade-in? Our team replies within one business day.</p>"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

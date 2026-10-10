@@ -1,0 +1,107 @@
+{%- comment -%}
+  Price — used by product cards, the product page, cart, search and recommendations.
+
+  Usage:
+    {% render 'price', product: product, size: 'sm' %}
+    {% render 'price', product: product, use_variant: true, size: 'lg' %}
+    {% render 'price', variant: variant, size: 'md' %}
+
+  Params:
+    product       product object (required unless `variant` is passed)
+    variant       variant object — takes precedence over `product`
+    use_variant   true → price of product.selected_or_first_available_variant (never shows "From")
+    show_compare  default true — struck-through compare-at price when on sale
+    show_saving   default true — "−20%" chip when on sale
+    size          sm | md | lg (default md)
+    class         extra classes on the root element
+
+  The root element carries [data-price] so scripts can swap it after a variant change.
+  Styles: assets/component-price.css (loaded here).
+{%- endcomment -%}
+{%- liquid
+  assign price_size = size | default: 'md'
+  assign price_varies = false
+
+  if variant != blank
+    assign price_target = variant
+    assign unit_target = variant
+  elsif use_variant
+    assign price_target = product.selected_or_first_available_variant
+    assign unit_target = price_target
+  else
+    assign price_target = product
+    assign unit_target = product.selected_or_first_available_variant
+    if product.price_varies
+      assign price_varies = true
+    endif
+  endif
+
+  assign current_price = price_target.price | default: 0
+  assign compare_price = price_target.compare_at_price | default: 0
+  assign sold_out = false
+  if price_target.available == false
+    assign sold_out = true
+  endif
+
+  assign on_sale = false
+  if show_compare != false and compare_price > current_price
+    assign on_sale = true
+  endif
+
+  assign saving = 0
+  if on_sale
+    assign saving = compare_price | minus: current_price | times: 100.0 | divided_by: compare_price | round
+  endif
+
+  assign money_current = current_price | money
+-%}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+<div
+  class="price price--{{ price_size }}{% if on_sale %} price--on-sale{% endif %}{% if sold_out %} price--sold-out{% endif %}{% if price_varies %} price--varies{% endif %}{% if class != blank %} {{ class }}{% endif %}"
+  data-price
+>
+  <span class="price__main">
+    {%- if on_sale -%}
+      <span class="visually-hidden">{{ 'products.product.price.sale' | t }}</span>
+    {%- else -%}
+      <span class="visually-hidden">{{ 'products.product.price.regular' | t }}</span>
+    {%- endif -%}
+    <span class="price__current">
+      {%- if price_varies -%}
+        {{- 'products.card.price_from_html' | t: price: money_current -}}
+      {%- else -%}
+        {{- money_current -}}
+      {%- endif -%}
+    </span>
+  </span>
+
+  {%- if on_sale -%}
+    <span class="price__was">
+      <span class="visually-hidden">{{ 'products.product.price.regular' | t }}</span>
+      <s class="price__compare">{{ compare_price | money }}</s>
+    </span>
+    {%- if show_saving != false and saving > 0 -%}
+      <span class="price__saving">
+        <span aria-hidden="true">{{ 'products.card.saving_chip' | t: percent: saving }}</span>
+        <span class="visually-hidden">{{ 'products.card.saving_label' | t: percent: saving }}</span>
+      </span>
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- if unit_target.unit_price_measurement -%}
+    {%- liquid
+      assign unit_measure = unit_target.unit_price_measurement
+      assign unit_reference = ''
+      if unit_measure.reference_value != 1
+        assign unit_reference = unit_measure.reference_value
+      endif
+    -%}
+    <span class="price__unit">
+      <span class="visually-hidden">{{ 'products.product.price.unit' | t }}</span>
+      {{- unit_target.unit_price | money -}}
+      <span aria-hidden="true">/</span>
+      <span class="visually-hidden">&nbsp;{{ 'accessibility.unit_price_separator' | t }}&nbsp;</span>
+      {{- unit_reference }}{{ unit_measure.reference_unit -}}
+    </span>
+  {%- endif -%}
+</div>

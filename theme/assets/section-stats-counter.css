@@ -1,0 +1,139 @@
+/* ==========================================================================
+   Stats counter
+   Phones: 2 × 2 · Tablet: one row when the numbers fit, otherwise 2 × 2 · Desktop: one row.
+   Counting is handled by core [data-count-to]; numbers auto-size to their cell (--chars).
+   ========================================================================== */
+
+.section-stats-counter {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  overflow: clip;
+}
+.sc-atmos {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.sc-atmos__glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(55% 60% at 50% 105%, rgb(var(--color-accent-rgb) / .2), transparent 70%),
+    radial-gradient(30% 35% at 50% -5%, rgb(var(--color-accent-rgb) / .08), transparent 70%);
+}
+.sc-atmos__grid {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: radial-gradient(60% 70% at 50% 70%, #000 15%, transparent 75%);
+  mask-image: radial-gradient(60% 70% at 50% 70%, #000 15%, transparent 75%);
+}
+
+.sc-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--sc-cols-mobile, 2), minmax(0, 1fr));
+}
+
+.sc-stat {
+  --line-r: transparent;
+  --line-b: transparent;
+  position: relative;
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: .55rem;
+  padding: 1.6rem .75rem;
+  border-radius: var(--radius-lg);
+  container-type: inline-size;
+  background:
+    linear-gradient(180deg, transparent, var(--line-r) 22%, var(--line-r) 78%, transparent) 100% 50% / 1px 100% no-repeat,
+    linear-gradient(90deg, transparent, var(--line-b) 18%, var(--line-b) 82%, transparent) 50% 100% / 100% 1px no-repeat;
+}
+.sc--center .sc-stat {
+  justify-items: center;
+  text-align: center;
+}
+
+.sc-stat__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: .35rem;
+  border-radius: 50%;
+  color: var(--color-accent);
+  background: rgb(var(--color-accent-rgb) / .1);
+  box-shadow: inset 0 0 0 1px rgb(var(--color-accent-rgb) / .35), 0 0 26px -6px rgb(var(--color-accent-rgb) / .7);
+}
+
+.sc-stat__value { line-height: 1; }
+.sc-stat__figure {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-stretch: var(--font-display-stretch);
+  font-size: var(--h2);
+  font-size: min(var(--h0), calc(100cqi / (var(--chars, 4) * .84)));
+  line-height: 1;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+.sc-stat__affix--suffix {
+  color: var(--color-accent);
+  text-shadow: 0 0 28px rgb(var(--color-accent-rgb) / .45);
+}
+
+.sc-stat__bar {
+  width: 28px;
+  height: 2px;
+  margin-block: .35rem .15rem;
+  border-radius: 2px;
+  background: var(--color-accent);
+  box-shadow: 0 0 10px rgb(var(--color-accent-rgb) / .8);
+  transform-origin: 0 50%;
+  transition: transform .9s var(--ease-out) .15s;
+}
+.sc--center .sc-stat__bar { transform-origin: 50% 50%; }
+html.motion-ok .sc-stat:not(.is-revealed) .sc-stat__bar { transform: scaleX(0); }
+
+.sc-stat__label {
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+.sc-stat__desc {
+  max-width: 30ch;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+/* ---------- Hairlines (placement computed in Liquid per breakpoint) ---------- */
+@media (max-width: 749px) {
+  .sc-r-m { --line-r: rgb(var(--color-text-rgb) / .14); }
+  .sc-b-m { --line-b: rgb(var(--color-text-rgb) / .14); }
+  .sc-stat--span-mobile { grid-column: 1 / -1; }
+}
+@media (min-width: 750px) {
+  .sc-grid { grid-template-columns: repeat(var(--sc-cols-tablet, 4), minmax(0, 1fr)); }
+  .sc-stat { padding: 2rem 1.25rem; gap: .65rem; }
+  .sc-stat__label { font-size: var(--text-sm); letter-spacing: .12em; }
+}
+@media (min-width: 750px) and (max-width: 989px) {
+  .sc-r-t { --line-r: rgb(var(--color-text-rgb) / .14); }
+  .sc-b-t { --line-b: rgb(var(--color-text-rgb) / .14); }
+}
+@media (min-width: 990px) {
+  .sc-grid { grid-template-columns: repeat(var(--sc-cols-desktop, 4), minmax(0, 1fr)); }
+  .sc-stat { padding: 2.5rem 1.75rem; }
+  .sc-r-d { --line-r: rgb(var(--color-text-rgb) / .14); }
+  .sc-b-d { --line-b: rgb(var(--color-text-rgb) / .14); }
+}

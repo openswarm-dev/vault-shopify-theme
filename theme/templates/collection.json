@@ -1,0 +1,93 @@
+{
+  "sections": {
+    "banner": {
+      "type": "main-collection-banner",
+      "blocks": {
+        "link-graded": {
+          "type": "link",
+          "settings": {
+            "label": "Graded slabs",
+            "link": "/collections/all/graded",
+            "highlight": false
+          }
+        },
+        "link-raw": {
+          "type": "link",
+          "settings": {
+            "label": "Raw singles",
+            "link": "/collections/all/raw",
+            "highlight": false
+          }
+        },
+        "link-sealed": {
+          "type": "link",
+          "settings": {
+            "label": "Sealed product",
+            "link": "/collections/all/sealed",
+            "highlight": false
+          }
+        },
+        "link-holo": {
+          "type": "link",
+          "settings": {
+            "label": "Holo & foil",
+            "link": "/collections/all/holo",
+            "highlight": false
+          }
+        },
+        "link-under-50": {
+          "type": "link",
+          "settings": {
+            "label": "Under $50",
+            "link": "/collections/all?filter.v.price.lte=50",
+            "highlight": true
+          }
+        }
+      },
+      "block_order": [
+        "link-graded",
+        "link-raw",
+        "link-sealed",
+        "link-holo",
+        "link-under-50"
+      ],
+      "settings": {
+        "style": "split",
+        "show_image": true,
+        "overlay_opacity": 60,
+        "content_alignment": "left",
+        "show_breadcrumbs": true,
+        "show_count": true,
+        "show_description": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 60,
+        "padding_bottom": 40
+      }
+    },
+    "product-grid": {
+      "type": "main-collection-product-grid",
+      "settings": {
+        "products_per_page": 24,
+        "columns_desktop": 4,
+        "columns_tablet": 3,
+        "columns_mobile": "2",
+        "show_density": true,
+        "pagination_type": "load_more",
+        "image_ratio": "default",
+        "show_quick_add": true,
+        "enable_filtering": true,
+        "filter_layout": "sidebar",
+        "filters_open": 3,
+        "show_more_limit": 6,
+        "enable_sorting": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 20,
+        "padding_bottom": 100
+      }
+    }
+  },
+  "order": [
+    "banner",
+    "product-grid"
+  ]
+}

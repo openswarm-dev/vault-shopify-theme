@@ -1,0 +1,48 @@
+{%- comment -%}
+  "Load more" (or infinite scroll) for paginated product/search grids, with a "Showing X of Y" progress bar.
+  <load-more> (assets/section-collection-grid.js) fetches the next page of the section and appends every
+  [data-append-target] group's children. The numbered pagination below stays as the no-JS fallback.
+
+  Usage: {% render 'facets-load-more', paginate: paginate, section_id: section.id, mode: 'load_more', shown: shown %}
+  Params:
+    paginate    (required) paginate object
+    section_id  (required) section.id
+    mode        'load_more' (button) | 'infinite' (auto-load near the end, button kept as a fallback)
+    shown       (required) number of items shown up to the end of this page
+{%- endcomment -%}
+{%- if paginate.pages > 1 -%}
+  {%- liquid
+    assign lm_total = paginate.items
+    assign lm_shown = shown | at_most: lm_total
+    assign lm_progress = lm_shown | times: 1.0 | divided_by: lm_total
+  -%}
+  <load-more
+    class="load-more"
+    data-mode="{{ mode | default: 'load_more' }}"
+    data-section-id="{{ section_id }}"
+    data-next-url="{{ paginate.next.url }}"
+    data-shown="{{ lm_shown }}"
+    data-total="{{ lm_total }}"
+    data-error-message="{{ 'collections.grid.load_error' | t | escape }}"
+    style="--progress: {{ lm_progress }};"
+  >
+    <p class="load-more__status tabular" data-load-more-status>
+      {{- 'general.pagination.showing' | t: shown: lm_shown, total: lm_total -}}
+    </p>
+    <div class="load-more__bar" aria-hidden="true"><span></span></div>
+    {%- if paginate.next -%}
+      <a href="{{ paginate.next.url }}" class="btn btn--secondary btn--lg load-more__button" data-load-more-button>
+        <span>{{ 'general.pagination.load_more' | t }}</span>
+        {%- render 'icon', name: 'plus', size: 18 -%}
+      </a>
+    {%- else -%}
+      <p class="load-more__done">
+        {%- render 'icon', name: 'check', size: 16 -%}
+        {{- 'collections.grid.all_loaded' | t -}}
+      </p>
+    {%- endif -%}
+  </load-more>
+  <div class="load-more__fallback">
+    {%- render 'pagination', paginate: paginate -%}
+  </div>
+{%- endif -%}

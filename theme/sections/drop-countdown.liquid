@@ -1,0 +1,416 @@
+{{ 'section-drop-countdown.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  # ---- Parse the drop date ("YYYY-MM-DD HH:MM") + UTC offset into an epoch on the server.
+  # JS re-parses the same values in the visitor's browser and has the final say; this pass
+  # only picks the initial state (so the live layout renders without JS) and prefills the tiles.
+  assign dc_raw = section.settings.drop_date | default: '' | strip | replace: 'T', ' ' | replace: '/', '-'
+  assign dc_parts = dc_raw | split: ' '
+  assign dc_day = dc_parts | first | default: ''
+  assign dc_clock = '00:00'
+  if dc_parts.size > 1
+    assign dc_clock = dc_parts | last
+  endif
+  assign dc_clock_bits = dc_clock | split: ':'
+  assign dc_hh = dc_clock_bits[0] | default: '0' | prepend: '0' | slice: -2, 2
+  assign dc_mm = dc_clock_bits[1] | default: '0' | prepend: '0' | slice: -2, 2
+  assign dc_offset = section.settings.utc_offset | default: '+00:00'
+  assign dc_parse = dc_day | append: ' ' | append: dc_hh | append: ':' | append: dc_mm | append: ':00 ' | append: dc_offset
+  assign dc_iso = dc_day | append: 'T' | append: dc_hh | append: ':' | append: dc_mm | append: ':00' | append: dc_offset
+  assign dc_target = dc_parse | date: '%s' | plus: 0
+  assign dc_now = 'now' | date: '%s' | plus: 0
+
+  assign dc_valid = false
+  if dc_day != blank and dc_target > 946684800
+    assign dc_valid = true
+  endif
+
+  assign dc_remaining = 0
+  if dc_valid
+    assign dc_remaining = dc_target | minus: dc_now | at_least: 0
+  endif
+
+  assign dc_live = false
+  if section.settings.force_live
+    assign dc_live = true
+  elsif dc_valid and dc_remaining == 0
+    assign dc_live = true
+  endif
+
+  # ---- Prefill values (the visitor's browser takes over within a second)
+  assign dc_d = dc_remaining | divided_by: 86400 | floor | at_most: 999
+  assign dc_rest = dc_remaining | modulo: 86400
+  assign dc_h = dc_rest | divided_by: 3600 | floor
+  assign dc_rest = dc_rest | modulo: 3600
+  assign dc_m = dc_rest | divided_by: 60 | floor
+  assign dc_s = dc_rest | modulo: 60
+
+  assign dc_d_str = dc_d | append: ''
+  if dc_d < 10
+    assign dc_d_str = dc_d | prepend: '0'
+  endif
+  assign dc_h_str = dc_h | prepend: '0' | slice: -2, 2
+  assign dc_m_str = dc_m | prepend: '0' | slice: -2, 2
+  assign dc_s_str = dc_s | prepend: '0' | slice: -2, 2
+
+  if dc_valid
+    assign dc_date_words = dc_day | append: ' 12:00:00' | date: '%A, %B %-d, %Y'
+    assign dc_time_words = dc_hh | append: ':' | append: dc_mm | append: ' (UTC' | append: dc_offset | append: ')'
+  endif
+
+  assign dc_units = 'days,hours,minutes,seconds' | split: ','
+  assign dc_form_id = 'DropNotify-' | append: section.id
+  assign dc_has_visual = section.settings.show_stack
+  assign dc_heading_size = section.settings.heading_size | default: 'h1'
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-drop-countdown color-{{ section.settings.color_scheme }} section-bg{% if section.settings.image != blank %} section-drop-countdown--has-bg{% endif %}{% if section.settings.layout == 'visual_left' %} section-drop-countdown--visual-left{% endif %}"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }}; --dc-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+>
+  {%- if section.settings.image != blank -%}
+    <div class="dc-bg" aria-hidden="true">
+      {{
+        section.settings.image
+        | image_url: width: 2400
+        | image_tag:
+          widths: '750, 1100, 1500, 1920, 2400',
+          sizes: '100vw',
+          loading: 'lazy',
+          alt: '',
+          class: 'dc-bg__img'
+      }}
+    </div>
+  {%- endif -%}
+
+  <div class="dc-atmos" aria-hidden="true">
+    <span class="dc-atmos__glow"></span>
+    {%- if section.settings.show_grid -%}
+      <span class="dc-atmos__grid bg-grid"></span>
+    {%- endif -%}
+  </div>
+
+  <drop-countdown
+    class="page-width dc{% if section.settings.layout == 'visual_left' %} dc--visual-left{% endif %}{% unless dc_has_visual %} dc--no-visual{% endunless %}"
+    data-state="{% if dc_live %}live{% else %}upcoming{% endif %}"
+    data-date="{{ section.settings.drop_date | escape }}"
+    data-offset="{{ dc_offset | escape }}"
+    {% if dc_valid %}
+      data-epoch="{{ dc_target }}"
+    {% endif %}
+    data-force-live="{{ section.settings.force_live }}"
+    data-sr-template="{{ 'sections.drop_countdown.remaining' | t: days: '[d]', hours: '[h]', minutes: '[m]' | escape }}"
+  >
+    <div class="dc__content">
+      {%- comment -%} ---------- Upcoming state ---------- {%- endcomment -%}
+      <div class="dc__state dc__pre" data-dc-pre{% if dc_live %} hidden{% endif %}>
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+          <h2 class="{{ dc_heading_size }} dc__heading" data-split>{{ section.settings.heading }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.text != blank -%}
+          <div class="lead dc__text rte" data-reveal>{{ section.settings.text }}</div>
+        {%- endif -%}
+
+        <p class="dc-when" data-reveal="fade">
+          {% render 'icon', name: 'calendar', size: 16 %}
+          {%- if dc_valid -%}
+            <time datetime="{{ dc_iso | escape }}" data-dc-when>
+              {{- 'sections.drop_countdown.opens_at' | t: date: dc_date_words, time: dc_time_words -}}
+            </time>
+          {%- else -%}
+            <span>{{ 'sections.drop_countdown.tba' | t }}</span>
+          {%- endif -%}
+        </p>
+
+        <div class="dc-timer" data-dc-timer{% unless dc_valid %} hidden{% endunless %}>
+          <div class="dc-tiles" role="timer" aria-label="{{ 'sections.drop_countdown.timer_label' | t | escape }}">
+            <span class="visually-hidden" data-dc-sr>
+              {{- 'sections.drop_countdown.remaining' | t: days: dc_d, hours: dc_h, minutes: dc_m -}}
+            </span>
+            {%- for unit in dc_units -%}
+              {%- if unit == 'seconds' and section.settings.show_seconds == false -%}
+                {%- continue -%}
+              {%- endif -%}
+              {%- liquid
+                case unit
+                  when 'days'
+                    assign unit_value = dc_d_str
+                  when 'hours'
+                    assign unit_value = dc_h_str
+                  when 'minutes'
+                    assign unit_value = dc_m_str
+                  else
+                    assign unit_value = dc_s_str
+                endcase
+                assign unit_chars = unit_value | split: ''
+                assign label_key = 'sections.drop_countdown.' | append: unit
+                assign short_key = label_key | append: '_short'
+              -%}
+              {%- unless forloop.first -%}
+                <span class="dc-sep" aria-hidden="true"><span></span><span></span></span>
+              {%- endunless -%}
+              <div class="dc-tile dc-tile--{{ unit }}" aria-hidden="true">
+                <span class="dc-tile__value" data-dc-value="{{ unit }}" data-digits="{{ unit_chars.size }}">
+                  {%- for ch in unit_chars -%}
+                    <span class="dc-digit"><span class="dc-digit__char">{{ ch }}</span></span>
+                  {%- endfor -%}
+                </span>
+                <span class="dc-tile__label">
+                  <span class="dc-tile__label-long">{{ label_key | t }}</span>
+                  <span class="dc-tile__label-short">{{ short_key | t }}</span>
+                </span>
+              </div>
+            {%- endfor -%}
+          </div>
+
+          <div class="dc-final" data-dc-final hidden>
+            <span class="dc-final__label">
+              <span class="dc-final__dot" aria-hidden="true"></span>
+              {{- 'sections.drop_countdown.final_hours' | t -}}
+            </span>
+            <span class="dc-final__track" aria-hidden="true"><span class="dc-final__fill" data-dc-fill></span></span>
+          </div>
+        </div>
+
+        {%- if section.settings.show_notify -%}
+          <div class="dc-notify-wrap" data-reveal>
+            {%- if section.settings.notify_text != blank -%}
+              <p class="dc-notify__text">{{ section.settings.notify_text | escape }}</p>
+            {%- endif -%}
+            {%- form 'customer', id: dc_form_id, class: 'dc-notify' -%}
+              <input type="hidden" name="contact[tags]" value="drop-notify">
+              {%- if form.posted_successfully? -%}
+                <p class="form-message form-message--success dc-notify__success" role="status" data-dc-success>
+                  {% render 'icon', name: 'check', size: 18 %}
+                  <span>{{ 'sections.drop_countdown.notify_success' | t }}</span>
+                </p>
+              {%- elsif form.errors -%}
+                <div class="form-message form-message--error" id="DropNotifyError-{{ section.id }}" role="alert">
+                  {% render 'icon', name: 'alert', size: 18 %}
+                  <div>{{ form.errors | default_errors }}</div>
+                </div>
+              {%- endif -%}
+              <div class="dc-notify__row" data-dc-row{% if form.posted_successfully? %} hidden{% endif %}>
+                <div class="field dc-notify__field">
+                  <input
+                    class="field__input"
+                    type="email"
+                    id="DropNotifyEmail-{{ section.id }}"
+                    name="contact[email]"
+                    value="{{ form.email | escape }}"
+                    autocomplete="email"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    required
+                    placeholder=" "
+                    {% if form.errors %}
+                      aria-invalid="true"
+                      aria-describedby="DropNotifyError-{{ section.id }}"
+                    {% endif %}
+                  >
+                  <label class="field__label" for="DropNotifyEmail-{{ section.id }}">
+                    {{- 'general.newsletter.email_label' | t -}}
+                  </label>
+                </div>
+                <button type="submit" class="btn btn--primary dc-notify__btn">
+                  {% render 'icon', name: 'mail', size: 18 %}
+                  <span>{{ 'sections.drop_countdown.notify_button' | t }}</span>
+                </button>
+              </div>
+            {%- endform -%}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.preview_label != blank and section.settings.button_link != blank -%}
+          <div class="dc-actions" data-reveal="fade">
+            <a class="link link--muted dc-preview" href="{{ section.settings.button_link }}">
+              {{- section.settings.preview_label | escape -}}
+              {% render 'icon', name: 'arrow-right', size: 16 %}
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} ---------- Live state ---------- {%- endcomment -%}
+      <div class="dc__state dc__live" data-dc-live{% unless dc_live %} hidden{% endunless %}>
+        <p class="dc-live-pill">
+          <span class="dc-live-pill__dot" aria-hidden="true"></span>
+          {{- 'sections.drop_countdown.live' | t -}}
+        </p>
+
+        {%- if section.settings.live_heading != blank -%}
+          <h2 class="{{ dc_heading_size }} dc__heading" data-split>{{ section.settings.live_heading }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.live_text != blank -%}
+          <div class="lead dc__text rte">{{ section.settings.live_text }}</div>
+        {%- endif -%}
+
+        {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
+          <div class="dc-actions">
+            <a class="btn btn--primary btn--lg dc-cta" href="{{ section.settings.button_link }}">
+              <span>{{ section.settings.button_label | escape }}</span>
+              {% render 'icon', name: 'arrow-right', size: 18 %}
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- if dc_has_visual -%}
+      <div class="dc__visual" data-dc-visual data-parallax-root data-reveal="scale" aria-hidden="true">
+        <div class="dc-stack" data-dc-stack>
+          <span class="dc-stack__glow"></span>
+          <span class="dc-stack__burst" data-dc-burst></span>
+          {%- for i in (1..3) -%}
+            {%- liquid
+              case i
+                when 1
+                  assign layer_speed = '0.09'
+                when 2
+                  assign layer_speed = '0.06'
+                else
+                  assign layer_speed = '0.03'
+              endcase
+            -%}
+            <div class="dc-layer dc-layer--{{ i }}" data-parallax="{{ layer_speed }}">
+              <div class="dc-card">
+                <span class="dc-back">
+                  <span class="dc-back__emblem">{% render 'icon', name: 'lock', size: 22 %}</span>
+                </span>
+              </div>
+            </div>
+          {%- endfor -%}
+          <div class="dc-layer dc-layer--top" data-parallax="-0.02">
+            <div class="dc-card dc-card--top">
+              <div class="dc-flip" data-dc-flip>
+                <div class="dc-face dc-face--back">
+                  <span class="dc-back">
+                    <span class="dc-back__emblem">{% render 'icon', name: 'lock', size: 26 %}</span>
+                    {%- if section.settings.stack_label != blank -%}
+                      <span class="dc-back__label">{{ section.settings.stack_label | escape }}</span>
+                    {%- endif -%}
+                  </span>
+                </div>
+                <div class="dc-face dc-face--front">
+                  {%- if section.settings.reveal_image != blank -%}
+                    {{
+                      section.settings.reveal_image
+                      | image_url: width: 900
+                      | image_tag:
+                        widths: '360, 540, 720, 900',
+                        sizes: '(min-width: 990px) 360px, (min-width: 750px) 30vw, 64vw',
+                        loading: 'lazy',
+                        alt: '',
+                        class: 'dc-face__img'
+                    }}
+                  {%- else -%}
+                    {% render 'placeholder-card', variant: 5, uid: section.id %}
+                  {%- endif -%}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {%- endif -%}
+  </drop-countdown>
+</section>
+
+<script src="{{ 'section-drop-countdown.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Drop countdown",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Next drop" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Italicize words to highlight them in the accent color.", "default": "The <em>Vault</em> opens Friday" },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        { "value": "h2", "label": "Medium" },
+        { "value": "h1", "label": "Large" }
+      ],
+      "default": "h1"
+    },
+    { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Fresh alt-art singles, PSA 10 slabs and sealed booster boxes land at the same time. Set a reminder — chase cards rarely last the hour.</p>" },
+    { "type": "header", "content": "Drop time" },
+    { "type": "paragraph", "content": "The countdown runs in each visitor's own time zone and switches to the live layout automatically when it reaches zero." },
+    { "type": "text", "id": "drop_date", "label": "Drop date and time", "info": "Format: YYYY-MM-DD HH:MM (24-hour), e.g. 2026-11-20 18:00", "default": "2026-11-20 18:00" },
+    {
+      "type": "select",
+      "id": "utc_offset",
+      "label": "Time zone of the drop",
+      "options": [
+        { "value": "-10:00", "label": "Hawaii (UTC-10)" },
+        { "value": "-09:00", "label": "Alaska (UTC-9)" },
+        { "value": "-08:00", "label": "Pacific time (UTC-8)" },
+        { "value": "-07:00", "label": "Mountain / Pacific summer (UTC-7)" },
+        { "value": "-06:00", "label": "Central time (UTC-6)" },
+        { "value": "-05:00", "label": "Eastern time (UTC-5)" },
+        { "value": "-04:00", "label": "Eastern summer / Atlantic (UTC-4)" },
+        { "value": "-03:00", "label": "Sao Paulo / Buenos Aires (UTC-3)" },
+        { "value": "+00:00", "label": "London / UTC (UTC+0)" },
+        { "value": "+01:00", "label": "Central Europe / UK summer (UTC+1)" },
+        { "value": "+02:00", "label": "Eastern Europe / CE summer (UTC+2)" },
+        { "value": "+03:00", "label": "Istanbul / Moscow (UTC+3)" },
+        { "value": "+04:00", "label": "Dubai (UTC+4)" },
+        { "value": "+05:30", "label": "India (UTC+5:30)" },
+        { "value": "+07:00", "label": "Bangkok / Jakarta (UTC+7)" },
+        { "value": "+08:00", "label": "Singapore / Hong Kong / Perth (UTC+8)" },
+        { "value": "+09:00", "label": "Japan / Korea (UTC+9)" },
+        { "value": "+10:00", "label": "Sydney / Melbourne (UTC+10)" },
+        { "value": "+11:00", "label": "Sydney summer (UTC+11)" },
+        { "value": "+12:00", "label": "New Zealand (UTC+12)" },
+        { "value": "+13:00", "label": "New Zealand summer (UTC+13)" }
+      ],
+      "default": "-05:00"
+    },
+    { "type": "checkbox", "id": "show_seconds", "label": "Show seconds", "default": true },
+    { "type": "checkbox", "id": "force_live", "label": "Show live state now", "info": "Preview the live layout, or keep it showing before the countdown ends.", "default": false },
+    { "type": "header", "content": "Before the drop" },
+    { "type": "checkbox", "id": "show_notify", "label": "Show email reminder form", "info": "Sign-ups are saved as customers tagged drop-notify.", "default": true },
+    { "type": "text", "id": "notify_text", "label": "Form text", "default": "One email the moment it opens. No spam, ever." },
+    { "type": "text", "id": "preview_label", "label": "Preview link label", "info": "Links to the button link below.", "default": "Preview the lineup" },
+    { "type": "header", "content": "When live" },
+    { "type": "inline_richtext", "id": "live_heading", "label": "Heading", "default": "The <em>Vault</em> is open" },
+    { "type": "richtext", "id": "live_text", "label": "Text", "default": "<p>The drop is live. Limited quantities, first come first served — chase cards are capped at one per customer.</p>" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop the drop" },
+    { "type": "url", "id": "button_link", "label": "Button link", "default": "/collections/all" },
+    { "type": "header", "content": "Visual" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Visual position",
+      "options": [
+        { "value": "visual_right", "label": "Right" },
+        { "value": "visual_left", "label": "Left" }
+      ],
+      "default": "visual_right"
+    },
+    { "type": "checkbox", "id": "show_stack", "label": "Show card stack", "default": true },
+    { "type": "text", "id": "stack_label", "label": "Card back label", "default": "Sealed until drop" },
+    { "type": "image_picker", "id": "reveal_image", "label": "Revealed card image", "info": "Flips face-up when the drop goes live. Card artwork is used when empty." },
+    { "type": "image_picker", "id": "image", "label": "Background image" },
+    { "type": "range", "id": "overlay_opacity", "min": 0, "max": 90, "step": 5, "unit": "%", "label": "Background overlay", "default": 65 },
+    { "type": "checkbox", "id": "show_grid", "label": "Show grid lines", "default": true },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "presets": [
+    { "name": "Drop countdown" }
+  ]
+}
+{% endschema %}

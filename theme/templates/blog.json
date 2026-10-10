@@ -1,0 +1,22 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-blog",
+      "settings": {
+        "eyebrow": "The Vault Journal",
+        "highlight_last_word": true,
+        "description": "<p>Grading guides, market notes, set breakdowns and pull stories from the people behind the counter.</p>",
+        "show_tags": true,
+        "articles_per_page": 10,
+        "feature_first": true,
+        "show_excerpt": true,
+        "show_date": true,
+        "show_author": false,
+        "color_scheme": "scheme-1",
+        "padding_top": 80,
+        "padding_bottom": 100
+      }
+    }
+  },
+  "order": ["main"]
+}

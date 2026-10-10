@@ -1,0 +1,391 @@
+{{ 'section-holo-showcase.css' | asset_url | stylesheet_tag }}
+{%- comment -%}
+  Holo showcase — "Inspect the foil" scrollytelling.
+  Desktop (≥990px wide, ≥620px tall, motion allowed): the section is ~240vh tall with a sticky stage;
+  scrolling turns the card over to its back and home again while feature callouts draw in one by one.
+  Tablet / phone / reduced motion: no pin — card on top (tap or button to flip), features stacked below.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign card_product = s.product
+  assign front_image = s.card_image | default: card_product.featured_media.preview_image
+  assign slab = false
+  if s.shape == 'slab'
+    assign slab = true
+  endif
+
+  # Aspect ratio (height / width): raw card 88:63, slab artwork 1180:760, slab photo 5:3.
+  assign ar = '1.3968'
+  if slab and front_image != blank
+    assign ar = '1.6667'
+  elsif slab
+    assign ar = '1.5526'
+  endif
+
+  assign features = section.blocks | where: 'type', 'feature'
+  assign feature_count = features.size
+  assign feature_rows = feature_count | plus: 1 | divided_by: 2 | floor | at_least: 1
+  assign total_label = feature_count | prepend: '0' | slice: -2, 2
+
+  assign heading_id = 'HoloShowcaseHeading-' | append: section.id
+  assign front_label = 'sections.holo_showcase.card_front' | t
+  assign back_label = 'sections.holo_showcase.card_back' | t
+  assign front_alt = front_image.alt | default: card_product.title | default: front_label
+  assign card_sizes = '(min-width: 990px) 420px, (min-width: 750px) 340px, 72vw'
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-holo-showcase color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}aria-labelledby="{{ heading_id }}"{% endif %}
+>
+  <holo-showcase
+    class="hs{% if card_product != blank %} hs--product{% endif %}"
+    data-count="{{ feature_count }}"
+    style="--hs-count: {{ feature_count | at_least: 1 }}; --hs-rows: {{ feature_rows }}; --ar: {{ ar }};"
+  >
+    <div class="hs__sticky">
+      <div class="hs__backdrop" aria-hidden="true">
+        <div class="hs__grid bg-grid"></div>
+        <div class="hs__glow"></div>
+      </div>
+
+      <div class="page-width hs__inner">
+        <div class="hs__header">
+          {% render 'section-header',
+            eyebrow: s.eyebrow,
+            heading: s.heading,
+            text: s.text,
+            align: 'center',
+            size: 'h2',
+            tag: 'h2',
+            id: heading_id
+          %}
+        </div>
+
+        <div class="hs__stage">
+          <div class="hs__card-col">
+            <div class="hs-card{% if slab %} hs-card--slab{% endif %}" data-hs-card>
+              <div class="hs-card__shadow" aria-hidden="true"></div>
+              <div class="hs-card__rotator" data-hs-rotator>
+                <div class="hs-card__face hs-card__face--front">
+                  <holo-card class="hs-card__holo" data-foil="intense" data-max-tilt="12" data-hs-holo>
+                    <div class="holo">
+                      <div class="hs-card__media">
+                        {%- if front_image != blank -%}
+                          {{
+                            front_image
+                            | image_url: width: 1000
+                            | image_tag:
+                              widths: '300, 400, 520, 680, 840, 1000',
+                              sizes: card_sizes,
+                              loading: 'lazy',
+                              class: 'hs-card__img',
+                              alt: front_alt
+                          }}
+                        {%- else -%}
+                          {%- assign placeholder_uid = section.id | append: '-hs' -%}
+                          {% render 'placeholder-card', variant: 5, uid: placeholder_uid, graded: slab, label: front_label %}
+                        {%- endif -%}
+                      </div>
+                      <span class="holo__shine"></span>
+                      <span class="holo__glare"></span>
+                    </div>
+                  </holo-card>
+                </div>
+
+                <div class="hs-card__face hs-card__face--back">
+                  {%- if s.card_back != blank -%}
+                    <div class="hs-card__media">
+                      {{
+                        s.card_back
+                        | image_url: width: 1000
+                        | image_tag:
+                          widths: '300, 400, 520, 680, 840, 1000',
+                          sizes: card_sizes,
+                          loading: 'lazy',
+                          class: 'hs-card__img',
+                          alt: back_label
+                      }}
+                    </div>
+                  {%- else -%}
+                    <div class="hs-back{% if slab %} hs-back--slab{% endif %}" role="img" aria-label="{{ back_label | escape }}">
+                      {%- if slab -%}
+                        <div class="hs-back__label">
+                          <span class="hs-back__barcode"></span>
+                          <span class="hs-back__cert mono">8451 2397</span>
+                          <span class="hs-back__sticker"></span>
+                        </div>
+                      {%- endif -%}
+                      <div class="hs-back__card">
+                        <span class="hs-back__pattern"></span>
+                        <span class="hs-back__ring"></span>
+                        <svg class="hs-back__emblem" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+                          <circle cx="60" cy="60" r="55" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/>
+                          <circle cx="60" cy="60" r="48" fill="none" stroke="currentColor" stroke-width="5" stroke-dasharray="1.6 10.97" opacity=".5"/>
+                          <circle cx="60" cy="60" r="38" fill="none" stroke="currentColor" stroke-width="2"/>
+                          <g stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                            <path d="M60 30v60M34 45l52 30M34 75l52-30"/>
+                          </g>
+                          <g fill="currentColor">
+                            <circle cx="60" cy="30" r="4.5"/><circle cx="60" cy="90" r="4.5"/>
+                            <circle cx="34" cy="45" r="4.5"/><circle cx="86" cy="75" r="4.5"/>
+                            <circle cx="34" cy="75" r="4.5"/><circle cx="86" cy="45" r="4.5"/>
+                          </g>
+                          <circle class="hs-back__hub" cx="60" cy="60" r="11"/>
+                          <circle cx="60" cy="60" r="4" fill="currentColor"/>
+                        </svg>
+                        <span class="hs-back__brand">{{ shop.name | escape }}</span>
+                      </div>
+                    </div>
+                  {%- endif -%}
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="hs__flip" data-hs-flip aria-pressed="false" hidden>
+              {% render 'icon', name: 'flip', size: 18 %}
+              <span>{{ 'sections.holo_showcase.flip' | t }}</span>
+            </button>
+
+            {%- if card_product != blank -%}
+              <div class="hs__product glass">
+                <div class="hs__product-text">
+                  <p class="hs__product-title">{{ card_product.title | escape }}</p>
+                  {% render 'price', product: card_product, size: 'sm' %}
+                </div>
+                <a class="btn btn--primary btn--sm hs__product-cta" href="{{ card_product.url }}">
+                  <span>{{ 'sections.holo_showcase.view_card' | t }}</span>
+                  {% render 'icon', name: 'arrow-right', size: 16 %}
+                </a>
+              </div>
+            {%- endif -%}
+          </div>
+
+          {%- for block in features -%}
+            {%- liquid
+              assign b = block.settings
+              assign side = 'left'
+              assign side_index = forloop.index0 | modulo: 2
+              if side_index == 1
+                assign side = 'right'
+              endif
+              assign feature_row = forloop.index0 | divided_by: 2 | floor | plus: 1
+              assign feature_number = forloop.index | prepend: '0' | slice: -2, 2
+            -%}
+            <div
+              class="hs-feature hs-feature--{{ side }}"
+              style="--row: {{ feature_row }};"
+              data-hs-feature
+              {{ block.shopify_attributes }}
+            >
+              <div class="hs-feature__card glass" data-reveal>
+                <div class="hs-feature__top">
+                  <span class="hs-feature__icon">{% render 'icon', name: b.icon, size: 20 %}</span>
+                  <span class="hs-feature__index mono">{{ feature_number }}</span>
+                </div>
+                {%- if b.title != blank -%}
+                  <h3 class="hs-feature__title">{{ b.title | escape }}</h3>
+                {%- endif -%}
+                {%- if b.text != blank -%}
+                  <p class="hs-feature__text">{{ b.text | escape }}</p>
+                {%- endif -%}
+              </div>
+              <svg class="hs-feature__line" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                {%- if side == 'left' -%}
+                  <path d="M0 1H100" pathLength="1"/>
+                {%- else -%}
+                  <path d="M100 1H0" pathLength="1"/>
+                {%- endif -%}
+              </svg>
+              <span class="hs-feature__dot" aria-hidden="true"></span>
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if feature_count > 0 -%}
+          <div class="hs__rail" aria-hidden="true">
+            <span class="hs__count mono"><b data-hs-current>01</b> / {{ total_label }}</span>
+            <span class="hs__segments">
+              {%- for block in features -%}
+                <span class="hs__seg" data-hs-seg></span>
+              {%- endfor -%}
+            </span>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </holo-showcase>
+</section>
+
+<script src="{{ 'section-holo-showcase.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Holo showcase",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Inspect the foil"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Italicise words to highlight them in red.",
+      "default": "Every <em>foil</em>, every flaw, on camera"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "Turn it over, tilt it into the light. Every listing shows the card exactly as it will land in your hands."
+    },
+    {
+      "type": "header",
+      "content": "Card"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product",
+      "info": "Shows its title, price and a View card button. Its featured image is used when no card image is set."
+    },
+    {
+      "type": "image_picker",
+      "id": "card_image",
+      "label": "Card front"
+    },
+    {
+      "type": "image_picker",
+      "id": "card_back",
+      "label": "Card back",
+      "info": "Leave empty for the designed vault card back."
+    },
+    {
+      "type": "select",
+      "id": "shape",
+      "label": "Shape",
+      "options": [
+        { "value": "card", "label": "Raw card" },
+        { "value": "slab", "label": "Graded slab" }
+      ],
+      "default": "slab"
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-2"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 100
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Feature",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "camera", "label": "Camera" },
+            { "value": "zoom", "label": "Magnifier" },
+            { "value": "flip", "label": "Flip" },
+            { "value": "eye", "label": "Eye" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "verified", "label": "Verified" },
+            { "value": "award", "label": "Award" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "layers", "label": "Layers" },
+            { "value": "box", "label": "Box" },
+            { "value": "truck", "label": "Truck" }
+          ],
+          "default": "camera"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Shot under raking light"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text",
+          "default": "Every holo is photographed at several angles, so you see the real foil and not a stock scan."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "Holo showcase",
+      "blocks": [
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "camera",
+            "title": "Shot under raking light",
+            "text": "Every holo is photographed at several angles, so you see the real foil and not a stock scan."
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "zoom",
+            "title": "Corners, edges, centering",
+            "text": "We zoom in on the four things graders care about and show each one up close."
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "flip",
+            "title": "Both sides, always",
+            "text": "The back tells the truth. Whitening, scratches and print lines are all in the gallery."
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "shield",
+            "title": "Sealed in the vault",
+            "text": "Penny sleeve, top loader, team bag and a tamper-evident seal before it ships insured."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

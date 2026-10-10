@@ -1,0 +1,73 @@
+/* ==========================================================================
+   VAULT — section-product-recommendations.css
+   Carousel (1.6 / 2.6 / N per view, edge-to-edge swipe on phones) or grid (2 / 3 / N),
+   with skeleton cards that hold the space while recommendations load.
+   ========================================================================== */
+
+product-recommendations { display: block; }
+html.no-js .product-recs { display: none; }
+
+.recs__item { min-width: 0; height: 100%; }
+
+.recs__controls { margin-top: 1.25rem; }
+vault-carousel.recs__carousel:not([data-scrollable]) .recs__controls { display: none; }
+@media (max-width: 749px) {
+  .recs__controls .carousel__btn { display: none; }
+}
+
+/* ---------- Skeleton ---------- */
+.recs__skeleton {
+  --recs-pv: 1.6;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - (var(--recs-pv) - 1) * var(--grid-gap)) / var(--recs-pv));
+  gap: var(--grid-gap);
+  overflow: hidden;
+  padding-block: 4px 12px;
+}
+.recs__skeleton--grid {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.recs__skeleton--grid .recs-skel:nth-child(n + 3) { display: none; }
+@media (max-width: 749px) {
+  .recs__skeleton--carousel {
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+  }
+}
+@media (min-width: 750px) {
+  .recs__skeleton { --recs-pv: 2.6; }
+  .recs__skeleton--grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .recs__skeleton--grid .recs-skel:nth-child(n + 3) { display: block; }
+  .recs__skeleton--grid .recs-skel:nth-child(n + 4) { display: none; }
+}
+@media (min-width: 990px) {
+  .recs__skeleton { --recs-pv: var(--recs-cols, 4); }
+  .recs__skeleton--grid { grid-template-columns: repeat(var(--recs-cols, 4), minmax(0, 1fr)); }
+  .recs__skeleton--grid .recs-skel:nth-child(n + 4) { display: block; }
+}
+
+.recs-skel {
+  display: grid;
+  gap: .65rem;
+  min-width: 0;
+  padding: .6rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: rgb(var(--color-text-rgb) / .02);
+}
+.recs-skel__media {
+  aspect-ratio: var(--ratio-card);
+  border-radius: var(--radius-card);
+}
+.recs-skel__line { height: 12px; width: 82%; border-radius: 6px; }
+.recs-skel__line--short { width: 46%; }
+
+.recs__empty {
+  padding: 1.25rem;
+  border: 1px dashed rgb(var(--color-text-rgb) / .2);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}

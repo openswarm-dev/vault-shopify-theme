@@ -1,0 +1,128 @@
+{%- comment -%}
+  Search command palette: <vault-drawer id="SearchDrawer" data-placement="center">, top-anchored on
+  tablet/desktop and full-screen on phones. <predictive-search> (assets/component-predictive-search.js)
+  fetches sections/predictive-search.liquid when settings.predictive_search_enabled; without JS it
+  is a plain GET form to routes.search_url.
+  Params:
+    section  required — header section (popular searches setting)
+    menu     optional — linklist used for the "Jump to" shortcuts
+{%- endcomment -%}
+{%- liquid
+  assign popular_terms = section.settings.search_popular | split: ','
+  assign predictive = settings.predictive_search_enabled
+-%}
+<vault-drawer id="SearchDrawer" data-placement="center" class="search-drawer-host">
+  <dialog class="drawer search-drawer" aria-label="{{ 'sections.predictive_search.label' | t }}">
+    <div class="drawer__overlay" data-drawer-close></div>
+    <div class="drawer__panel search-drawer__panel">
+      <predictive-search class="search-palette" data-enabled="{{ predictive }}">
+        <form
+          action="{{ routes.search_url }}"
+          method="get"
+          role="search"
+          class="search-palette__form"
+          id="SearchDrawerForm"
+        >
+          <div class="search-palette__bar">
+            {%- render 'icon', name: 'search', size: 22, class: 'search-palette__icon' -%}
+            <label for="SearchDrawerInput" class="visually-hidden">{{ 'sections.predictive_search.label' | t }}</label>
+            <input
+              type="search"
+              id="SearchDrawerInput"
+              name="q"
+              value="{{ search.terms | escape }}"
+              class="search-palette__input"
+              placeholder="{{ 'sections.predictive_search.placeholder' | t }}"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              enterkeyhint="search"
+              {% if predictive %}
+                role="combobox"
+                aria-expanded="false"
+                aria-controls="predictive-search-listbox"
+                aria-autocomplete="list"
+                aria-haspopup="listbox"
+              {% endif %}
+              data-ps-input
+              data-drawer-focus
+            >
+            <input type="hidden" name="options[prefix]" value="last">
+            <button
+              type="button"
+              class="search-palette__btn search-palette__clear"
+              data-ps-clear
+              hidden
+              aria-label="{{ 'sections.predictive_search.clear' | t }}"
+            >
+              {%- render 'icon', name: 'close', size: 16, stroke: 2 -%}
+            </button>
+            <button type="submit" class="search-palette__btn search-palette__submit" aria-label="{{ 'sections.predictive_search.submit' | t }}">
+              {%- render 'icon', name: 'arrow-right', size: 18, stroke: 2 -%}
+            </button>
+            <a href="#" class="search-palette__close" data-drawer-close aria-label="{{ 'sections.predictive_search.close' | t }}">
+              <kbd class="search-palette__esc" aria-hidden="true">Esc</kbd>
+              {%- render 'icon', name: 'close', size: 20, class: 'search-palette__close-icon' -%}
+            </a>
+          </div>
+
+          <div class="search-palette__body" data-ps-body>
+            <div class="search-palette__idle" data-ps-idle>
+              {%- if popular_terms.size > 0 -%}
+                <div class="search-palette__block">
+                  <p class="search-palette__caption">{{ 'sections.predictive_search.popular' | t }}</p>
+                  <ul class="search-palette__chips" role="list">
+                    {%- for term in popular_terms -%}
+                      {%- assign term_clean = term | strip -%}
+                      {%- if term_clean != blank -%}
+                        <li data-ps-idle-item>
+                          <a
+                            class="search-palette__chip"
+                            href="{{ routes.search_url }}?q={{ term_clean | url_encode }}&amp;options%5Bprefix%5D=last"
+                            data-ps-chip="{{ term_clean | escape }}"
+                          >
+                            {%- render 'icon', name: 'search', size: 14, stroke: 2 -%}
+                            <span>{{ term_clean | escape }}</span>
+                          </a>
+                        </li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              {%- endif -%}
+
+              {%- if menu.links.size > 0 -%}
+                <div class="search-palette__block">
+                  <p class="search-palette__caption">{{ 'sections.predictive_search.jump_to' | t }}</p>
+                  <ul class="search-palette__jump" role="list">
+                    {%- for link in menu.links limit: 6 -%}
+                      <li data-ps-idle-item>
+                        <a href="{{ link.url }}" class="search-palette__jump-link">
+                          <span class="search-palette__jump-index mono" aria-hidden="true">
+                            {{- forloop.index | prepend: '0' | slice: -2, 2 -}}
+                          </span>
+                          <span class="search-palette__jump-title">{{ link.title | escape }}</span>
+                          {%- render 'icon', name: 'arrow-up-right', size: 16 -%}
+                        </a>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              {%- endif -%}
+            </div>
+
+            <div class="search-palette__results" data-ps-results></div>
+          </div>
+
+          <div class="search-palette__foot" aria-hidden="true">
+            <span><kbd>↑</kbd><kbd>↓</kbd>{{ 'sections.predictive_search.hint_navigate' | t }}</span>
+            <span><kbd>↵</kbd>{{ 'sections.predictive_search.hint_open' | t }}</span>
+            <span><kbd>Esc</kbd>{{ 'sections.predictive_search.hint_close' | t }}</span>
+          </div>
+        </form>
+        <p class="visually-hidden" role="status" aria-live="polite" data-ps-status></p>
+      </predictive-search>
+    </div>
+  </dialog>
+</vault-drawer>

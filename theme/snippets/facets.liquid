@@ -1,0 +1,143 @@
+{%- comment -%}
+  Filter form for collection and search pages. A real GET form, so it works without JavaScript;
+  assets/component-facets.js (<vault-facets>) upgrades it to live AJAX filtering.
+  Rendered twice per page: 'inline' (desktop sidebar + no-JS fallback) and 'drawer' (filter drawer / bottom sheet).
+
+  Usage:
+    {% render 'facets',
+      results: collection,
+      section_id: section.id,
+      context: 'inline',
+      action_url: collection.url,
+      clear_url: clear_url,
+      active_count: active_count,
+      show_filters: true,
+      show_sort: false,
+      open_count: 3,
+      show_more_limit: 6
+    %}
+  Params:
+    results          (required) collection or search object
+    section_id       (required) section.id, keeps ids unique
+    context          'inline' | 'drawer' (default 'inline')
+    action_url       (required) collection.url or routes.search_url
+    clear_url        (required) URL that removes every filter (keeps sort / query)
+    active_count     number of active filters (shows/hides "Clear all")
+    show_filters     false → render only the sort select (filtering disabled), default true
+    show_sort        true → include the sort select (used in the drawer)
+    open_count       filter groups open by default; groups with active values are always open (default 3)
+    show_more_limit  values listed before "Show more" (default 6)
+    search_terms     search page only: search.terms
+    search_type      search page only: single result type or blank
+{%- endcomment -%}
+{%- liquid
+  assign f_context = context | default: 'inline'
+  assign f_open = open_count | default: 3
+  assign f_limit = show_more_limit | default: 6
+  assign f_form_id = 'FacetsForm-' | append: f_context | append: '-' | append: section_id
+  assign f_show_filters = true
+  if show_filters == false
+    assign f_show_filters = false
+  endif
+-%}
+<form
+  id="{{ f_form_id }}"
+  class="facets facets--{{ f_context }}"
+  action="{{ action_url }}"
+  method="get"
+  data-facets-form="{{ f_context }}"
+  novalidate
+>
+  {%- render 'facets-search-params', terms: search_terms, type: search_type -%}
+
+  {%- if f_context == 'inline' -%}
+    <div class="facets__header">
+      <h2 class="facets__heading" id="FacetsHeading-{{ section_id }}">
+        {%- render 'icon', name: 'sliders', size: 16 -%}
+        {{- 'collections.facets.heading' | t -}}
+      </h2>
+      <a
+        href="{{ clear_url }}"
+        class="facets__clear link link--accent"
+        data-facets-link
+        data-facets-clear
+        {% if active_count == 0 %}
+          hidden
+        {% endif %}
+      >
+        {{- 'general.actions.clear_all' | t -}}
+      </a>
+    </div>
+  {%- endif -%}
+
+  {%- if show_sort and results.sort_options.size > 0 -%}
+    {%- assign f_sort_id = 'FacetsSort-' | append: f_context | append: '-' | append: section_id -%}
+    <div class="facets__sort" data-drawer-item>
+      {%- render 'facets-sort', results: results, id: f_sort_id -%}
+    </div>
+  {%- endif -%}
+
+  {%- if f_show_filters -%}
+    <div class="facets__groups">
+      {%- for filter in results.filters -%}
+        {%- liquid
+          assign group_active = filter.active_values.size
+          if filter.type == 'price_range'
+            assign group_active = 0
+            if filter.min_value.value != nil or filter.max_value.value != nil
+              assign group_active = 1
+            endif
+          endif
+          assign group_open = false
+          if group_active > 0 or forloop.index <= f_open
+            assign group_open = true
+          endif
+          assign group_id = 'Facet-' | append: f_context | append: '-' | append: section_id | append: '-' | append: forloop.index
+        -%}
+        <details
+          class="accordion facets__group"
+          id="{{ group_id }}"
+          data-accordion
+          data-drawer-item
+          data-filter-key="{{ filter.param_name | escape }}"
+          data-filter-type="{{ filter.type }}"
+          {% if group_open %}
+            open
+          {% endif %}
+        >
+          <summary class="facets__summary">
+            <span class="facets__summary-label">
+              {{- filter.label | escape -}}
+              <span
+                class="facets__summary-count"
+                data-filter-count
+                {% if group_active == 0 %}
+                  hidden
+                {% endif %}
+              >
+                <span aria-hidden="true">{{ group_active }}</span>
+                <span class="visually-hidden">{{ 'collections.facets.selected' | t: count: group_active }}</span>
+              </span>
+            </span>
+            <span class="accordion__icon">{% render 'icon', name: 'chevron-down', size: 14 %}</span>
+          </summary>
+          <div class="accordion__content">
+            <div class="accordion__inner facets__inner" data-filter-body>
+              {%- if filter.type == 'price_range' -%}
+                {%- render 'facets-price-range', filter: filter, id_prefix: group_id -%}
+              {%- else -%}
+                {%- render 'facets-filter-list', filter: filter, id_prefix: group_id, limit: f_limit -%}
+              {%- endif -%}
+            </div>
+          </div>
+        </details>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+
+  {%- if f_context == 'inline' -%}
+    <div class="facets__nojs-apply">
+      <button type="submit" class="btn btn--primary btn--block">{{ 'general.actions.apply' | t }}</button>
+    </div>
+  {%- endif -%}
+</form>

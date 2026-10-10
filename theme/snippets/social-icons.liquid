@@ -1,0 +1,81 @@
+{%- comment -%}
+  Brand icons for every non-blank settings.social_*_link (Theme settings › Social media).
+  Each link is a 44px target that opens in a new tab.
+  Usage: {% render 'social-icons', class: 'my-class' %}
+  Params:
+    class  optional — extra classes on the <ul class="social-icons">
+  Renders nothing when no account is set.
+{%- endcomment -%}
+{%- liquid
+  assign networks = 'instagram,tiktok,youtube,x,facebook,discord,twitch,whatnot,ebay' | split: ','
+  assign has_any = false
+  for network in networks
+    assign setting_key = 'social_' | append: network | append: '_link'
+    if settings[setting_key] != blank
+      assign has_any = true
+      break
+    endif
+  endfor
+-%}
+{%- if has_any -%}
+  {{ 'component-social-icons.css' | asset_url | stylesheet_tag }}
+  <ul class="social-icons{% if class %} {{ class }}{% endif %}" role="list">
+    {%- for network in networks -%}
+      {%- liquid
+        assign setting_key = 'social_' | append: network | append: '_link'
+        assign network_url = settings[setting_key]
+        assign label_key = 'sections.social_icons.' | append: network
+        assign is_stroke = false
+        if network == 'instagram' or network == 'whatnot' or network == 'ebay'
+          assign is_stroke = true
+        endif
+      -%}
+      {%- if network_url != blank -%}
+        <li class="social-icons__item">
+          <a
+            href="{{ network_url | escape }}"
+            class="social-icons__link social-icons__link--{{ network }}"
+            target="_blank"
+            rel="noopener"
+            aria-label="{{ label_key | t | escape }}"
+          >
+            <svg
+              class="social-icons__svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+              {% if is_stroke %}
+                fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"
+              {% else %}
+                fill="currentColor"
+              {% endif %}
+            >
+              {%- case network -%}
+                {%- when 'instagram' -%}
+                  <rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/>
+                {%- when 'tiktok' -%}
+                  <path d="M16.6 3h-3.2v12.2a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.1a6.1 6.1 0 1 0 5.2 6V8.8a7.6 7.6 0 0 0 4.4 1.4V7a4.4 4.4 0 0 1-4.4-4Z"/>
+                {%- when 'youtube' -%}
+                  <path fill-rule="evenodd" d="M21.6 7.2a2.6 2.6 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4a2.6 2.6 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8a2.6 2.6 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.6 2.6 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8ZM10 15.1V8.9l5.3 3.1-5.3 3.1Z"/>
+                {%- when 'x' -%}
+                  <path fill-rule="evenodd" d="M17.8 3.5h3l-6.6 7.5 7.7 9.5h-6l-4.7-6.1-5.4 6.1h-3l7-8.1-7.5-8.9h6.2l4.3 5.6 5-5.6Zm-1 15.3h1.7L7.3 5.1H5.5l11.3 13.7Z"/>
+                {%- when 'facebook' -%}
+                  <path d="M13.4 21v-7.6H16l.4-3h-3V8.5c0-.9.3-1.5 1.5-1.5h1.6V4.3c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.7v3h2.6V21h3.1Z"/>
+                {%- when 'discord' -%}
+                  <path fill-rule="evenodd" d="M19.3 5.3A16.3 16.3 0 0 0 15.2 4l-.5 1.1a15.2 15.2 0 0 0-5.4 0L8.8 4a16.3 16.3 0 0 0-4.1 1.3C2.1 9.2 1.4 13 1.8 16.7a16.5 16.5 0 0 0 5 2.5l1.1-1.8a10.6 10.6 0 0 1-1.7-.8l.4-.3a11.8 11.8 0 0 0 10.8 0l.4.3c-.5.3-1.1.6-1.7.8l1.1 1.8a16.5 16.5 0 0 0 5-2.5c.4-4.3-.7-8.1-2.9-11.4ZM8.7 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/>
+                {%- when 'twitch' -%}
+                  <path fill-rule="evenodd" d="M4.3 3 3 6.5v12.2h4.3V21h2.4l2.3-2.3h3.5l4.6-4.6V3H4.3Zm14.1 10.4-2.7 2.7h-4.3l-2.3 2.3v-2.3H5.6V4.6h12.8v8.8ZM15.6 7.4v4.7h-1.7V7.4h1.7Zm-4.6 0v4.7H9.3V7.4H11Z"/>
+                {%- when 'whatnot' -%}
+                  <path d="M3 6.5 7.2 18 12 9.5l4.8 8.5L21 6.5"/>
+                {%- when 'ebay' -%}
+                  <path d="M6 12.5h12a6 6 0 1 0-1.8 4.3"/>
+              {%- endcase -%}
+            </svg>
+          </a>
+        </li>
+      {%- endif -%}
+    {%- endfor -%}
+  </ul>
+{%- endif -%}

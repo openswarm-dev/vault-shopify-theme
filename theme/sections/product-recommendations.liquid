@@ -1,0 +1,173 @@
+{%- comment -%}
+  "You might also pull" — Shopify product recommendations.
+  The first render (no recommendations yet) shows skeleton cards; <product-recommendations> fetches
+  routes.product_recommendations_url with this section id when it nears the viewport and swaps in the
+  rendered cards. The section hides itself when Shopify has nothing to recommend.
+  JS: section-product-recommendations.js
+{%- endcomment -%}
+{{ 'section-product-recommendations.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign s = section.settings
+  assign heading_id = 'Heading-' | append: section.id
+  # Shopify exposes recommendations.performed? — the local preview mock uses .performed; accept both.
+  assign recs_performed = false
+  if recommendations.performed? or recommendations.performed
+    assign recs_performed = true
+  endif
+  assign cols = s.columns_desktop
+  assign rec_url = routes.product_recommendations_url
+  assign rec_url = rec_url | append: '?section_id=' | append: section.id
+  assign rec_url = rec_url | append: '&product_id=' | append: product.id
+  assign rec_url = rec_url | append: '&limit=' | append: s.products_to_show
+  assign rec_url = rec_url | append: '&intent=' | append: s.intent
+
+  if s.layout == 'grid'
+    assign card_sizes = '(min-width: 990px) calc((min(100vw, ' | append: settings.page_width | append: 'px) - 120px) / ' | append: cols | append: '), (min-width: 750px) 31vw, 46vw'
+    assign skeleton_count = cols
+  else
+    assign card_sizes = '(min-width: 990px) calc((min(100vw, ' | append: settings.page_width | append: 'px) - 120px) / ' | append: cols | append: '), (min-width: 750px) 36vw, 60vw'
+    assign skeleton_count = cols | plus: 1
+  endif
+  if skeleton_count > s.products_to_show
+    assign skeleton_count = s.products_to_show
+  endif
+-%}
+<section
+  id="Section-{{ section.id }}"
+  class="section product-recs color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }}; --recs-cols: {{ cols }};"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}
+    aria-labelledby="{{ heading_id }}"
+  {% endif %}
+>
+  <div class="page-width">
+    <product-recommendations
+      class="recs recs--{{ s.layout }}"
+      data-url="{{ rec_url }}"
+      data-section-id="{{ section.id }}"
+      data-empty-note="{{ 'sections.product_recommendations.editor_empty' | t | escape }}"
+      {% if recs_performed %}
+        data-performed
+      {% endif %}
+    >
+      {%- if recs_performed -%}
+        {%- if recommendations.products_count > 0 -%}
+          {% render 'section-header',
+            eyebrow: s.eyebrow,
+            heading: s.heading,
+            text: s.text,
+            size: 'h2',
+            tag: 'h2',
+            id: heading_id
+          %}
+          {%- if s.layout == 'grid' -%}
+            <div class="grid recs__grid" style="--cols-mobile: 2; --cols-tablet: 3; --cols-desktop: {{ cols }};">
+              {%- for rec in recommendations.products -%}
+                <div class="recs__item" data-rec-item>
+                  {% render 'card-product', product: rec, index: forloop.index0, sizes: card_sizes, section_id: section.id %}
+                </div>
+              {%- endfor -%}
+            </div>
+          {%- else -%}
+            <vault-carousel
+              class="recs__carousel carousel--bleed"
+              style="--per-view-mobile: 1.6; --per-view-tablet: 2.6; --per-view-desktop: {{ cols }};"
+            >
+              <div
+                class="carousel__track"
+                data-carousel-track
+                tabindex="0"
+                role="region"
+                aria-label="{{ 'sections.product_recommendations.label' | t }}"
+              >
+                {%- for rec in recommendations.products -%}
+                  <div class="recs__item" data-rec-item>
+                    {% render 'card-product', product: rec, index: forloop.index0, sizes: card_sizes, section_id: section.id %}
+                  </div>
+                {%- endfor -%}
+              </div>
+              <div class="carousel__controls recs__controls">
+                <button type="button" class="carousel__btn" data-carousel-prev aria-label="{{ 'accessibility.previous_slide' | t }}">
+                  {%- render 'icon', name: 'arrow-left', size: 18 -%}
+                </button>
+                <div class="carousel__progress"><span data-carousel-progress></span></div>
+                <button type="button" class="carousel__btn" data-carousel-next aria-label="{{ 'accessibility.next_slide' | t }}">
+                  {%- render 'icon', name: 'arrow-right', size: 18 -%}
+                </button>
+              </div>
+            </vault-carousel>
+          {%- endif -%}
+        {%- endif -%}
+      {%- else -%}
+        {% render 'section-header',
+          eyebrow: s.eyebrow,
+          heading: s.heading,
+          text: s.text,
+          size: 'h2',
+          tag: 'h2',
+          id: heading_id
+        %}
+        <div class="recs__skeleton recs__skeleton--{{ s.layout }}" aria-hidden="true">
+          {%- for i in (1..skeleton_count) -%}
+            <div class="recs-skel">
+              <div class="recs-skel__media skeleton"></div>
+              <div class="recs-skel__line skeleton"></div>
+              <div class="recs-skel__line recs-skel__line--short skeleton"></div>
+            </div>
+          {%- endfor -%}
+        </div>
+        <p class="visually-hidden" role="status">{{ 'sections.product_recommendations.loading' | t }}</p>
+      {%- endif -%}
+    </product-recommendations>
+  </div>
+</section>
+
+<script src="{{ 'section-product-recommendations.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Product recommendations",
+  "tag": "div",
+  "class": "shopify-section--product-recommendations",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    { "type": "paragraph", "content": "Recommendations are generated by Shopify from order and product data, and improve over time." },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Handpicked for you" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Italicise words to highlight them in red.", "default": "You might also <em>pull</em>" },
+    { "type": "inline_richtext", "id": "text", "label": "Text" },
+    {
+      "type": "select",
+      "id": "intent",
+      "label": "Recommendation type",
+      "info": "Complementary products are chosen in the Search & Discovery app.",
+      "options": [
+        { "value": "related", "label": "Related products" },
+        { "value": "complementary", "label": "Complementary products" }
+      ],
+      "default": "related"
+    },
+    { "type": "range", "id": "products_to_show", "min": 2, "max": 12, "step": 1, "label": "Maximum products", "default": 8 },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "carousel", "label": "Carousel" },
+        { "value": "grid", "label": "Grid" }
+      ],
+      "default": "carousel"
+    },
+    { "type": "range", "id": "columns_desktop", "min": 3, "max": 5, "step": 1, "label": "Products per row on desktop", "default": 4 },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 80 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "presets": [
+    { "name": "Product recommendations" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,64 @@
+{
+  "type": "footer",
+  "name": "Footer group",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "brand": {
+          "type": "brand",
+          "settings": {
+            "show_logo": false,
+            "heading": "Pulled fresh from the <em>vault</em>",
+            "text": "<p>Authenticated singles, graded slabs and factory-sealed product for serious collectors. Every order ships sleeved, top-loaded and fully insured.</p>",
+            "show_social": true
+          }
+        },
+        "menu-shop": {
+          "type": "link_list",
+          "settings": {
+            "heading": "Shop",
+            "menu": "main-menu"
+          }
+        },
+        "menu-help": {
+          "type": "link_list",
+          "settings": {
+            "heading": "Help",
+            "menu": "footer"
+          }
+        },
+        "support": {
+          "type": "text",
+          "settings": {
+            "heading": "Collector support",
+            "text": "<p>Questions about grading, condition or a trade-in? Our team replies within one business day.</p><p>Local pickup and in-person grading drop-offs by appointment.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "brand",
+        "menu-shop",
+        "menu-help",
+        "support"
+      ],
+      "settings": {
+        "newsletter_enable": true,
+        "newsletter_eyebrow": "The drop list",
+        "newsletter_heading": "Never miss a <em>drop</em>",
+        "newsletter_text": "Early access to new releases, restocks and vault-only grails. One email a week, never spam.",
+        "show_wordmark": true,
+        "show_country": true,
+        "show_language": true,
+        "show_payment_icons": true,
+        "show_policies": true,
+        "show_back_to_top": true,
+        "color_scheme": "scheme-2",
+        "padding_top": 100
+      }
+    }
+  },
+  "order": [
+    "footer"
+  ]
+}

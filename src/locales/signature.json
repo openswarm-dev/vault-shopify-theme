@@ -1,0 +1,24 @@
+{
+  "sections": {
+    "hero_pack": {
+      "scroll": "Scroll",
+      "view_product": "View {{ title }}"
+    },
+    "marquee": {
+      "label": "Store highlights"
+    },
+    "holo_showcase": {
+      "flip": "Flip card",
+      "card_front": "Card front",
+      "card_back": "Card back",
+      "view_card": "View card"
+    },
+    "card_flip_reveal": {
+      "reveal": "Reveal card {{ number }}",
+      "reveal_all": "Reveal all",
+      "tap_to_reveal": "Tap to reveal",
+      "click_to_reveal": "Click to reveal",
+      "chase": "Chase"
+    }
+  }
+}

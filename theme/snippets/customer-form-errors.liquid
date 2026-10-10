@@ -1,0 +1,25 @@
+{%- comment -%}
+  Consistent error list for customer forms (login, register, recover, activate, reset, addresses).
+  Usage (inside a {% form %} tag): {% render 'customer-form-errors', form: form %}
+  Params:
+    form  (required) the current form object
+{%- endcomment -%}
+{%- if form.errors -%}
+  <div class="form-message form-message--error customer-errors" role="alert" tabindex="-1" data-form-message>
+    {%- render 'icon', name: 'alert', size: 18 -%}
+    <div>
+      <p class="customer-errors__title">{{ 'customer.errors.heading' | t }}</p>
+      <ul>
+        {%- for field in form.errors -%}
+          <li>
+            {%- if field == 'form' -%}
+              {{ form.errors.messages[field] }}
+            {%- else -%}
+              {{ form.errors.translated_fields[field] | capitalize }} {{ form.errors.messages[field] }}
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- endif -%}

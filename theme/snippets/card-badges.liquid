@@ -1,0 +1,224 @@
+{%- comment -%}
+  Product badges: Sold out · Sale (% off) · New · Low stock · Sealed · Rarity · Grade.
+
+  Usage:
+    {% render 'card-badges', product: product, context: 'card' %}
+    {% render 'card-badges', product: product, variant: product.selected_or_first_available_variant, context: 'product' %}
+    {% render 'card-badges', product: item.product, variant: item.variant, context: 'cart' %}
+
+  Params:
+    product   product object (required)
+    variant   variant object (optional) — drives sold out / sale / low stock when given
+    context   'card' (default) — status badges in .card-badges__status (top-left of a product card)
+                                 and the slab label in .card-badges__grade (top-right)
+              'product' — one larger row with every badge (product page)
+              'cart'    — compact: grade + rarity only
+
+  Collector data is read per ARCHITECTURE §8 (metafields in settings.collector_namespace, tag fallback).
+  Context 'card' is positioned by component-card.css; 'product' and 'cart' load component-badges.css.
+{%- endcomment -%}
+{%- liquid
+  assign badge_context = context | default: 'card'
+  assign badge_variant = variant | default: product.selected_or_first_available_variant
+
+  # ---- Collector data (metafields first, tags as fallback) ----
+  assign ns = settings.collector_namespace | default: 'custom'
+  assign mf = product.metafields[ns]
+  assign rarity = mf.rarity.value | default: '' | append: '' | strip
+  assign grade = mf.grade.value | default: '' | append: '' | strip
+  assign grader = mf.grading_company.value | default: '' | append: '' | strip
+
+  assign is_sealed = false
+  assign type_lower = product.type | downcase
+  if type_lower contains 'sealed'
+    assign is_sealed = true
+  endif
+
+  for tag in product.tags
+    assign tag_lower = tag | downcase | strip
+    if tag_lower == 'sealed'
+      assign is_sealed = true
+    endif
+    if settings.collector_tag_fallback and tag contains ':'
+      assign tag_key_raw = tag | split: ':' | first
+      assign tag_key = tag_key_raw | strip | downcase
+      assign tag_val = tag | remove_first: tag_key_raw | remove_first: ':' | strip
+      case tag_key
+        when 'rarity'
+          if rarity == blank
+            assign rarity = tag_val
+          endif
+        when 'grade'
+          if grade == blank
+            assign grade = tag_val
+          endif
+        when 'grader'
+          if grader == blank
+            assign grader = tag_val
+          endif
+      endcase
+    endif
+  endfor
+
+  # ---- Grade → grader + score ("PSA 10", "BGS 9.5", or a bare score with a separate grader) ----
+  assign grade_grader = ''
+  assign grade_score = ''
+  assign grader_key = ''
+  assign is_gem = false
+  if grade != blank
+    if grade contains ' '
+      assign grade_grader = grade | split: ' ' | first
+      assign grade_score = grade | remove_first: grade_grader | strip
+    else
+      assign grade_grader = grader
+      assign grade_score = grade
+    endif
+    assign grader_key = grade_grader | downcase | handleize
+    if grader_key == 'beckett'
+      assign grader_key = 'bgs'
+    endif
+    assign score_num = grade_score | split: ' ' | first | plus: 0
+    if score_num >= 10
+      assign is_gem = true
+    elsif grader_key == 'bgs' and score_num >= 9.5
+      assign is_gem = true
+    endif
+  endif
+
+  # ---- Rarity → tier ----
+  assign rarity_tier = ''
+  if rarity != blank
+    assign r = rarity | downcase
+    assign rarity_tier = 'common'
+    if r contains 'secret' or r contains 'hyper' or r contains 'gold' or r contains 'special illustration' or r contains 'sir' or r contains 'alt art' or r contains 'manga'
+      assign rarity_tier = 'secret'
+    elsif r contains 'ultra' or r contains 'full art' or r contains 'ex' or r contains 'gx' or r contains 'v max' or r contains 'vmax' or r contains 'vstar' or r contains 'mythic' or r contains 'ghost' or r contains 'starlight' or r contains 'quarter century' or r contains 'collector'
+      assign rarity_tier = 'ultra'
+    elsif r contains 'holo' or r contains 'foil' or r contains 'reverse'
+      assign rarity_tier = 'holo'
+    elsif r contains 'uncommon'
+      assign rarity_tier = 'uncommon'
+    elsif r contains 'rare'
+      assign rarity_tier = 'rare'
+    elsif r contains 'promo'
+      assign rarity_tier = 'promo'
+    endif
+  endif
+
+  # ---- Commerce state ----
+  assign is_sold_out = false
+  if variant != blank
+    if variant.available == false
+      assign is_sold_out = true
+    endif
+  elsif product.available == false
+    assign is_sold_out = true
+  endif
+
+  assign sale_percent = 0
+  assign is_sale = false
+  if is_sold_out == false and badge_variant.compare_at_price > badge_variant.price
+    assign is_sale = true
+    assign sale_percent = badge_variant.compare_at_price | minus: badge_variant.price | times: 100.0 | divided_by: badge_variant.compare_at_price | round
+  elsif is_sold_out == false and variant == blank and product.compare_at_price > product.price
+    assign is_sale = true
+  endif
+
+  assign is_new = false
+  if settings.card_new_badge_days > 0 and product.created_at != blank
+    assign now_s = 'now' | date: '%s' | plus: 0
+    assign created_s = product.created_at | date: '%s' | plus: 0
+    assign age_days = now_s | minus: created_s | divided_by: 86400
+    if age_days < settings.card_new_badge_days
+      assign is_new = true
+    endif
+  endif
+
+  assign low_stock_qty = 0
+  if is_sold_out == false and settings.low_stock_threshold > 0
+    if badge_context == 'product' or product.variants.size == 1
+      if badge_variant.inventory_management == 'shopify' and badge_variant.inventory_policy == 'deny'
+        if badge_variant.inventory_quantity > 0 and badge_variant.inventory_quantity <= settings.low_stock_threshold
+          assign low_stock_qty = badge_variant.inventory_quantity
+        endif
+      endif
+    endif
+  endif
+-%}
+{%- capture badge_grade -%}
+  {%- if grade != blank -%}
+    <span class="badge badge--grade" data-grader="{{ grader_key | escape }}"{% if is_gem %} data-gem{% endif %}>
+      <span class="visually-hidden">{{ 'collector.grade' | t }}:</span>
+      {%- if grade_grader != blank -%}
+        <span class="badge__grader">{{ grade_grader | upcase | escape }}</span>
+      {%- else -%}
+        <span class="badge__grader" aria-hidden="true">{{ 'collector.grade' | t | escape }}</span>
+      {%- endif -%}
+      <span class="badge__score">{{ grade_score | escape }}</span>
+    </span>
+  {%- endif -%}
+{%- endcapture -%}
+{%- capture badge_rarity -%}
+  {%- if rarity != blank -%}
+    <span class="badge badge--rarity" data-tier="{{ rarity_tier }}">
+      <span class="visually-hidden">{{ 'collector.rarity' | t }}:</span>
+      <span class="badge__text">{{ rarity | escape }}</span>
+    </span>
+  {%- endif -%}
+{%- endcapture -%}
+{%- capture badge_status -%}
+  {%- if is_sold_out -%}
+    <span class="badge badge--sold-out"><span class="badge__text">{{ 'products.product.sold_out' | t }}</span></span>
+  {%- endif -%}
+  {%- if is_sale -%}
+    <span class="badge badge--sale"><span class="badge__text">
+      {%- if sale_percent > 0 -%}
+        {{- 'products.card.sale_off' | t: percent: sale_percent -}}
+      {%- else -%}
+        {{- 'products.product.badges.sale' | t -}}
+      {%- endif -%}
+    </span></span>
+  {%- endif -%}
+  {%- if is_new -%}
+    <span class="badge badge--new"><span class="badge__text">{{ 'products.product.badges.new' | t }}</span></span>
+  {%- endif -%}
+  {%- if low_stock_qty > 0 -%}
+    <span class="badge badge--low-stock"><span class="badge__text">{{ 'products.product.badges.low_stock' | t: count: low_stock_qty }}</span></span>
+  {%- endif -%}
+  {%- if is_sealed -%}
+    <span class="badge badge--sealed"><span class="badge__text">{{ 'products.product.badges.sealed' | t }}</span></span>
+  {%- endif -%}
+{%- endcapture -%}
+{%- case badge_context -%}
+  {%- when 'product' -%}
+    {%- if badge_status != blank or badge_rarity != blank or badge_grade != blank -%}
+      {{ 'component-badges.css' | asset_url | stylesheet_tag }}
+      <div class="card-badges card-badges--product badges">
+        {{- badge_status -}}
+        {{- badge_rarity -}}
+        {{- badge_grade -}}
+      </div>
+    {%- endif -%}
+  {%- when 'cart' -%}
+    {%- if badge_rarity != blank or badge_grade != blank -%}
+      {{ 'component-badges.css' | asset_url | stylesheet_tag }}
+      <div class="card-badges card-badges--cart badges">
+        {{- badge_grade -}}
+        {{- badge_rarity -}}
+      </div>
+    {%- endif -%}
+  {%- else -%}
+    {%- if badge_status != blank or badge_rarity != blank or badge_grade != blank -%}
+      <div class="card-badges card-badges--card">
+        {%- if badge_status != blank or badge_rarity != blank -%}
+          <div class="card-badges__status badges">
+            {{- badge_status -}}
+            {{- badge_rarity -}}
+          </div>
+        {%- endif -%}
+        {%- if badge_grade != blank -%}
+          <div class="card-badges__grade">{{ badge_grade }}</div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+{%- endcase -%}

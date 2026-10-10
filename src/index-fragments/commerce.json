@@ -1,0 +1,115 @@
+{
+  "sections": {
+    "commerce-shop-by-game": {
+      "order_hint": 30,
+      "type": "collection-list",
+      "settings": {
+        "eyebrow": "Shop by game",
+        "heading": "Every game. <em>One vault.</em>",
+        "text": "From vintage holos to this week's chase cards — singles, graded slabs and sealed product, sorted by game.",
+        "link_label": "All collections",
+        "link_url": "/collections",
+        "header_align": "left",
+        "layout": "bento",
+        "columns_desktop": 3,
+        "columns_mobile": "2",
+        "tile_size": "md",
+        "show_count": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "game-pokemon": {
+          "type": "collection",
+          "settings": { "title": "Pokémon", "caption": "Vintage holos to modern chase cards" }
+        },
+        "game-magic": {
+          "type": "collection",
+          "settings": { "title": "Magic: The Gathering", "caption": "Reserved List to Commander staples" }
+        },
+        "game-yugioh": {
+          "type": "collection",
+          "settings": { "title": "Yu-Gi-Oh!", "caption": "Ghost rares and 1st Editions" }
+        },
+        "game-one-piece": {
+          "type": "collection",
+          "settings": { "title": "One Piece", "caption": "Manga rares and alt arts" }
+        },
+        "game-lorcana": {
+          "type": "collection",
+          "settings": { "title": "Lorcana", "caption": "Enchanted and cold-foil singles" }
+        },
+        "game-sports": {
+          "type": "collection",
+          "settings": { "title": "Sports Cards", "caption": "Rookies, autos and numbered parallels" }
+        }
+      },
+      "block_order": ["game-pokemon", "game-magic", "game-yugioh", "game-one-piece", "game-lorcana", "game-sports"]
+    },
+    "commerce-trending-pulls": {
+      "order_hint": 50,
+      "type": "featured-collection",
+      "settings": {
+        "eyebrow": "Fresh from the vault",
+        "heading": "Trending <em>pulls</em>",
+        "text": "Hand-picked singles, gem-mint slabs and sealed heat — restocked daily.",
+        "link_label": "View all",
+        "header_align": "left",
+        "layout": "grid",
+        "products_to_show": 8,
+        "columns_desktop": 4,
+        "columns_tablet": 3,
+        "columns_mobile": "2",
+        "show_quick_add": true,
+        "show_view_all": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "tab-new-arrivals": {
+          "type": "collection",
+          "settings": { "collection": "new-arrivals", "label": "New arrivals" }
+        },
+        "tab-graded-slabs": {
+          "type": "collection",
+          "settings": { "collection": "graded-slabs", "label": "Graded slabs" }
+        },
+        "tab-sealed": {
+          "type": "collection",
+          "settings": { "collection": "sealed", "label": "Sealed" }
+        }
+      },
+      "block_order": ["tab-new-arrivals", "tab-graded-slabs", "tab-sealed"]
+    },
+    "commerce-fresh-slabs": {
+      "order_hint": 70,
+      "type": "featured-collection",
+      "settings": {
+        "eyebrow": "Just graded",
+        "heading": "Fresh <em>graded slabs</em>",
+        "text": "Back from PSA, BGS and CGC this week. Every cert is verified before it ships.",
+        "link_label": "Shop all slabs",
+        "header_align": "left",
+        "layout": "carousel",
+        "products_to_show": 12,
+        "columns_desktop": 4,
+        "columns_tablet": 3,
+        "columns_mobile": "2",
+        "show_quick_add": true,
+        "show_view_all": true,
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "slabs-collection": {
+          "type": "collection",
+          "settings": { "collection": "graded-slabs" }
+        }
+      },
+      "block_order": ["slabs-collection"]
+    }
+  }
+}

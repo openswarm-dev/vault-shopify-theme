@@ -1,0 +1,332 @@
+{%- comment -%}
+  Featured product spotlight (home page): the PDP gallery (holo card, flip, zoom) + info/buy blocks in a
+  glass panel. Without a product it renders a polished demo slab with disabled buttons.
+  Variant changes re-render this section via the Section Rendering API (<product-info>).
+{%- endcomment -%}
+{{ 'component-product-form.css' | asset_url | stylesheet_tag }}
+{{ 'section-featured-product.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign s = section.settings
+  assign fp_product = s.product
+  assign current_variant = fp_product.selected_or_first_available_variant
+  assign product_form_id = 'ProductForm-' | append: section.id
+  assign heading_id = 'Heading-' | append: section.id
+-%}
+<section
+  id="Section-{{ section.id }}"
+  class="section featured-product color-{{ s.color_scheme }} section-bg{% if s.show_glow %} bg-glow{% endif %}"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}
+    aria-labelledby="{{ heading_id }}"
+  {% endif %}
+>
+  {%- if s.show_grid -%}
+    <div class="fp__backdrop bg-grid" aria-hidden="true"></div>
+  {%- endif -%}
+  <div class="page-width">
+    {% render 'section-header',
+      eyebrow: s.eyebrow,
+      heading: s.heading,
+      text: s.text,
+      align: s.header_align,
+      size: 'h2',
+      tag: 'h2',
+      id: heading_id
+    %}
+
+    <product-info
+      class="fp"
+      data-product
+      data-section-id="{{ section.id }}"
+      data-product-url="{{ fp_product.url }}"
+      data-form-id="{{ product_form_id }}"
+      data-update-url="false"
+      data-str-sold-out="{{ 'products.pdp.variant.sold_out' | t | escape }}"
+      data-str-unavailable="{{ 'products.pdp.variant.unavailable' | t | escape }}"
+      data-str-added="{{ 'products.product.added' | t | escape }}"
+    >
+      <div class="fp__layout fp__layout--media-{{ s.media_position }}">
+        <div class="fp__media">
+          {% render 'product-gallery',
+            product: fp_product,
+            variant: current_variant,
+            section_id: section.id,
+            context: 'featured',
+            foil: s.gallery_foil,
+            enable_flip: s.enable_flip,
+            enable_zoom: s.enable_zoom,
+            show_thumbs: false,
+            eager: false,
+            sizes: '(min-width: 990px) min(520px, 34vw), (min-width: 750px) 42vw, 78vw'
+          %}
+        </div>
+
+        <div class="fp__info">
+          <div class="fp__panel" data-reveal="fade-up">
+            <div class="pdp__blocks fp__blocks">
+              {%- for block in section.blocks -%}
+                {% render 'product-info-block',
+                  block: block,
+                  product: fp_product,
+                  variant: current_variant,
+                  section_id: section.id,
+                  form_id: product_form_id,
+                  context: 'featured'
+                %}
+              {%- endfor -%}
+            </div>
+            {%- if s.show_details_link and fp_product != blank -%}
+              <a href="{{ fp_product.url }}" class="link link--accent fp__details">
+                {{- 'sections.featured_product.view_details' | t -}}
+                {%- render 'icon', name: 'arrow-right', size: 16 -%}
+              </a>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+
+      {%- if fp_product != blank -%}
+        <script type="application/json" data-product-json>
+          {{ fp_product | json }}
+        </script>
+      {%- endif -%}
+    </product-info>
+  </div>
+</section>
+
+<script src="{{ 'component-product-gallery.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'component-product-form.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Featured product",
+  "tag": "div",
+  "class": "shopify-section--featured-product",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    { "type": "header", "content": "Heading" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Vault spotlight" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Italicise words to highlight them in red.", "default": "This week's <em>grail</em>" },
+    { "type": "inline_richtext", "id": "text", "label": "Text", "default": "Gem-mint, freshly slabbed and photographed in-house. One copy, one new owner." },
+    {
+      "type": "select",
+      "id": "header_align",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "left"
+    },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "media_position",
+      "label": "Media position (tablet and desktop)",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "gallery_foil",
+      "label": "Card foil",
+      "options": [
+        { "value": "intense", "label": "Intense holo" },
+        { "value": "rainbow", "label": "Rainbow" },
+        { "value": "subtle", "label": "Subtle" },
+        { "value": "none", "label": "None" }
+      ],
+      "default": "intense"
+    },
+    { "type": "checkbox", "id": "enable_flip", "label": "Flip button", "info": "Rotates the card to reveal the second image.", "default": true },
+    { "type": "checkbox", "id": "enable_zoom", "label": "Full-screen zoom", "default": true },
+    { "type": "checkbox", "id": "show_details_link", "label": "Show \"View full details\" link", "default": true },
+    { "type": "checkbox", "id": "show_glow", "label": "Red glow", "default": true },
+    { "type": "checkbox", "id": "show_grid", "label": "Grid lines", "default": true },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "game_line",
+      "name": "Game & set line",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_game", "label": "Show game", "default": true },
+        { "type": "checkbox", "id": "show_set", "label": "Show set", "default": true },
+        { "type": "checkbox", "id": "show_number", "label": "Show card number", "default": true },
+        { "type": "checkbox", "id": "vendor_fallback", "label": "Show vendor when the game is unknown", "default": true }
+      ]
+    },
+    { "type": "title", "name": "Title", "limit": 1, "settings": [] },
+    { "type": "badges", "name": "Badges", "limit": 1, "settings": [] },
+    {
+      "type": "price",
+      "name": "Price",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_tax_note", "label": "Show tax and shipping note", "default": false }
+      ]
+    },
+    {
+      "type": "inventory",
+      "name": "Inventory status",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "in_stock_note", "label": "In stock message", "default": "Ships in 24h" },
+        { "type": "text", "id": "low_stock_note", "label": "Low stock message", "default": "Once it's gone, it's gone" },
+        { "type": "checkbox", "id": "show_meter", "label": "Show low stock meter", "default": true }
+      ]
+    },
+    {
+      "type": "variant_picker",
+      "name": "Variant picker",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "picker_type",
+          "label": "Style",
+          "options": [
+            { "value": "pills", "label": "Pills" },
+            { "value": "dropdown", "label": "Dropdown" }
+          ],
+          "default": "pills"
+        }
+      ]
+    },
+    { "type": "quantity", "name": "Quantity selector", "limit": 1, "settings": [] },
+    {
+      "type": "buy_buttons",
+      "name": "Buy buttons",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_dynamic_checkout", "label": "Show dynamic checkout buttons", "default": false }
+      ]
+    },
+    {
+      "type": "collector_specs",
+      "name": "Card details",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Card details" }
+      ]
+    },
+    {
+      "type": "trust",
+      "name": "Trust badges",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon_1",
+          "label": "First icon",
+          "options": [
+            { "value": "verified", "label": "Verified seal" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "box", "label": "Box" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "award", "label": "Award" },
+            { "value": "return", "label": "Return" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "clock", "label": "Clock" }
+          ],
+          "default": "verified"
+        },
+        { "type": "text", "id": "title_1", "label": "First title", "default": "Authenticity guaranteed" },
+        { "type": "text", "id": "text_1", "label": "First text", "default": "Inspected under loupe and UV" },
+        {
+          "type": "select",
+          "id": "icon_2",
+          "label": "Second icon",
+          "options": [
+            { "value": "verified", "label": "Verified seal" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "box", "label": "Box" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "award", "label": "Award" },
+            { "value": "return", "label": "Return" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "clock", "label": "Clock" }
+          ],
+          "default": "cards"
+        },
+        { "type": "text", "id": "title_2", "label": "Second title", "default": "Ships in top-loader + team bag" },
+        { "type": "text", "id": "text_2", "label": "Second text", "default": "Slabs travel in bubble sleeves" },
+        {
+          "type": "select",
+          "id": "icon_3",
+          "label": "Third icon",
+          "options": [
+            { "value": "verified", "label": "Verified seal" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "box", "label": "Box" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "award", "label": "Award" },
+            { "value": "return", "label": "Return" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "clock", "label": "Clock" }
+          ],
+          "default": "truck"
+        },
+        { "type": "text", "id": "title_3", "label": "Third title", "default": "Insured tracked shipping" },
+        { "type": "text", "id": "text_3", "label": "Third text", "default": "Covered door to door" }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Photographed in-house under daylight-balanced light. The card you see is the exact card you get.</p>" },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Style",
+          "options": [
+            { "value": "body", "label": "Body" },
+            { "value": "subtle", "label": "Subtle" },
+            { "value": "callout", "label": "Callout" }
+          ],
+          "default": "subtle"
+        }
+      ]
+    },
+    { "type": "cert_verify", "name": "Cert verification", "limit": 1, "settings": [] },
+    { "type": "share", "name": "Share", "limit": 1, "settings": [] },
+    {
+      "type": "custom_liquid",
+      "name": "Custom Liquid",
+      "settings": [
+        { "type": "liquid", "id": "custom_liquid", "label": "Custom Liquid" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured slab",
+      "blocks": [
+        { "type": "game_line" },
+        { "type": "title" },
+        { "type": "badges" },
+        { "type": "price" },
+        { "type": "inventory" },
+        { "type": "variant_picker" },
+        { "type": "buy_buttons" },
+        { "type": "collector_specs" }
+      ]
+    }
+  ]
+}
+{% endschema %}

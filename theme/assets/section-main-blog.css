@@ -1,0 +1,124 @@
+/* ==========================================================================
+   VAULT — section-main-blog.css
+   Blog index: split title, swipeable tag pills, featured card + 1/2/3 col grid.
+   ========================================================================== */
+
+.main-blog { overflow: clip; }
+.main-blog__head { margin-bottom: clamp(1.25rem, 1rem + 1.5vw, 2.25rem); }
+.main-blog__title { max-width: 14ch; }
+.main-blog__filtered {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem 1rem;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+.main-blog__filtered .link { min-height: 44px; }
+
+/* ---------- Tag pills: one swipeable row on phones, wrapping rows on tablet+ ---------- */
+.blog-tags {
+  margin-bottom: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+  padding-bottom: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  border-bottom: 1px solid var(--color-border);
+}
+.blog-tags__list {
+  display: flex;
+  gap: .5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  scroll-padding-inline: var(--gutter);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%);
+}
+.blog-tags__list::-webkit-scrollbar { display: none; }
+.blog-tags__list > li { flex: none; scroll-snap-align: start; }
+.blog-tags__pill { min-height: 44px; padding: 0 1.1rem; }
+.blog-tags__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.6rem;
+  height: 1.35rem;
+  padding: 0 .4rem;
+  border-radius: 99px;
+  background: rgb(var(--color-text-rgb) / .1);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.blog-tags__pill[aria-current] .blog-tags__count { background: rgb(var(--color-bg-rgb) / .14); }
+.blog-tags__pill[aria-current] { box-shadow: 0 8px 24px -12px rgb(var(--color-text-rgb) / .5); }
+@media (min-width: 750px) {
+  .blog-tags__list {
+    flex-wrap: wrap;
+    overflow: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .blog-tags__pill { min-height: 40px; }
+}
+@media (min-width: 750px) and (pointer: coarse) {
+  .blog-tags__pill { min-height: 44px; }
+}
+
+/* ---------- Grid ---------- */
+.blog-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(14px, .6rem + 1vw, 24px);
+}
+.blog-grid__item { min-width: 0; display: flex; }
+.blog-grid__item > * { flex: 1; }
+@media (min-width: 750px) {
+  .blog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .blog-grid__item--featured { grid-column: 1 / -1; }
+}
+@media (min-width: 990px) {
+  .blog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .blog-grid__item--featured { grid-column: span 2; }
+}
+
+.main-blog__pagination { margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem); }
+
+/* ---------- Empty state ---------- */
+.blog-empty {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  max-width: 520px;
+  margin-inline: auto;
+  padding-block: clamp(1rem, .5rem + 2vw, 2.5rem);
+  text-align: center;
+}
+.blog-empty__fan {
+  position: relative;
+  width: 220px;
+  height: 170px;
+  margin-bottom: .5rem;
+}
+.blog-empty__fan::before {
+  content: "";
+  position: absolute;
+  inset: 20% 10% -10%;
+  background: radial-gradient(closest-side, rgb(var(--color-accent-rgb) / .35), transparent 75%);
+  filter: blur(16px);
+}
+.blog-empty__card {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  width: 92px;
+  margin-left: -46px;
+  aspect-ratio: var(--ratio-card);
+  transform-origin: 50% 120%;
+  filter: drop-shadow(0 16px 20px rgb(0 0 0 / .6));
+}
+.blog-empty__card--1 { transform: rotate(-16deg) translateX(-14px); }
+.blog-empty__card--2 { z-index: 1; transform: translateY(-6px); }
+.blog-empty__card--3 { transform: rotate(16deg) translateX(14px); }

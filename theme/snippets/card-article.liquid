@@ -1,0 +1,124 @@
+{%- comment -%}
+  Blog article card — used by the blog, search results and featured-post sections.
+  The whole card is one link (stretched title link); the tag pill and meta are decorative text.
+
+  Usage:
+    {% render 'card-article', article: article, index: forloop.index, size: 'md', sizes: '(min-width: 990px) 33vw, 100vw' %}
+
+  Params:
+    article       (required) article object
+    index         number used to vary placeholder art (default 1)
+    show_excerpt  default true
+    show_date     default true
+    show_author   default false
+    size          'md' (default) | 'lg' — lg is the featured layout (text over image on tablet+)
+    sizes         image sizes attribute (default 3-column grid)
+    heading_tag   'h2' | 'h3' (default 'h3')
+    lazy          default true; pass false for an above-the-fold card
+    reveal        default true (adds data-reveal)
+{%- endcomment -%}
+{{ 'component-card-article.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign ca_size = size | default: 'md'
+  assign ca_index = index | default: 1
+  assign ca_tag = heading_tag | default: 'h3'
+  assign ca_sizes = sizes | default: '(min-width: 990px) 33vw, (min-width: 750px) 50vw, 100vw'
+
+  assign ca_show_excerpt = true
+  if show_excerpt == false
+    assign ca_show_excerpt = false
+  endif
+  assign ca_show_date = true
+  if show_date == false
+    assign ca_show_date = false
+  endif
+  assign ca_show_author = false
+  if show_author
+    assign ca_show_author = true
+  endif
+  assign ca_loading = 'lazy'
+  if lazy == false
+    assign ca_loading = 'eager'
+  endif
+
+  assign ca_id = 'CardArticle-' | append: article.id
+  assign ca_words = article.content | strip_html | split: ' ' | size
+  assign ca_minutes = ca_words | divided_by: 220 | at_least: 1
+  assign ca_tag_label = article.tags | first
+
+  assign ca_excerpt = article.excerpt | strip_html | strip
+  if ca_excerpt == blank
+    assign ca_excerpt = article.content | strip_html | strip
+  endif
+  if ca_size == 'lg'
+    assign ca_excerpt = ca_excerpt | truncatewords: 34
+  else
+    assign ca_excerpt = ca_excerpt | truncatewords: 24
+  endif
+
+  assign ca_v1 = ca_index | modulo: 6 | plus: 1
+  assign ca_v2 = ca_index | plus: 2 | modulo: 6 | plus: 1
+  assign ca_v3 = ca_index | plus: 4 | modulo: 6 | plus: 1
+  assign ca_uid_1 = ca_id | append: '-a'
+  assign ca_uid_2 = ca_id | append: '-b'
+  assign ca_uid_3 = ca_id | append: '-c'
+-%}
+
+<article
+  class="card-article card-article--{{ ca_size }}{% unless article.image %} card-article--placeholder{% endunless %}"
+  aria-labelledby="{{ ca_id }}-title"
+  data-spotlight
+  {% unless reveal == false %}
+    data-reveal
+  {% endunless %}
+>
+  <div class="card-article__media">
+    {%- if article.image -%}
+      {%- assign ca_alt = article.image.alt | default: article.title -%}
+      {{
+        article.image
+        | image_url: width: 1800
+        | image_tag:
+          loading: ca_loading,
+          widths: '360, 540, 720, 960, 1200, 1500, 1800',
+          sizes: ca_sizes,
+          alt: ca_alt,
+          class: 'card-article__img'
+      }}
+    {%- else -%}
+      <div class="card-article__art" aria-hidden="true">
+        <span class="card-article__art-card card-article__art-card--1">{% render 'placeholder-card', variant: ca_v2, uid: ca_uid_1 %}</span>
+        <span class="card-article__art-card card-article__art-card--2">{% render 'placeholder-card', variant: ca_v1, uid: ca_uid_2 %}</span>
+        <span class="card-article__art-card card-article__art-card--3">{% render 'placeholder-card', variant: ca_v3, uid: ca_uid_3 %}</span>
+      </div>
+    {%- endif -%}
+    {%- if ca_tag_label != blank -%}
+      <span class="card-article__tag">{{ ca_tag_label | escape }}</span>
+    {%- endif -%}
+  </div>
+
+  <div class="card-article__body">
+    <p class="card-article__meta">
+      {%- if ca_show_date -%}
+        <span>{{ article.published_at | time_tag: format: 'date' }}</span>
+        <span class="card-article__dot" aria-hidden="true"></span>
+      {%- endif -%}
+      <span>{{ 'blogs.article.read_time' | t: count: ca_minutes }}</span>
+      {%- if ca_show_author and article.author != blank -%}
+        <span class="card-article__dot" aria-hidden="true"></span>
+        <span>{{ 'blogs.article.by_author' | t: author: article.author }}</span>
+      {%- endif -%}
+    </p>
+    <{{ ca_tag }} class="card-article__title" id="{{ ca_id }}-title">
+      <a href="{{ article.url }}" class="card-article__link">{{ article.title | escape }}</a>
+    </{{ ca_tag }}>
+    {%- if ca_show_excerpt and ca_excerpt != blank -%}
+      <p class="card-article__excerpt">{{ ca_excerpt }}</p>
+    {%- endif -%}
+    <span class="card-article__cta" aria-hidden="true">
+      {{- 'blogs.article.read_story' | t -}}
+      {%- render 'icon', name: 'arrow-right', size: 16 -%}
+    </span>
+  </div>
+</article>

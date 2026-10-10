@@ -1,0 +1,109 @@
+{%- comment -%}
+  Cart drawer recommendations: up to 6 available products from settings.cart_upsell_collection
+  (falls back to the "all" collection) that are not already in the cart, as a compact swipeable
+  row of mini cards. Single-variant products get a data-cart-form quick add (core handles AJAX).
+{%- endcomment -%}
+{%- liquid
+  assign upsell_collection = settings.cart_upsell_collection
+  if upsell_collection == blank
+    assign upsell_collection = collections.all
+  endif
+  assign in_cart = cart.items | map: 'product_id'
+  assign upsell_count = 0
+-%}
+{%- capture upsell_cards -%}
+  {%- for product in upsell_collection.products limit: 24 -%}
+    {%- if upsell_count >= 6 -%}
+      {%- break -%}
+    {%- endif -%}
+    {%- if product.available -%}
+      {%- unless in_cart contains product.id -%}
+        {%- assign upsell_count = upsell_count | plus: 1 -%}
+        <div class="upsell-card" data-upsell-card>
+          <a href="{{ product.url }}" class="upsell-card__media media media--card" tabindex="-1" aria-hidden="true">
+            {%- if product.featured_image != blank -%}
+              {{
+                product.featured_image
+                | image_url: width: 300
+                | image_tag:
+                  loading: 'lazy',
+                  widths: '150, 225, 300',
+                  sizes: '150px',
+                  alt: '',
+                  class: 'upsell-card__img'
+              }}
+            {%- else -%}
+              {%- render 'placeholder-card', variant: upsell_count, uid: product.handle -%}
+            {%- endif -%}
+          </a>
+          <div class="upsell-card__info">
+            <a href="{{ product.url }}" class="upsell-card__title">{{ product.title | escape }}</a>
+            <span class="upsell-card__price">
+              {%- if product.price_varies -%}
+                {%- assign from_money = product.price_min | money -%}
+                {{ 'products.product.price.from' | t: price: from_money }}
+              {%- else -%}
+                {{ product.price | money }}
+              {%- endif -%}
+            </span>
+          </div>
+          {%- if product.has_only_default_variant -%}
+            <form data-cart-form action="{{ routes.cart_add_url }}" method="post" class="upsell-card__form">
+              <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+              <input type="hidden" name="quantity" value="1">
+              <button
+                type="submit"
+                class="upsell-card__add"
+                aria-label="{{ 'sections.cart_drawer.add_named' | t: title: product.title }}"
+              >
+                {%- render 'icon', name: 'plus', size: 16, stroke: 2 -%}
+              </button>
+            </form>
+          {%- else -%}
+            <a
+              href="{{ product.url }}"
+              class="upsell-card__add upsell-card__add--link"
+              aria-label="{{ 'sections.cart_drawer.choose_named' | t: title: product.title }}"
+            >
+              {%- render 'icon', name: 'arrow-right', size: 16, stroke: 2 -%}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endunless -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- if upsell_count > 0 -%}
+  <div class="cart-upsell">
+    <vault-carousel class="cart-upsell__carousel" style="--per-view-mobile: 2.3; --per-view-tablet: 2.3; --per-view-desktop: 2.3;">
+      <div class="cart-upsell__head">
+        <p class="cart-upsell__heading">
+          {%- if cart.item_count > 0 -%}
+            {{- 'sections.cart_drawer.upsell_heading' | t -}}
+          {%- else -%}
+            {{- 'sections.cart_drawer.upsell_heading_empty' | t -}}
+          {%- endif -%}
+        </p>
+        {%- if upsell_count > 2 -%}
+          <div class="cart-upsell__nav">
+            <button type="button" class="carousel__btn cart-upsell__btn" data-carousel-prev aria-label="{{ 'accessibility.previous_slide' | t }}">
+              {%- render 'icon', name: 'chevron-left', size: 16, stroke: 2 -%}
+            </button>
+            <button type="button" class="carousel__btn cart-upsell__btn" data-carousel-next aria-label="{{ 'accessibility.next_slide' | t }}">
+              {%- render 'icon', name: 'chevron-right', size: 16, stroke: 2 -%}
+            </button>
+          </div>
+        {%- endif -%}
+      </div>
+      <div
+        class="carousel__track cart-upsell__track"
+        data-carousel-track
+        tabindex="0"
+        role="region"
+        aria-label="{% if cart.item_count > 0 %}{{ 'sections.cart_drawer.upsell_heading' | t }}{% else %}{{ 'sections.cart_drawer.upsell_heading_empty' | t }}{% endif %}"
+      >
+        {{ upsell_cards }}
+      </div>
+    </vault-carousel>
+  </div>
+{%- endif -%}

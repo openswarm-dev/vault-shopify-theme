@@ -1,0 +1,19 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "eyebrow": "The Vault",
+        "highlight_last_word": true,
+        "heading_alignment": "left",
+        "show_divider": true,
+        "lead_paragraph": true,
+        "drop_cap": false,
+        "color_scheme": "scheme-1",
+        "padding_top": 80,
+        "padding_bottom": 100
+      }
+    }
+  },
+  "order": ["main"]
+}

@@ -1,0 +1,154 @@
+{{ 'component-page-head.css' | asset_url | stylesheet_tag }}
+{{ 'component-prose.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-page.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign align = section.settings.heading_alignment
+  assign title_words = page.title | escape | split: ' '
+
+  if section.settings.highlight_last_word and title_words.size > 1
+    assign lead_count = title_words.size | minus: 1
+    capture title_html
+      for word in title_words limit: lead_count
+        echo word
+        echo ' '
+      endfor
+      echo '<em>'
+      echo title_words.last
+      echo '</em>'
+    endcapture
+  else
+    assign title_html = page.title | escape
+  endif
+
+  assign prose_class = 'rte prose'
+  if section.settings.drop_cap
+    assign prose_class = prose_class | append: ' prose--dropcap'
+  endif
+  if section.settings.lead_paragraph
+    assign prose_class = prose_class | append: ' prose--lead'
+  endif
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section main-page color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+>
+  <div class="page-backdrop" aria-hidden="true"></div>
+
+  <article class="page-width page-width--narrow main-page__inner">
+    <div class="prose-column">
+      <header class="page-head page-head--{{ align }}{% unless section.settings.show_divider %} page-head--flush{% endunless %} main-page__head">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+        <h1 class="page-head__title main-page__title" data-split>{{ title_html }}</h1>
+        {%- if section.settings.subtitle != blank -%}
+          <div class="page-head__sub" data-reveal>{{ section.settings.subtitle }}</div>
+        {%- endif -%}
+      </header>
+
+      {%- if page.content != blank -%}
+        <div class="{{ prose_class }} main-page__content" data-reveal>
+          {{ page.content }}
+        </div>
+      {%- elsif request.design_mode -%}
+        <div class="main-page__empty" data-reveal>
+          {%- render 'icon', name: 'info', size: 20 -%}
+          <p>{{ 'sections.main_page.empty' | t }}</p>
+        </div>
+      {%- endif -%}
+    </div>
+  </article>
+</section>
+
+{% schema %}
+{
+  "name": "Page",
+  "class": "shopify-section--main-page",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "The Vault"
+    },
+    {
+      "type": "checkbox",
+      "id": "highlight_last_word",
+      "label": "Highlight the last word of the title",
+      "default": true
+    },
+    {
+      "type": "richtext",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "info": "Shown under the page title on every page using this template."
+    },
+    {
+      "type": "select",
+      "id": "heading_alignment",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_divider",
+      "label": "Show divider under heading",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Reading"
+    },
+    {
+      "type": "checkbox",
+      "id": "lead_paragraph",
+      "label": "Enlarge first paragraph",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "drop_cap",
+      "label": "Drop cap on first paragraph",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 100
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,15 @@
+{%- comment -%}
+  Hidden inputs that keep the search query when a filter/sort form on the search page is submitted.
+  Renders nothing on collection pages (terms blank).
+  Usage: {% render 'facets-search-params', terms: search.terms, type: search_type %}
+  Params:
+    terms  search.terms
+    type   single result type ('product' | 'article' | 'page') or blank for all types
+{%- endcomment -%}
+{%- if terms != blank -%}
+  <input type="hidden" name="q" value="{{ terms | escape }}">
+  <input type="hidden" name="options[prefix]" value="last">
+  {%- if type != blank -%}
+    <input type="hidden" name="type" value="{{ type | escape }}">
+  {%- endif -%}
+{%- endif -%}

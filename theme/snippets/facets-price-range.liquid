@@ -1,0 +1,96 @@
+{%- comment -%}
+  Price range filter: dual-thumb slider (enhanced by <price-range> in component-facets.js) + From/To inputs.
+  Only the number inputs are submitted (filter.v.price.gte / filter.v.price.lte), in whole units of the store
+  currency. The sliders are unnamed positions 0–1000 on a logarithmic price scale that the script maps to
+  the inputs; they are hidden without JavaScript.
+  Usage: {% render 'facets-price-range', filter: filter, id_prefix: 'Facet-inline-…-3' %}
+  Params:
+    filter     (required) price_range filter
+    id_prefix  (required) unique id prefix
+{%- endcomment -%}
+{%- liquid
+  assign pr_max = filter.range_max | divided_by: 100.0 | ceil
+  assign pr_min_value = ''
+  assign pr_max_value = ''
+  if filter.min_value.value != nil
+    assign pr_min_value = filter.min_value.value | divided_by: 100.0 | floor
+  endif
+  if filter.max_value.value != nil
+    assign pr_max_value = filter.max_value.value | divided_by: 100.0 | ceil
+  endif
+  assign pr_symbol = cart.currency.symbol | default: '$'
+  assign pr_symbol_size = pr_symbol | size
+-%}
+<price-range class="price-range" data-max="{{ pr_max }}" style="--currency-ch: {{ pr_symbol_size }};">
+  {%- if pr_max > 0 -%}
+    <div class="price-range__slider">
+      <div class="price-range__track" aria-hidden="true">
+        <span class="price-range__fill"></span>
+      </div>
+      <input
+        type="range"
+        class="price-range__range price-range__range--min"
+        min="0"
+        max="1000"
+        step="1"
+        value="0"
+        aria-label="{{ 'collections.facets.price_min_label' | t }}"
+        data-price-range="min"
+      >
+      <input
+        type="range"
+        class="price-range__range price-range__range--max"
+        min="0"
+        max="1000"
+        step="1"
+        value="1000"
+        aria-label="{{ 'collections.facets.price_max_label' | t }}"
+        data-price-range="max"
+      >
+    </div>
+  {%- endif -%}
+
+  <div class="price-range__fields">
+    <div class="price-range__field">
+      <label class="price-range__label" for="{{ id_prefix }}-gte">{{ 'collections.facets.price_from' | t }}</label>
+      <div class="price-range__control">
+        <span class="price-range__currency" aria-hidden="true">{{ pr_symbol }}</span>
+        <input
+          class="price-range__input"
+          type="number"
+          inputmode="numeric"
+          id="{{ id_prefix }}-gte"
+          name="{{ filter.min_value.param_name }}"
+          value="{{ pr_min_value }}"
+          placeholder="0"
+          min="0"
+          max="{{ pr_max }}"
+          step="1"
+          data-price-input="min"
+        >
+      </div>
+    </div>
+    <span class="price-range__dash" aria-hidden="true"></span>
+    <div class="price-range__field">
+      <label class="price-range__label" for="{{ id_prefix }}-lte">{{ 'collections.facets.price_to' | t }}</label>
+      <div class="price-range__control">
+        <span class="price-range__currency" aria-hidden="true">{{ pr_symbol }}</span>
+        <input
+          class="price-range__input"
+          type="number"
+          inputmode="numeric"
+          id="{{ id_prefix }}-lte"
+          name="{{ filter.max_value.param_name }}"
+          value="{{ pr_max_value }}"
+          placeholder="{{ pr_max }}"
+          min="0"
+          max="{{ pr_max }}"
+          step="1"
+          data-price-input="max"
+        >
+      </div>
+    </div>
+  </div>
+  {%- assign pr_max_money = filter.range_max | money -%}
+  <p class="price-range__note">{{ 'collections.facets.max_price' | t: price: pr_max_money }}</p>
+</price-range>

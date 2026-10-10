@@ -1,0 +1,23 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "game_line": { "type": "game_line" },
+        "title": { "type": "title" },
+        "badges": { "type": "badges" },
+        "price": { "type": "price" },
+        "inventory": { "type": "inventory" },
+        "variant_picker": { "type": "variant_picker" },
+        "quantity": { "type": "quantity" },
+        "buy_buttons": { "type": "buy_buttons" },
+        "collector_specs": { "type": "collector_specs" },
+        "trust": { "type": "trust" },
+        "tab": { "type": "collapsible_tab" }
+      },
+      "block_order": ["game_line", "title", "badges", "price", "inventory", "variant_picker", "quantity", "buy_buttons", "collector_specs", "trust", "tab"]
+    },
+    "recommendations": { "type": "product-recommendations", "__preset": 0 }
+  },
+  "order": ["main", "recommendations"]
+}

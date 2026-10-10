@@ -1,0 +1,262 @@
+{{ 'component-page-head.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-blog.css' | asset_url | stylesheet_tag }}
+
+{%- paginate blog.articles by section.settings.articles_per_page -%}
+  {%- liquid
+    assign sid = section.id
+    assign title_words = blog.title | escape | split: ' '
+    if section.settings.highlight_last_word and title_words.size > 1
+      assign lead_count = title_words.size | minus: 1
+      capture blog_title_html
+        for word in title_words limit: lead_count
+          echo word
+          echo ' '
+        endfor
+        echo '<em>'
+        echo title_words.last
+        echo '</em>'
+      endcapture
+    else
+      assign blog_title_html = blog.title | escape
+    endif
+
+    assign feature_first = false
+    if section.settings.feature_first and paginate.current_page == 1 and blog.articles.size > 2
+      assign feature_first = true
+    endif
+    assign active_tag = current_tags | first
+  -%}
+
+  <section
+    id="Section-{{ sid }}"
+    class="section main-blog color-{{ section.settings.color_scheme }} section-bg"
+    style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+    data-section-id="{{ sid }}"
+  >
+    <div class="page-backdrop" aria-hidden="true"></div>
+
+    <div class="page-width">
+      <header class="page-head page-head--flush main-blog__head">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+        <h1 class="page-head__title main-blog__title" data-split>{{ blog_title_html }}</h1>
+        {%- if section.settings.description != blank -%}
+          <div class="page-head__sub" data-reveal>{{ section.settings.description }}</div>
+        {%- endif -%}
+        {%- if active_tag != blank -%}
+          <p class="main-blog__filtered" data-reveal="fade">
+            {{- 'blogs.blog.tagged' | t: tag: active_tag -}}
+            <a href="{{ blog.url }}" class="link link--accent">{{ 'blogs.blog.clear_filter' | t }}</a>
+          </p>
+        {%- endif -%}
+      </header>
+
+      {%- if section.settings.show_tags and blog.all_tags.size > 0 -%}
+        <nav class="blog-tags" aria-label="{{ 'blogs.blog.filter_label' | t }}" data-reveal="fade">
+          <ul class="blog-tags__list" role="list">
+            <li>
+              <a
+                class="pill blog-tags__pill"
+                href="{{ blog.url }}"
+                {% if active_tag == blank %}
+                  aria-current="page"
+                {% endif %}
+              >
+                {{- 'blogs.blog.all_stories' | t -}}
+                <span class="blog-tags__count">{{ blog.articles_count }}</span>
+              </a>
+            </li>
+            {%- for tag in blog.all_tags -%}
+              <li>
+                <a
+                  class="pill blog-tags__pill"
+                  href="{{ blog.url }}/tagged/{{ tag | handleize }}"
+                  {% if current_tags contains tag %}
+                    aria-current="page"
+                  {% endif %}
+                >
+                  {{- tag | escape -}}
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        </nav>
+      {%- endif -%}
+
+      {%- if blog.articles.size > 0 -%}
+        <ul class="blog-grid{% if feature_first %} blog-grid--featured{% endif %}" role="list">
+          {%- for article in blog.articles -%}
+            {%- liquid
+              assign is_featured = false
+              if feature_first and forloop.first
+                assign is_featured = true
+              endif
+              assign card_lazy = true
+              if forloop.index <= 2
+                assign card_lazy = false
+              endif
+            -%}
+            <li class="blog-grid__item{% if is_featured %} blog-grid__item--featured{% endif %}">
+              {%- if is_featured -%}
+                {% render 'card-article',
+                  article: article,
+                  index: forloop.index,
+                  size: 'lg',
+                  heading_tag: 'h2',
+                  show_excerpt: section.settings.show_excerpt,
+                  show_date: section.settings.show_date,
+                  show_author: section.settings.show_author,
+                  lazy: false,
+                  sizes: '(min-width: 990px) 66vw, (min-width: 750px) 92vw, 100vw'
+                %}
+              {%- else -%}
+                {% render 'card-article',
+                  article: article,
+                  index: forloop.index,
+                  size: 'md',
+                  heading_tag: 'h2',
+                  show_excerpt: section.settings.show_excerpt,
+                  show_date: section.settings.show_date,
+                  show_author: section.settings.show_author,
+                  lazy: card_lazy,
+                  sizes: '(min-width: 990px) 33vw, (min-width: 750px) 46vw, 100vw'
+                %}
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        {%- if paginate.pages > 1 -%}
+          <div class="main-blog__pagination">
+            {% render 'pagination', paginate: paginate %}
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        <div class="blog-empty" data-reveal>
+          <div class="blog-empty__fan" aria-hidden="true">
+            {%- assign fan_uid = 'blog-empty-' | append: sid -%}
+            <span class="blog-empty__card blog-empty__card--1">{% render 'placeholder-card', variant: 4, uid: fan_uid %}</span>
+            {%- assign fan_uid = 'blog-empty-b-' | append: sid -%}
+            <span class="blog-empty__card blog-empty__card--2">{% render 'placeholder-card', variant: 1, uid: fan_uid %}</span>
+            {%- assign fan_uid = 'blog-empty-c-' | append: sid -%}
+            <span class="blog-empty__card blog-empty__card--3">{% render 'placeholder-card', variant: 6, uid: fan_uid %}</span>
+          </div>
+          {%- if active_tag != blank -%}
+            <h2 class="h3">{{ 'blogs.blog.empty_tag_heading' | t: tag: active_tag }}</h2>
+            <p class="text-muted">{{ 'blogs.blog.empty_tag_text' | t }}</p>
+            <a href="{{ blog.url }}" class="btn btn--secondary">{{ 'blogs.blog.all_stories' | t }}</a>
+          {%- else -%}
+            <h2 class="h3">{{ 'blogs.blog.empty_heading' | t }}</h2>
+            <p class="text-muted">{{ 'blogs.blog.empty_text' | t }}</p>
+            <a href="{{ routes.all_products_collection_url }}" class="btn btn--primary">
+              {{- 'general.actions.shop_now' | t -}}
+              {%- render 'icon', name: 'arrow-right', size: 18 -%}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </section>
+{%- endpaginate -%}
+
+{% schema %}
+{
+  "name": "Blog",
+  "class": "shopify-section--main-blog",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "The Vault Journal"
+    },
+    {
+      "type": "checkbox",
+      "id": "highlight_last_word",
+      "label": "Highlight the last word of the title",
+      "default": true
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Grading guides, market notes, set breakdowns and pull stories from the people behind the counter.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "Show tag filter",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Articles"
+    },
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "min": 6,
+      "max": 24,
+      "step": 1,
+      "label": "Articles per page",
+      "default": 10
+    },
+    {
+      "type": "checkbox",
+      "id": "feature_first",
+      "label": "Feature the latest article",
+      "info": "Shown large on the first page.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "Show excerpt",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Show author",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 100
+    }
+  ]
+}
+{% endschema %}

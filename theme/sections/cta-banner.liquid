@@ -1,0 +1,227 @@
+{{ 'section-cta-banner.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign cta_points = section.blocks | where: 'type', 'point'
+  assign cta_full = section.settings.full_width
+  assign cta_variants = '4,2,6' | split: ','
+  assign cta_foils = 'subtle,rainbow,subtle' | split: ','
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-cta-banner color-{{ section.settings.outer_color_scheme }} section-bg{% if cta_full %} section-cta-banner--full{% endif %}"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+>
+  <div class="page-width{% if cta_full %} page-width--full cta-wrap--full{% endif %}">
+    <cta-banner
+      class="cta color-{{ section.settings.color_scheme }} section-bg{% if section.settings.layout == 'visual_left' %} cta--visual-left{% endif %}{% if cta_full %} cta--full{% endif %}"
+      data-spotlight
+      data-reveal="fade-up"
+    >
+      <div class="cta__bg" aria-hidden="true">
+        <span class="cta__grid"></span>
+        <span class="cta__glow"></span>
+      </div>
+
+      <div class="cta__inner">
+        <div class="cta__content">
+          {%- if section.settings.eyebrow != blank -%}
+            <p class="eyebrow cta__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+          {%- endif -%}
+
+          {%- if section.settings.heading != blank -%}
+            <h2 class="h1 cta__heading" data-split>{{ section.settings.heading }}</h2>
+          {%- endif -%}
+
+          {%- if section.settings.text != blank -%}
+            <div class="cta__text rte">{{ section.settings.text }}</div>
+          {%- endif -%}
+
+          {%- if cta_points.size > 0 -%}
+            <ul class="cta-points" role="list">
+              {%- for block in cta_points -%}
+                <li class="cta-points__item" data-reveal="left" {{ block.shopify_attributes }}>
+                  <span class="cta-points__icon" aria-hidden="true">
+                    {%- render 'icon', name: block.settings.icon, size: 18, stroke: 2 -%}
+                  </span>
+                  <span class="cta-points__text">{{ block.settings.text }}</span>
+                </li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+
+          {%- if section.settings.button_label_1 != blank or section.settings.button_label_2 != blank -%}
+            <div class="cta__actions">
+              {%- if section.settings.button_label_1 != blank -%}
+                <a
+                  class="btn btn--primary btn--lg cta__btn"
+                  {% if section.settings.button_link_1 != blank %}
+                    href="{{ section.settings.button_link_1 }}"
+                  {% else %}
+                    role="link" aria-disabled="true"
+                  {% endif %}
+                  data-magnetic="0.25"
+                >
+                  <span>{{ section.settings.button_label_1 | escape }}</span>
+                  {% render 'icon', name: 'arrow-right', size: 18 %}
+                </a>
+              {%- endif -%}
+              {%- if section.settings.button_label_2 != blank -%}
+                <a
+                  class="btn btn--secondary btn--lg cta__btn"
+                  {% if section.settings.button_link_2 != blank %}
+                    href="{{ section.settings.button_link_2 }}"
+                  {% else %}
+                    role="link" aria-disabled="true"
+                  {% endif %}
+                >
+                  <span>{{ section.settings.button_label_2 | escape }}</span>
+                </a>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </div>
+
+        <div class="cta__visual" aria-hidden="true">
+          <span class="cta__sheen"></span>
+          {%- if section.settings.image != blank -%}
+            <div class="cta__image" data-parallax="0.05">
+              {{
+                section.settings.image
+                | image_url: width: 1400
+                | image_tag:
+                  widths: '400, 600, 800, 1000, 1200, 1400',
+                  sizes: '(min-width: 1400px) 600px, (min-width: 750px) 42vw, calc(100vw - 2.5rem)',
+                  loading: 'lazy',
+                  alt: '',
+                  class: 'cta__image-img'
+              }}
+            </div>
+          {%- else -%}
+            <div class="cta-fan" data-cta-fan data-parallax="0.04">
+              {%- for v in cta_variants -%}
+                {%- liquid
+                  assign card_index = forloop.index
+                  case card_index
+                    when 1
+                      assign card_image = section.settings.card_image_1
+                    when 2
+                      assign card_image = section.settings.card_image_2
+                    else
+                      assign card_image = section.settings.card_image_3
+                  endcase
+                  assign card_uid = section.id | append: '-fan-' | append: card_index
+                -%}
+                <div class="cta-fan__card cta-fan__card--{{ card_index }}">
+                  <div class="cta-fan__deal" data-cta-deal>
+                    <holo-card data-foil="{{ cta_foils[forloop.index0] }}" data-max-tilt="12">
+                      <div class="holo">
+                        <div class="media media--card cta-fan__media">
+                          {%- if card_image != blank -%}
+                            {{
+                              card_image
+                              | image_url: width: 700
+                              | image_tag:
+                                widths: '240, 360, 480, 600, 700',
+                                sizes: '(min-width: 990px) 240px, (min-width: 750px) 20vw, 38vw',
+                                loading: 'lazy',
+                                alt: ''
+                            }}
+                          {%- else -%}
+                            {% render 'placeholder-card', variant: v, uid: card_uid %}
+                          {%- endif -%}
+                        </div>
+                        <span class="holo__shine"></span>
+                        <span class="holo__glare"></span>
+                      </div>
+                    </holo-card>
+                  </div>
+                </div>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    </cta-banner>
+  </div>
+</section>
+
+<script src="{{ 'section-cta-banner.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "CTA banner",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Sell or trade" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Italicize words to highlight them in the accent color.", "default": "Sell or trade your <em>collection</em>" },
+    { "type": "richtext", "id": "text", "label": "Text", "default": "<p>From a single chase card to a full binder — get a cash offer within 24 hours, or take store credit with a bonus. Graded, raw and sealed all welcome.</p>" },
+    { "type": "text", "id": "button_label_1", "label": "First button label", "default": "Get an instant offer" },
+    { "type": "url", "id": "button_link_1", "label": "First button link" },
+    { "type": "text", "id": "button_label_2", "label": "Second button label", "default": "Shop the vault" },
+    { "type": "url", "id": "button_link_2", "label": "Second button link", "default": "/collections/all" },
+    { "type": "header", "content": "Visual" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Visual position",
+      "options": [
+        { "value": "visual_right", "label": "Right" },
+        { "value": "visual_left", "label": "Left" }
+      ],
+      "default": "visual_right"
+    },
+    { "type": "image_picker", "id": "image", "label": "Image", "info": "Replaces the fanned cards." },
+    { "type": "image_picker", "id": "card_image_1", "label": "Left card image" },
+    { "type": "image_picker", "id": "card_image_2", "label": "Center card image" },
+    { "type": "image_picker", "id": "card_image_3", "label": "Right card image" },
+    { "type": "checkbox", "id": "full_width", "label": "Full-width banner", "default": false },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Banner color scheme", "default": "scheme-4" },
+    { "type": "color_scheme", "id": "outer_color_scheme", "label": "Section color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "point",
+      "name": "Point",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "bolt", "label": "Lightning" },
+            { "value": "tag", "label": "Tag" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "award", "label": "Award" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "return", "label": "Trade" },
+            { "value": "gift", "label": "Gift" },
+            { "value": "clock", "label": "Clock" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "check", "label": "Check" },
+            { "value": "sparkle", "label": "Sparkle" }
+          ],
+          "default": "bolt"
+        },
+        { "type": "inline_richtext", "id": "text", "label": "Text", "default": "Instant offers on graded slabs" }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "CTA banner",
+      "blocks": [
+        { "type": "point", "settings": { "icon": "bolt", "text": "Instant offers on graded slabs" } },
+        { "type": "point", "settings": { "icon": "return", "text": "Trade-in credit <strong>+10%</strong>" } },
+        { "type": "point", "settings": { "icon": "truck", "text": "Free insured shipping label" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

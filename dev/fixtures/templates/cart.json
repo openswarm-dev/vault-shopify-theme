@@ -1,0 +1,1 @@
+{ "sections": { "main": { "type": "main-cart" }, "featured": { "type": "featured-collection", "__preset": 0, "settings": { "collection": "supplies" } } }, "order": ["main", "featured"] }

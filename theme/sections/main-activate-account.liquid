@@ -1,0 +1,137 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sid = section.id
+  assign heading = section.settings.heading
+  if heading == blank
+    assign heading = 'customer.activate_account.title_html' | t
+  endif
+-%}
+
+<section
+  id="Section-{{ sid }}"
+  class="section customer customer--auth color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ sid }}"
+>
+  <div class="customer__backdrop" aria-hidden="true"></div>
+
+  <div class="page-width auth">
+    <div class="auth__stage">
+      {% render 'customer-fan', uid: sid %}
+
+      <div class="auth-card" data-reveal="fade-up">
+        <div class="auth-panel">
+          <header class="auth-panel__head">
+            <p class="eyebrow">{{ 'customer.activate_account.eyebrow' | t }}</p>
+            <h1 class="h2 auth-panel__title" data-split>{{ heading }}</h1>
+            <p class="auth-panel__text">{{ 'customer.activate_account.subtext' | t }}</p>
+          </header>
+
+          {%- form 'activate_customer_password', class: 'auth-form' -%}
+            {% render 'customer-form-errors', form: form %}
+            <div class="field field--password">
+              <input
+                class="field__input"
+                type="password"
+                id="ActivatePassword-{{ sid }}"
+                name="customer[password]"
+                autocomplete="new-password"
+                placeholder=" "
+                required
+                aria-required="true"
+                {% if form.errors contains 'password' %}
+                  aria-invalid="true"
+                {% endif %}
+              >
+              <label class="field__label" for="ActivatePassword-{{ sid }}">{{ 'customer.fields.password' | t }}</label>
+              <button
+                type="button"
+                class="field__button field__reveal"
+                data-password-toggle
+                aria-controls="ActivatePassword-{{ sid }}"
+                aria-pressed="false"
+                aria-label="{{ 'customer.fields.show_password' | t }}"
+                data-show-label="{{ 'customer.fields.show_password' | t }}"
+                data-hide-label="{{ 'customer.fields.hide_password' | t }}"
+                hidden
+              >
+                {%- render 'icon', name: 'eye', size: 20 -%}
+              </button>
+            </div>
+            <div class="field">
+              <input
+                class="field__input"
+                type="password"
+                id="ActivatePasswordConfirm-{{ sid }}"
+                name="customer[password_confirmation]"
+                autocomplete="new-password"
+                placeholder=" "
+                required
+                aria-required="true"
+                {% if form.errors contains 'password_confirmation' %}
+                  aria-invalid="true"
+                {% endif %}
+              >
+              <label class="field__label" for="ActivatePasswordConfirm-{{ sid }}">{{ 'customer.fields.password_confirm' | t }}</label>
+            </div>
+            <button type="submit" class="btn btn--primary btn--lg btn--block">
+              {%- render 'icon', name: 'check', size: 18 -%}
+              <span>{{ 'customer.activate_account.submit' | t }}</span>
+            </button>
+            <button type="submit" name="decline" class="btn btn--ghost btn--block">
+              {{- 'customer.activate_account.decline' | t -}}
+            </button>
+          {%- endform -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="{{ 'customer.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Activate account",
+  "class": "shopify-section--main-activate-account",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Activate your <em>account</em>"
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 80
+    }
+  ]
+}
+{% endschema %}

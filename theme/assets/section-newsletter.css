@@ -1,0 +1,288 @@
+/* ==========================================================================
+   Newsletter — centred sign-up panel with a slowly rotating conic border.
+   The border angle animates through a registered custom property; browsers
+   without @property support show the same gradient, static.
+   ========================================================================== */
+
+@property --nl-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.newsletter {
+  overflow: hidden;
+  overflow: clip;
+  isolation: isolate;
+}
+
+/* ---------- Backdrops ---------- */
+.newsletter__fx,
+.newsletter__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+}
+.newsletter__fx {
+  background:
+    radial-gradient(42% 46% at 50% 48%, rgb(var(--color-accent-rgb) / .2), transparent 72%),
+    radial-gradient(30% 40% at 0% 100%, rgb(var(--color-accent-rgb) / .1), transparent 70%),
+    radial-gradient(30% 40% at 100% 0%, rgb(var(--color-accent-rgb) / .08), transparent 70%);
+}
+.newsletter__fx::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(var(--color-text-rgb) / .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--color-text-rgb) / .05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: center;
+  -webkit-mask-image: radial-gradient(60% 70% at 50% 50%, #000 10%, transparent 100%);
+  mask-image: radial-gradient(60% 70% at 50% 50%, #000 10%, transparent 100%);
+}
+.newsletter__bg-img { width: 100%; height: 100%; object-fit: cover; }
+.newsletter__bg-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 70% at 50% 50%, transparent, rgb(var(--color-bg-rgb) / .6)),
+    rgb(var(--color-bg-rgb) / var(--nl-overlay, .6));
+}
+
+/* ---------- Floating placeholder cards ---------- */
+.newsletter__cards {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.newsletter__card {
+  position: absolute;
+  width: clamp(84px, 9vw + 50px, 230px);
+}
+.newsletter__card-inner {
+  aspect-ratio: 63 / 88;
+  filter: drop-shadow(0 30px 40px rgb(0 0 0 / .55));
+}
+.newsletter__card-inner svg { width: 100%; height: 100%; }
+.newsletter__card--left { top: calc(var(--section-space) * var(--pt, 1) * .35); left: max(-24px, calc(50% - 680px)); }
+.newsletter__card--left .newsletter__card-inner { rotate: -14deg; }
+.newsletter__card--right { bottom: calc(var(--section-space) * var(--pb, 1) * .3); right: max(-24px, calc(50% - 680px)); }
+.newsletter__card--right .newsletter__card-inner { rotate: 12deg; }
+html.motion-ok .newsletter__card-inner { animation: nl-bob 7s var(--ease-in-out) infinite; }
+html.motion-ok .newsletter__card--right .newsletter__card-inner { animation-delay: -3.5s; }
+@keyframes nl-bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -12px; }
+}
+@media (max-width: 749px) {
+  .newsletter__card--left { top: 6px; left: -18px; }
+  .newsletter__card--right { bottom: 6px; right: -18px; }
+}
+@media (min-width: 750px) and (max-width: 989px) {
+  .newsletter__card { width: 120px; }
+  .newsletter__card--left { left: -28px; }
+  .newsletter__card--right { right: -28px; }
+}
+
+/* ---------- Panel ---------- */
+.newsletter__frame {
+  position: relative;
+  max-width: 980px;
+  margin-inline: auto;
+}
+.newsletter__glow {
+  position: absolute;
+  inset: 12% 6% -8%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--color-accent-rgb) / .5), rgb(var(--color-accent-rgb) / .12) 60%, transparent);
+  filter: blur(34px);
+  opacity: .75;
+  pointer-events: none;
+}
+.newsletter__panel {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(2.25rem, 1.25rem + 4.5vw, 5.25rem) clamp(1.25rem, .25rem + 4.5vw, 5rem);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(60% 50% at 50% 0%, rgb(var(--color-accent-rgb) / .16), transparent 70%),
+    rgb(var(--color-surface-rgb) / .84);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: var(--shadow-lg);
+}
+/* Faint grid inside the panel */
+.newsletter__panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgb(var(--color-text-rgb) / .04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--color-text-rgb) / .04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center top;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 70%);
+  mask-image: linear-gradient(180deg, #000, transparent 70%);
+  pointer-events: none;
+}
+/* 1px rotating gradient ring, cut out with a mask so the panel can stay translucent.
+   Only this element animates (a registered angle), and only while the section is on screen. */
+.newsletter__border {
+  --nl-angle: 200deg;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--nl-angle),
+    rgb(var(--color-text-rgb) / .12) 0deg,
+    rgb(var(--color-text-rgb) / .12) 140deg,
+    rgb(var(--color-accent-rgb) / .95) 215deg,
+    color-mix(in srgb, var(--color-accent) 30%, white) 248deg,
+    rgb(var(--color-accent-rgb) / .95) 280deg,
+    rgb(var(--color-text-rgb) / .12) 345deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+html.motion-ok .newsletter--animated .newsletter__border { animation: nl-rotate 7s linear infinite paused; }
+html.motion-ok .newsletter--animated .newsletter__glow { animation: nl-breathe 7s var(--ease-in-out) infinite paused; }
+html.motion-ok .newsletter--animated.is-inview :is(.newsletter__border, .newsletter__glow) { animation-play-state: running; }
+@keyframes nl-rotate {
+  from { --nl-angle: 200deg; }
+  to { --nl-angle: 560deg; }
+}
+@keyframes nl-breathe {
+  0%, 100% { opacity: .75; transform: scale(1); }
+  50% { opacity: .45; transform: scale(.92); }
+}
+
+/* ---------- Content ---------- */
+.newsletter__content {
+  position: relative;
+  z-index: 3;
+  max-width: 680px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+.newsletter__eyebrow { margin-bottom: calc(var(--space-1) * -1); }
+.newsletter__heading { max-width: 15ch; }
+.newsletter__heading.h0 { max-width: 12ch; }
+.newsletter__text { color: var(--color-muted); font-size: var(--text-md); max-width: 52ch; }
+
+.newsletter__perks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+}
+.newsletter__perk {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 34px;
+  max-width: 100%;
+  padding: .4rem .85rem;
+  border-radius: 99px;
+  border: 1px solid rgb(var(--color-text-rgb) / .12);
+  background: rgb(var(--color-text-rgb) / .04);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  text-align: left;
+}
+.newsletter__perk .icon { color: var(--color-accent); }
+
+.newsletter__form-wrap {
+  display: block;
+  width: 100%;
+  max-width: 580px;
+  margin-top: var(--space-2);
+  text-align: left;
+}
+.newsletter__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .625rem;
+}
+.newsletter__input { background: rgb(var(--color-bg-rgb) / .55); }
+.newsletter__submit { min-height: 54px; width: 100%; }
+.newsletter__message { margin-top: var(--space-3); }
+.newsletter__message ul { list-style: none; padding: 0; margin: 0; }
+
+@media (min-width: 750px) {
+  .newsletter__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 6px;
+    border-radius: calc(var(--radius-sm) + 6px);
+    border: 1px solid rgb(var(--color-text-rgb) / .1);
+    background: rgb(var(--color-bg-rgb) / .45);
+  }
+  .newsletter__row .field__input { border-color: transparent; background: transparent; }
+  .newsletter__row .field__input:focus { border-color: rgb(var(--color-accent-rgb) / .9); background: rgb(var(--color-text-rgb) / .04); }
+  .newsletter__submit { width: auto; padding: 0 1.75rem; }
+}
+
+/* Success state */
+.newsletter__success {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(var(--color-accent-rgb) / .4);
+  background: rgb(var(--color-accent-rgb) / .08);
+  box-shadow: 0 0 40px -14px rgb(var(--color-accent-rgb) / .8);
+}
+.newsletter__success-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow: 0 0 0 6px rgb(var(--color-accent-rgb) / .16), 0 10px 30px -8px rgb(var(--color-accent-rgb) / .9);
+}
+.newsletter__success-body { display: grid; gap: .2rem; min-width: 0; }
+.newsletter__success-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-stretch: var(--font-display-stretch);
+  text-transform: var(--font-display-case);
+  font-size: var(--h5);
+  line-height: 1.2;
+}
+.newsletter__success-text { color: var(--color-muted); font-size: var(--text-sm); }
+
+.newsletter__privacy {
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: .45rem;
+  max-width: 52ch;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+.newsletter__privacy .icon { margin-top: .15em; }
+.newsletter__privacy a { color: var(--color-text); text-decoration: underline; text-underline-offset: .2em; }

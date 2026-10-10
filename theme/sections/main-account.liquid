@@ -1,0 +1,225 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sid = section.id
+  assign display_name = customer.first_name | default: customer.name | default: customer.email | escape
+-%}
+
+<section
+  id="Section-{{ sid }}"
+  class="section customer customer--dashboard color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ sid }}"
+>
+  <div class="customer__backdrop customer__backdrop--soft" aria-hidden="true"></div>
+
+  <div class="page-width">
+    <header class="account-head">
+      <div class="account-head__text">
+        <p class="eyebrow" data-reveal="fade">{{ 'customer.account.eyebrow' | t }}</p>
+        <h1 class="h1 account-head__title" data-split>{{ 'customer.account.welcome_html' | t: name: display_name }}</h1>
+        <p class="account-head__meta" data-reveal="fade">{{ customer.email | escape }}</p>
+      </div>
+      <div class="account-head__actions" data-reveal="fade">
+        <a href="{{ routes.account_addresses_url }}" class="btn btn--secondary btn--sm">
+          {%- render 'icon', name: 'map-pin', size: 16 -%}
+          <span>{{ 'customer.account.addresses' | t }}</span>
+        </a>
+        <a href="{{ routes.account_logout_url }}" class="btn btn--ghost btn--sm">
+          {%- render 'icon', name: 'arrow-up-right', size: 16 -%}
+          <span>{{ 'customer.account.logout' | t }}</span>
+        </a>
+      </div>
+    </header>
+
+    <ul class="account-stats" role="list">
+      <li class="account-stat" data-reveal data-spotlight>
+        <span class="account-stat__icon" aria-hidden="true">{% render 'icon', name: 'box', size: 20 %}</span>
+        <span class="account-stat__value" data-count-to="{{ customer.orders_count }}">{{ customer.orders_count }}</span>
+        <span class="account-stat__label">{{ 'customer.account.orders_count' | t }}</span>
+      </li>
+      <li class="account-stat" data-reveal data-spotlight>
+        <span class="account-stat__icon" aria-hidden="true">{% render 'icon', name: 'trophy', size: 20 %}</span>
+        <span class="account-stat__value">{{ customer.total_spent | money_without_trailing_zeros }}</span>
+        <span class="account-stat__label">{{ 'customer.account.total_spent' | t }}</span>
+      </li>
+      <li class="account-stat" data-reveal data-spotlight>
+        <span class="account-stat__icon" aria-hidden="true">{% render 'icon', name: 'map-pin', size: 20 %}</span>
+        <span class="account-stat__value" data-count-to="{{ customer.addresses_count }}">{{ customer.addresses_count }}</span>
+        <span class="account-stat__label">{{ 'customer.account.addresses_count' | t }}</span>
+      </li>
+    </ul>
+
+    <div class="account-grid">
+      <section class="account-orders" aria-labelledby="OrdersHeading-{{ sid }}">
+        <div class="account-block-head">
+          <h2 class="h4" id="OrdersHeading-{{ sid }}">{{ 'customer.orders.title' | t }}</h2>
+        </div>
+
+        {%- paginate customer.orders by 10 -%}
+          {%- if customer.orders.size > 0 -%}
+            <table class="orders-table" role="table" data-reveal>
+              <caption class="visually-hidden">{{ 'customer.orders.title' | t }}</caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader">{{ 'customer.orders.order_number' | t }}</th>
+                  <th scope="col" role="columnheader">{{ 'customer.orders.date' | t }}</th>
+                  <th scope="col" role="columnheader">{{ 'customer.orders.payment_status' | t }}</th>
+                  <th scope="col" role="columnheader">{{ 'customer.orders.fulfillment_status' | t }}</th>
+                  <th scope="col" role="columnheader" class="orders-table__num">{{ 'customer.orders.total' | t }}</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+                {%- for order in customer.orders -%}
+                  <tr role="row">
+                    <th scope="row" role="rowheader" class="orders-table__order">
+                      <a href="{{ order.customer_url }}" class="orders-table__link">
+                        <span class="visually-hidden">{{ 'customer.orders.view_order' | t }}</span>
+                        {{ order.name }}
+                        {%- render 'icon', name: 'arrow-right', size: 16 -%}
+                      </a>
+                    </th>
+                    <td role="cell" data-label="{{ 'customer.orders.date' | t }}">{{ order.created_at | time_tag: format: 'date' }}</td>
+                    <td role="cell" data-label="{{ 'customer.orders.payment_status' | t }}">
+                      <span class="status-pill" data-status="{{ order.financial_status | default: 'pending' }}">{{ order.financial_status_label }}</span>
+                    </td>
+                    <td role="cell" data-label="{{ 'customer.orders.fulfillment_status' | t }}">
+                      {%- if order.cancelled -%}
+                        <span class="status-pill" data-status="cancelled">{{ 'customer.orders.cancelled' | t }}</span>
+                      {%- else -%}
+                        <span class="status-pill" data-status="{{ order.fulfillment_status | default: 'unfulfilled' }}">{{ order.fulfillment_status_label }}</span>
+                      {%- endif -%}
+                    </td>
+                    <td role="cell" class="orders-table__num orders-table__total" data-label="{{ 'customer.orders.total' | t }}">
+                      {{- order.total_price | money_with_currency -}}
+                    </td>
+                  </tr>
+                {%- endfor -%}
+              </tbody>
+            </table>
+
+            {%- if paginate.pages > 1 -%}
+              <div class="account-pagination">
+                {% render 'pagination', paginate: paginate %}
+              </div>
+            {%- endif -%}
+          {%- else -%}
+            <div class="account-empty" data-reveal>
+              {% render 'customer-fan', uid: sid %}
+              <h3 class="h4">{{ 'customer.orders.none_title' | t }}</h3>
+              <p class="text-muted">{{ 'customer.orders.none_text' | t }}</p>
+              <a href="{{ routes.all_products_collection_url }}" class="btn btn--primary">
+                {{- 'general.actions.shop_now' | t -}}
+                {%- render 'icon', name: 'arrow-right', size: 18 -%}
+              </a>
+            </div>
+          {%- endif -%}
+        {%- endpaginate -%}
+      </section>
+
+      <aside class="account-aside">
+        <section class="account-card" aria-labelledby="AddressHeading-{{ sid }}" data-reveal>
+          <div class="account-card__head">
+            <span class="account-card__icon" aria-hidden="true">{% render 'icon', name: 'map-pin', size: 18 %}</span>
+            <h2 class="account-card__title" id="AddressHeading-{{ sid }}">{{ 'customer.account.default_address' | t }}</h2>
+          </div>
+          {%- if customer.default_address -%}
+            <address class="account-card__address">{{ customer.default_address | format_address }}</address>
+          {%- else -%}
+            <p class="account-card__muted">{{ 'customer.account.no_address' | t }}</p>
+          {%- endif -%}
+          <a href="{{ routes.account_addresses_url }}" class="link link--accent account-card__link">
+            {{- 'customer.account.manage_addresses' | t: count: customer.addresses_count -}}
+            {%- render 'icon', name: 'arrow-right', size: 16 -%}
+          </a>
+        </section>
+
+        {%- if section.settings.show_help -%}
+          <section class="account-card account-card--glow" aria-labelledby="HelpHeading-{{ sid }}" data-reveal>
+            <div class="account-card__head">
+              <span class="account-card__icon" aria-hidden="true">{% render 'icon', name: 'chat', size: 18 %}</span>
+              <h2 class="account-card__title" id="HelpHeading-{{ sid }}">{{ section.settings.help_heading | escape }}</h2>
+            </div>
+            {%- if section.settings.help_text != blank -%}
+              <div class="account-card__muted">{{ section.settings.help_text }}</div>
+            {%- endif -%}
+            {%- if section.settings.help_link != blank and section.settings.help_link_label != blank -%}
+              <a href="{{ section.settings.help_link }}" class="link link--accent account-card__link">
+                {{- section.settings.help_link_label | escape -}}
+                {%- render 'icon', name: 'arrow-right', size: 16 -%}
+              </a>
+            {%- endif -%}
+          </section>
+        {%- endif -%}
+      </aside>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Account",
+  "class": "shopify-section--main-account",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_help",
+      "label": "Show help card",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "help_heading",
+      "label": "Help heading",
+      "default": "Selling a collection?"
+    },
+    {
+      "type": "richtext",
+      "id": "help_text",
+      "label": "Help text",
+      "default": "<p>We buy binders, graded slabs and sealed product. Send us a list and get an offer within 48 hours.</p>"
+    },
+    {
+      "type": "url",
+      "id": "help_link",
+      "label": "Help link"
+    },
+    {
+      "type": "text",
+      "id": "help_link_label",
+      "label": "Help link label",
+      "default": "Get an offer"
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 100
+    }
+  ]
+}
+{% endschema %}

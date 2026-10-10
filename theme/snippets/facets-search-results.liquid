@@ -1,0 +1,127 @@
+{%- comment -%}
+  Search results for the current page, split into groups: products (shared product grid with density),
+  articles (card-article) and pages (simple cards). Every group is always rendered (hidden when empty)
+  and its list is a [data-append-target], so "Load more" appends the next page into the right group.
+
+  Usage:
+    {% render 'facets-search-results',
+      results: search.results,
+      paginate: paginate,
+      section_id: section.id,
+      show_headings: true,
+      cols_mobile: 2, cols_tablet: 3, cols_desktop: 4,
+      card_sizes: card_sizes,
+      article_sizes: article_sizes
+    %}
+  Params:
+    results        (required) search.results for this page
+    paginate       (required) paginate object (keeps card indexes unique across pages)
+    section_id     (required) section.id
+    show_headings  show a heading above each group (used for "All" results)
+    cols_mobile, cols_tablet, cols_desktop   product grid columns
+    card_sizes     product card image sizes
+    article_sizes  article card image sizes
+{%- endcomment -%}
+{%- liquid
+  assign sr_products = results | where: 'object_type', 'product'
+  assign sr_articles = results | where: 'object_type', 'article'
+  assign sr_pages = results | where: 'object_type', 'page'
+  assign sr_offset = paginate.current_offset | default: 0
+-%}
+
+<div class="search-group search-group--products" data-append-group{% if sr_products.size == 0 %} hidden{% endif %}>
+  {%- if show_headings -%}
+    <h2 class="search-group__title">
+      {%- render 'icon', name: 'cards', size: 18 -%}
+      {{- 'templates.search.group_products' | t -}}
+    </h2>
+  {%- endif -%}
+  {%- render 'facets-density-boot' -%}
+  <ul
+    class="grid product-grid"
+    role="list"
+    data-product-grid
+    data-density
+    data-cols-desktop="{{ cols_desktop }}"
+    data-append-target="products"
+    style="--cols-mobile: {{ cols_mobile }}; --cols-tablet: {{ cols_tablet }}; --cols-desktop: {{ cols_desktop }};"
+  >
+    {%- for item in sr_products -%}
+      {%- liquid
+        assign sr_index = sr_offset | plus: forloop.index0
+        assign sr_lazy = true
+        if sr_index < 4
+          assign sr_lazy = false
+        endif
+      -%}
+      <li class="product-grid__item">
+        {%- render 'card-product',
+          product: item,
+          index: sr_index,
+          lazy: sr_lazy,
+          sizes: card_sizes,
+          section_id: section_id
+        -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+</div>
+
+<div class="search-group search-group--articles" data-append-group{% if sr_articles.size == 0 %} hidden{% endif %}>
+  {%- if show_headings -%}
+    <h2 class="search-group__title">
+      {%- render 'icon', name: 'layers', size: 18 -%}
+      {{- 'templates.search.group_articles' | t -}}
+    </h2>
+  {%- endif -%}
+  <ul
+    class="grid search-articles"
+    role="list"
+    data-append-target="articles"
+    style="--cols-mobile: 1; --cols-tablet: 2; --cols-desktop: 3;"
+  >
+    {%- for item in sr_articles -%}
+      {%- assign sr_article_index = sr_offset | plus: forloop.index -%}
+      <li class="search-articles__item">
+        {%- render 'card-article',
+          article: item,
+          index: sr_article_index,
+          show_excerpt: true,
+          show_date: true,
+          show_author: false,
+          size: 'md',
+          sizes: article_sizes
+        -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+</div>
+
+<div class="search-group search-group--pages" data-append-group{% if sr_pages.size == 0 %} hidden{% endif %}>
+  {%- if show_headings -%}
+    <h2 class="search-group__title">
+      {%- render 'icon', name: 'info', size: 18 -%}
+      {{- 'templates.search.group_pages' | t -}}
+    </h2>
+  {%- endif -%}
+  <ul class="search-pages list-reset" role="list" data-append-target="pages">
+    {%- for item in sr_pages -%}
+      <li class="search-pages__item" data-reveal="fade-up">
+        <a href="{{ item.url }}" class="search-page-card" data-spotlight>
+          <span class="search-page-card__body">
+            <span class="search-page-card__title">{{ item.title | escape }}</span>
+            {%- comment -%} Pad tags with spaces first so "<h2>About</h2><p>We…" doesn't read "AboutWe…". {%- endcomment -%}
+            {%- assign sr_excerpt = item.content | replace: '<', ' <' | strip_html | strip_newlines | strip | truncatewords: 24 -%}
+            {%- if sr_excerpt != blank -%}
+              <span class="search-page-card__excerpt">{{ sr_excerpt }}</span>
+            {%- endif -%}
+          </span>
+          <span class="search-page-card__cta">
+            <span class="visually-hidden">{{ 'templates.search.page_cta' | t }}</span>
+            {%- render 'icon', name: 'arrow-up-right', size: 18 -%}
+          </span>
+        </a>
+      </li>
+    {%- endfor -%}
+  </ul>
+</div>

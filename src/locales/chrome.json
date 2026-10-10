@@ -1,0 +1,90 @@
+{
+  "sections": {
+    "announcement_bar": {
+      "label": "Announcements",
+      "previous": "Previous announcement",
+      "next": "Next announcement"
+    },
+    "header": {
+      "navigation": "Main",
+      "shop_all": "Shop all {{ title }}",
+      "view_all": "View all",
+      "close_menu": "Close menu",
+      "featured": "Featured",
+      "log_in": "Log in",
+      "my_account": "My account",
+      "region": "Region & language"
+    },
+    "mobile_dock": {
+      "label": "Quick navigation",
+      "shop": "Shop"
+    },
+    "predictive_search": {
+      "label": "Search the store",
+      "placeholder": "Search cards, sets, slabs…",
+      "clear": "Clear search",
+      "submit": "Search",
+      "close": "Close search",
+      "popular": "Popular searches",
+      "jump_to": "Jump to",
+      "suggestions": "Suggestions",
+      "results": "Search suggestions",
+      "products": "Products",
+      "collections": "Collections",
+      "pages": "Pages & articles",
+      "search_for": "Search for “{{ terms }}”",
+      "no_results": "No matches for “{{ terms }}”",
+      "no_results_hint": "Check the spelling, or try a set name, card number or grader.",
+      "results_count": {
+        "one": "{{ count }} suggestion available",
+        "other": "{{ count }} suggestions available"
+      },
+      "products_count": {
+        "one": "{{ count }} item",
+        "other": "{{ count }} items"
+      },
+      "hint_navigate": "Navigate",
+      "hint_open": "Open",
+      "hint_close": "Close"
+    },
+    "cart_drawer": {
+      "free_shipping_label": "Free shipping progress",
+      "empty_text": "Singles, graded slabs and sealed product are waiting in the vault.",
+      "shop_all": "Start collecting",
+      "login_html": "Have an account? <a href=\"{{ link }}\">Log in</a> to check out faster.",
+      "upsell_heading": "Complete your collection",
+      "upsell_heading_empty": "Trending in the vault",
+      "add_named": "Add {{ title }} to cart",
+      "choose_named": "Choose options for {{ title }}",
+      "remove_named": "Remove {{ title }}",
+      "each": "{{ price }} each",
+      "note_placeholder": "Gift message, sleeve preferences or delivery notes",
+      "note_saving": "Saving note…",
+      "note_saved": "Note saved",
+      "view_cart": "View cart",
+      "secure_checkout": "Secure, encrypted checkout",
+      "payment_methods": "Accepted payment methods",
+      "discounts": "Discounts"
+    },
+    "footer": {
+      "newsletter_fine": "Unsubscribe anytime. We never share your email.",
+      "country": "Country / region",
+      "language": "Language",
+      "update": "Update",
+      "payment_methods": "Accepted payment methods",
+      "policies": "Store policies",
+      "back_to_top": "Back to top"
+    },
+    "social_icons": {
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "youtube": "YouTube",
+      "x": "X",
+      "facebook": "Facebook",
+      "discord": "Discord",
+      "twitch": "Twitch",
+      "whatnot": "Whatnot",
+      "ebay": "eBay"
+    }
+  }
+}

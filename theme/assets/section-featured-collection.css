@@ -1,0 +1,264 @@
+/* ==========================================================================
+   VAULT — section-featured-collection.css  ("Trending pulls")
+   Tabs (segmented control with a springy red indicator), product grid or
+   carousel per panel, and the "View all" end card.
+   ========================================================================== */
+
+featured-collection { display: block; }
+
+.fc__panels { position: relative; }
+.fc__item { min-width: 0; }
+
+/* ---------- Tabs ---------- */
+/* Phones: the strip scrolls sideways edge to edge with soft faded edges. */
+.fc__tabs {
+  display: flex;
+  margin: -6px calc(var(--gutter) * -1) clamp(1.25rem, .9rem + 1.2vw, 2rem);
+  padding: 6px var(--gutter) 14px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--gutter);
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%);
+}
+.fc__tabs::-webkit-scrollbar { display: none; }
+.fc--align-center .fc-tabs { margin-inline: auto; }
+
+.fc-tabs {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid rgb(var(--color-text-rgb) / .1);
+  border-radius: calc(var(--radius-btn) + 4px);
+  background: rgb(var(--color-surface-rgb) / .62);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgb(var(--color-text-rgb) / .05);
+}
+
+.fc-tab {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border-radius: var(--radius-btn);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .3s var(--ease-out), background-color .3s var(--ease-out);
+}
+.fc-tab:hover { color: var(--color-text); }
+.fc-tab:focus-visible {
+  outline-offset: -2px;
+  border-radius: var(--radius-btn);
+}
+/* Before JS (and without it) the active tab paints its own pill. */
+.fc-tab[aria-selected="true"] {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.fc-tabs.is-ready .fc-tab[aria-selected="true"] { background: transparent; }
+
+.fc-tab__count {
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  opacity: .7;
+}
+
+.fc-tabs__indicator {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  border-radius: var(--radius-btn);
+  background: var(--color-accent);
+  box-shadow: 0 8px 24px -8px rgb(var(--color-accent-rgb) / .85), inset 0 1px 0 rgb(255 255 255 / .22);
+  opacity: 0;
+  pointer-events: none;
+}
+.fc-tabs.is-ready .fc-tabs__indicator { opacity: 1; }
+
+@media (min-width: 750px) {
+  .fc__tabs {
+    margin-inline: 0;
+    padding-inline: 2px;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .fc-tab { padding: 0 1.35rem; }
+}
+
+/* ---------- Panels without JS: stacked, each with a title ---------- */
+.fc__panel-title { display: none; }
+html.no-js .fc__tabs { display: none; }
+html.no-js .fc__panel[hidden] { display: block !important; }
+html.no-js .fc__panel-title { display: block; margin-bottom: var(--space-4); }
+html.no-js .fc__panel + .fc__panel { margin-top: var(--space-12); }
+
+/* ---------- Carousel ---------- */
+@media (max-width: 749px) {
+  .fc__carousel .carousel__btn { display: none; }
+}
+
+/* ---------- "View all" placement in grids ---------- */
+.fc__cta {
+  display: none;
+  justify-content: center;
+  margin-top: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+}
+@media (max-width: 749px) {
+  .fc__item--hide-m { display: none; }
+  .fc__cta--show-m { display: flex; }
+}
+@media (min-width: 750px) and (max-width: 989px) {
+  .fc__item--hide-t { display: none; }
+  .fc__cta--show-t { display: flex; }
+}
+@media (min-width: 990px) {
+  .fc__item--hide-d { display: none; }
+  .fc__cta--show-d { display: flex; }
+}
+
+/* ---------- End card ---------- */
+.fc-end {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas: "ghosts ghosts" "body arrow";
+  align-items: end;
+  gap: 1rem .75rem;
+  height: 100%;
+  min-height: 240px;
+  padding: clamp(.875rem, .7rem + .8vw, 1.5rem);
+  overflow: hidden;
+  border: 1px solid rgb(var(--color-text-rgb) / .1);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(90% 55% at 50% 112%, rgb(var(--color-accent-rgb) / .42), transparent 70%),
+    linear-gradient(rgb(var(--color-text-rgb) / .045) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, rgb(var(--color-text-rgb) / .045) 1px, transparent 1px) 0 0 / 28px 28px,
+    rgb(var(--color-surface-rgb) / .55);
+  color: var(--color-text);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    translate .55s var(--ease-out),
+    border-color .4s var(--ease-out),
+    box-shadow .55s var(--ease-out);
+}
+.fc-end:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
+}
+
+.fc-end__ghosts {
+  grid-area: ghosts;
+  position: relative;
+  align-self: stretch;
+  min-height: 110px;
+}
+.fc-end__ghost {
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  height: min(88%, 220px);
+  aspect-ratio: 63 / 88;
+  border: 1px solid rgb(var(--color-text-rgb) / .2);
+  border-radius: max(6px, var(--radius-sm));
+  background: linear-gradient(160deg, rgb(var(--color-text-rgb) / .1), rgb(var(--color-text-rgb) / .015));
+  box-shadow: 0 18px 30px -16px rgb(0 0 0 / .8);
+  transform-origin: 50% 120%;
+  transition: rotate .8s var(--ease-out), translate .8s var(--ease-out);
+}
+.fc-end__ghost:nth-child(1) { rotate: -14deg; translate: -88% 8%; }
+.fc-end__ghost:nth-child(2) { rotate: -2deg; translate: -50% 2%; }
+.fc-end__ghost:nth-child(3) {
+  rotate: 11deg;
+  translate: -14% 6%;
+  border-color: transparent;
+  background:
+    linear-gradient(160deg, rgb(var(--color-surface-rgb) / .96), rgb(var(--color-bg-rgb) / .96)) padding-box,
+    var(--holo-gradient) border-box;
+}
+
+.fc-end__body {
+  grid-area: body;
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: .3rem;
+  min-width: 0;
+}
+.fc-end__kicker {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-stretch: var(--font-display-stretch);
+  text-transform: var(--font-display-case);
+  font-size: var(--h4);
+  line-height: 1.05;
+  letter-spacing: -.01em;
+}
+.fc-end__title {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgb(var(--color-text-rgb) / .78);
+}
+.fc-end__count {
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+.fc-end__arrow {
+  grid-area: arrow;
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow: 0 12px 30px -10px rgb(var(--color-accent-rgb) / .9), inset 0 1px 0 rgb(255 255 255 / .22);
+  transition: translate .5s var(--ease-back), box-shadow .4s var(--ease-out);
+}
+.fc-end:active .fc-end__arrow { translate: 3px 0; }
+
+@media (hover: hover) and (pointer: fine) {
+  .fc-end:hover {
+    translate: 0 -4px;
+    border-color: rgb(var(--color-accent-rgb) / .55);
+    box-shadow: 0 26px 50px -22px rgb(0 0 0 / .85), 0 18px 46px -26px rgb(var(--color-accent-rgb) / .6);
+  }
+  .fc-end:hover .fc-end__arrow {
+    translate: 5px 0;
+    box-shadow: 0 16px 40px -10px rgb(var(--color-accent-rgb) / 1), inset 0 1px 0 rgb(255 255 255 / .25);
+  }
+  .fc-end:hover .fc-end__ghost:nth-child(1) { rotate: -22deg; translate: -104% 10%; }
+  .fc-end:hover .fc-end__ghost:nth-child(2) { rotate: -4deg; translate: -50% -2%; }
+  .fc-end:hover .fc-end__ghost:nth-child(3) { rotate: 18deg; translate: 2% 8%; }
+}
+
+/* Narrow end card (2-up phone grid) */
+@media (max-width: 749px) {
+  .fc-end { min-height: 0; gap: .75rem .5rem; }
+  .fc-end__ghosts { min-height: 90px; }
+  .fc-end__kicker { font-size: var(--h5); }
+  .fc-end__arrow { width: 44px; height: 44px; }
+}

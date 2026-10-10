@@ -1,0 +1,73 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "eyebrow": "Support",
+        "highlight_last_word": true,
+        "subtitle": "<p>Order questions, grading advice or a collection to sell. Real collectors answer every message.</p>",
+        "heading_alignment": "left",
+        "show_divider": false,
+        "lead_paragraph": true,
+        "drop_cap": false,
+        "color_scheme": "scheme-1",
+        "padding_top": 80,
+        "padding_bottom": 30
+      }
+    },
+    "contact": {
+      "type": "contact-form",
+      "blocks": {
+        "email": {
+          "type": "contact_item",
+          "settings": {
+            "icon": "mail",
+            "title": "Email the team",
+            "text": "<p>Order questions, trade-ins and grading advice. We reply within one business day.</p>"
+          }
+        },
+        "discord": {
+          "type": "contact_item",
+          "settings": {
+            "icon": "chat",
+            "title": "Join the Discord",
+            "text": "<p>Live pull streams, trade nights and restock alerts before anyone else.</p>"
+          }
+        },
+        "hours": {
+          "type": "contact_item",
+          "settings": {
+            "icon": "clock",
+            "title": "Support hours",
+            "text": "<p>Monday to Friday, 9am to 6pm. Saturday, 10am to 4pm.</p>"
+          }
+        },
+        "pickup": {
+          "type": "contact_item",
+          "settings": {
+            "icon": "map-pin",
+            "title": "Local pickup",
+            "text": "<p>Collect graded slabs in person by appointment. Address shared after booking.</p>"
+          }
+        }
+      },
+      "block_order": ["email", "discord", "hours", "pickup"],
+      "settings": {
+        "eyebrow": "Talk to a collector",
+        "heading": "Questions? Ask the <em>vault</em>",
+        "heading_alignment": "left",
+        "response_time": "Replies within 24 hours",
+        "show_phone": true,
+        "show_topic": true,
+        "topics": "General question, Selling a collection, Order help, Grading question",
+        "button_label": "Send message",
+        "success_message": "Message received. A member of the team will reply within one business day.",
+        "panel_position": "right",
+        "color_scheme": "scheme-1",
+        "padding_top": 0,
+        "padding_bottom": 100
+      }
+    }
+  },
+  "order": ["main", "contact"]
+}

@@ -1,0 +1,25 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-cart",
+      "settings": {
+        "heading": "Your <em>cart</em>",
+        "show_continue": true,
+        "show_trust": true,
+        "trust_1": "Secure, encrypted checkout",
+        "trust_2": "Fully insured, tracked shipping",
+        "trust_3": "Every card sleeved and top-loaded",
+        "empty_text": "The binder is looking light. Fresh pulls, graded slabs and sealed boxes are one tap away.",
+        "empty_button_label": "Shop new arrivals",
+        "empty_button_link": "/collections/all",
+        "show_upsell": true,
+        "upsell_heading": "Complete the <em>binder</em>",
+        "upsell_limit": 8,
+        "color_scheme": "scheme-1",
+        "padding_top": 60,
+        "padding_bottom": 100
+      }
+    }
+  },
+  "order": ["main"]
+}

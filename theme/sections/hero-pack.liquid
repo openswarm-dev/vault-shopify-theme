@@ -1,0 +1,599 @@
+{{ 'section-hero-pack.css' | asset_url | stylesheet_tag }}
+{%- comment -%}
+  Hero pack — the cinematic first impression.
+  Text column + a "booster pack" of 3–5 holo cards that tears open into a fan (section-hero-pack.js).
+  Without JS / with reduced motion the fan is laid out statically by CSS from the per-card offsets below.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign layout = s.layout | default: 'fan'
+  assign card_blocks = section.blocks | where: 'type', 'card'
+  assign card_total = card_blocks.size
+  assign use_defaults = false
+  if card_total == 0
+    assign use_defaults = true
+    assign card_total = 5
+  endif
+  if layout == 'single'
+    assign card_total = 1
+  endif
+
+  # Fan geometry: every card gets a normalised offset from the centre (-1 … 1) for the
+  # desktop/tablet fan (all cards) and for the phone fan (the middle three cards only).
+  assign half = card_total | minus: 1 | divided_by: 2.0
+  assign norm = half | at_least: 1
+  assign mobile_total = card_total | at_most: 3
+  assign mobile_start = card_total | minus: 3 | at_least: 0 | divided_by: 2 | floor
+  assign mobile_end = mobile_start | plus: mobile_total
+  assign half_m = mobile_total | minus: 1 | divided_by: 2.0
+  assign norm_m = half_m | at_least: 1
+  assign variants = '2,3,5,4,6' | split: ','
+
+  assign img_loading = 'eager'
+  if section.index > 2
+    assign img_loading = 'lazy'
+  endif
+  assign has_bg_media = false
+  if s.background_image != blank or s.background_video != blank
+    assign has_bg_media = true
+  endif
+
+  assign heading_tag = 'h2'
+  if section.index == 1 or section.index == blank
+    assign heading_tag = 'h1'
+  endif
+  assign heading_id = 'HeroPackHeading-' | append: section.id
+  assign card_sizes = '(min-width: 1400px) 280px, (min-width: 990px) 19vw, (min-width: 750px) 200px, 42vw'
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-hero-pack color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}aria-labelledby="{{ heading_id }}"{% endif %}
+>
+  <hero-pack
+    class="hero-pack hero-pack--{{ layout }}{% if s.full_height %} hero-pack--full{% endif %}{% if has_bg_media %} hero-pack--media{% endif %}"
+    data-count="{{ card_total }}"
+    style="--hp-overlay: {{ s.overlay_opacity | divided_by: 100.0 }};"
+  >
+    <div class="hero-pack__bg" aria-hidden="true">
+      {%- if s.background_video != blank -%}
+        {{
+          s.background_video
+          | video_tag:
+            autoplay: true,
+            loop: true,
+            muted: true,
+            controls: false,
+            playsinline: true,
+            preload: 'metadata',
+            image_size: '1600x',
+            class: 'hero-pack__bg-media'
+        }}
+      {%- elsif s.background_image != blank -%}
+        {{
+          s.background_image
+          | image_url: width: 2400
+          | image_tag:
+            widths: '750, 1100, 1500, 1900, 2400',
+            sizes: '100vw',
+            loading: img_loading,
+            fetchpriority: 'high',
+            class: 'hero-pack__bg-media',
+            alt: ''
+        }}
+      {%- endif -%}
+      {%- if has_bg_media -%}
+        <div class="hero-pack__overlay"></div>
+      {%- endif -%}
+      <div class="hero-pack__glow-wrap" data-hp-glow><div class="hero-pack__glow"></div></div>
+      {%- if s.show_floor -%}
+        <div class="hero-pack__floor"><div class="hero-pack__plane"></div></div>
+      {%- endif -%}
+      {%- if s.show_particles -%}
+        <div class="hero-pack__sparks">
+          {%- for i in (1..12) -%}
+            {%- liquid
+              # Deterministic pseudo-random spread so the sparks never line up.
+              assign spark_x = i | times: 37 | modulo: 92 | plus: 4
+              assign spark_dur = i | times: 7 | modulo: 6 | plus: 8
+              assign spark_delay = i | times: 13 | modulo: 90 | divided_by: -10.0
+              assign spark_size = i | modulo: 3 | plus: 2
+              assign spark_dx = i | times: 23 | modulo: 50 | minus: 25
+            -%}
+            <span
+              class="hero-pack__spark{% if i > 7 %} hero-pack__spark--desk{% endif %}"
+              style="--x: {{ spark_x }}%; --d: {{ spark_dur }}s; --delay: {{ spark_delay }}s; --s: {{ spark_size }}px; --dx: {{ spark_dx }}px;"
+            ></span>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+      <div class="hero-pack__vignette"></div>
+    </div>
+
+    <div class="page-width hero-pack__inner">
+      <div class="hero-pack__content" data-hp-content>
+        {%- if s.eyebrow != blank -%}
+          <p class="hero-pack__eyebrow" data-reveal="fade-down">
+            <span class="hero-pack__live" aria-hidden="true"></span>
+            <span>{{ s.eyebrow | escape }}</span>
+          </p>
+        {%- endif -%}
+
+        {%- if s.heading != blank -%}
+          <{{ heading_tag }} id="{{ heading_id }}" class="h0 hero-pack__heading" data-split data-split-delay="0.12">
+            {{- s.heading -}}
+          </{{ heading_tag }}>
+        {%- endif -%}
+
+        {%- if s.subheading != blank -%}
+          <p class="hero-pack__sub" data-reveal>{{ s.subheading }}</p>
+        {%- endif -%}
+
+        {%- if s.button_label_1 != blank or s.button_label_2 != blank -%}
+          <div class="hero-pack__ctas" data-reveal>
+            {%- if s.button_label_1 != blank -%}
+              <a
+                class="btn btn--primary btn--lg hero-pack__cta"
+                href="{{ s.button_link_1 | default: routes.all_products_collection_url }}"
+                data-magnetic="0.25"
+              >
+                <span>{{ s.button_label_1 | escape }}</span>
+                {% render 'icon', name: 'arrow-right', size: 18 %}
+              </a>
+            {%- endif -%}
+            {%- if s.button_label_2 != blank -%}
+              <a
+                class="btn btn--secondary btn--lg hero-pack__cta"
+                href="{{ s.button_link_2 | default: routes.collections_url }}"
+              >
+                {{- s.button_label_2 | escape -}}
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        <ul class="hero-pack__stats" role="list" data-reveal>
+          {%- for n in (1..3) -%}
+            {%- liquid
+              assign key_number = 'stat_' | append: n | append: '_number'
+              assign key_suffix = 'stat_' | append: n | append: '_suffix'
+              assign key_label = 'stat_' | append: n | append: '_label'
+              assign stat_number = s[key_number] | strip
+              assign stat_suffix = s[key_suffix]
+              assign stat_label = s[key_label]
+
+              # Only plain numbers count up (e.g. 25 or 4.9); anything else is shown as typed.
+              assign stat_value = stat_number | plus: 0 | append: ''
+              assign stat_decimals = 0
+              if stat_number contains '.'
+                assign stat_decimals = stat_number | split: '.' | last | size
+              endif
+            -%}
+            {%- if stat_number != blank or stat_label != blank -%}
+              <li class="hero-pack__stat">
+                <span
+                  class="hero-pack__stat-num"
+                  {% if stat_value == stat_number %}
+                    data-count-to="{{ stat_number }}"
+                    data-count-decimals="{{ stat_decimals }}"
+                    data-count-suffix="{{ stat_suffix | escape }}"
+                    data-count-duration="2.2"
+                  {% endif %}
+                >
+                  {{- stat_number | escape }}{{ stat_suffix | escape -}}
+                </span>
+                <span class="hero-pack__stat-label">{{ stat_label | escape }}</span>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+
+      <div class="hero-pack__stage">
+        <div class="hero-pack__plinth" aria-hidden="true"></div>
+        <div class="hero-pack__perspective">
+          <div class="hero-pack__fan" data-hp-fan>
+            {%- for i in (1..card_total) -%}
+              {%- liquid
+                assign idx = forloop.index0
+                assign card_block = card_blocks[idx]
+
+                assign o = idx | minus: half | divided_by: norm
+                assign o_abs = o | abs
+                assign o2 = o | times: o
+                assign om = idx | minus: mobile_start | minus: half_m | divided_by: norm_m
+                assign om2 = om | times: om
+                assign z_drop = o_abs | times: 4 | round
+                assign z = 20 | minus: z_drop
+                assign depth = o_abs | times: 0.5
+                assign depth = 1 | minus: depth
+                assign desktop_only = false
+                if idx < mobile_start or idx >= mobile_end
+                  assign desktop_only = true
+                endif
+
+                assign card_product = card_block.settings.product
+                assign card_image = card_block.settings.image | default: card_product.featured_media.preview_image
+                assign card_label = card_block.settings.label
+                assign foil = card_block.settings.foil | default: 'rainbow'
+                assign graded = card_block.settings.graded | default: false
+                if use_defaults and o == 0
+                  assign foil = 'intense'
+                  assign graded = true
+                elsif use_defaults and o_abs == 1
+                  assign foil = 'subtle'
+                endif
+
+                # Aspect ratio (height / width): raw card 88:63, slab artwork 1180:760, slab photo 5:3.
+                assign ar = '1.3968'
+                if graded and card_image != blank
+                  assign ar = '1.6667'
+                elsif graded
+                  assign ar = '1.5526'
+                endif
+
+                assign link_tag = 'div'
+                if card_product != blank
+                  assign link_tag = 'a'
+                endif
+                assign fetch_priority = 'auto'
+                if o == 0 and has_bg_media == false and img_loading == 'eager'
+                  assign fetch_priority = 'high'
+                endif
+                assign card_alt = card_image.alt | default: card_product.title | default: card_label | escape
+                assign variant = variants[idx] | plus: 0
+                assign uid = section.id | append: '-hp-' | append: idx
+              -%}
+              <div
+                class="hp-card{% if graded %} hp-card--slab{% endif %}{% if desktop_only %} hp-card--desk{% endif %}{% if om == 0 %} hp-card--mid-m{% endif %}"
+                style="--o-d: {{ o }}; --o2-d: {{ o2 }}; --o-m: {{ om }}; --o2-m: {{ om2 }}; --ar: {{ ar }}; --z: {{ z }};"
+                data-hp-card
+                data-depth="{{ depth }}"
+                {{ card_block.shopify_attributes }}
+              >
+                <div class="hp-card__fan" data-hp-fan-item>
+                  <div class="hp-card__float" data-hp-float>
+                    <div class="hp-card__depth" data-hp-depth>
+                      <{{ link_tag }}
+                        class="hp-card__link"
+                        {% if card_product != blank %}
+                          href="{{ card_product.url }}"
+                          aria-label="{{ 'sections.hero_pack.view_product' | t: title: card_product.title | escape }}"
+                        {% endif %}
+                      >
+                        <holo-card class="hp-card__holo" data-foil="{{ foil }}" data-max-tilt="14">
+                          <div class="holo">
+                            <div class="hp-card__media">
+                              {%- if card_image != blank -%}
+                                {{
+                                  card_image
+                                  | image_url: width: 900
+                                  | image_tag:
+                                    widths: '200, 280, 360, 440, 540, 680, 900',
+                                    sizes: card_sizes,
+                                    loading: img_loading,
+                                    fetchpriority: fetch_priority,
+                                    class: 'hp-card__img',
+                                    alt: card_alt
+                                }}
+                              {%- else -%}
+                                {% render 'placeholder-card', variant: variant, uid: uid, graded: graded %}
+                              {%- endif -%}
+                            </div>
+                            <span class="holo__shine"></span>
+                            <span class="holo__glare"></span>
+                          </div>
+                        </holo-card>
+                      </{{ link_tag }}>
+                      {%- if card_label != blank -%}
+                        <span class="hp-card__label">{{ card_label | escape }}</span>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {%- endfor -%}
+
+            <div class="hero-pack__fx" aria-hidden="true">
+              <span class="hero-pack__seam" data-hp-seam></span>
+              <span class="hero-pack__beam" data-hp-beam><i data-hp-beam-band></i></span>
+              <span class="hero-pack__flash" data-hp-flash></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {%- if s.full_height -%}
+      <div class="hero-pack__cue" aria-hidden="true">
+        <span>{{ 'sections.hero_pack.scroll' | t }}</span>
+        <i></i>
+      </div>
+    {%- endif -%}
+  </hero-pack>
+</section>
+
+<script src="{{ 'section-hero-pack.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Hero pack",
+  "class": "shopify-section--hero-pack",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "info": "Shown in a pill with a live pulsing dot.",
+      "default": "New drop live"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Italicise words to highlight them in red.",
+      "default": "Pull something <em>legendary</em>"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Graded slabs, sealed boosters and chase singles. Authenticated, sleeved and shipped insured from the vault."
+    },
+    {
+      "type": "text",
+      "id": "button_label_1",
+      "label": "Primary button label",
+      "default": "Shop the drop"
+    },
+    {
+      "type": "url",
+      "id": "button_link_1",
+      "label": "Primary button link",
+      "default": "/collections/all"
+    },
+    {
+      "type": "text",
+      "id": "button_label_2",
+      "label": "Secondary button label",
+      "default": "Browse graded"
+    },
+    {
+      "type": "url",
+      "id": "button_link_2",
+      "label": "Secondary button link",
+      "default": "/collections"
+    },
+    {
+      "type": "header",
+      "content": "Trust stats"
+    },
+    {
+      "type": "paragraph",
+      "content": "Plain numbers such as 25 or 4.9 count up on load. Put symbols like K+ or % in the suffix."
+    },
+    {
+      "type": "text",
+      "id": "stat_1_number",
+      "label": "Stat 1 number",
+      "default": "25"
+    },
+    {
+      "type": "text",
+      "id": "stat_1_suffix",
+      "label": "Stat 1 suffix",
+      "default": "K+"
+    },
+    {
+      "type": "text",
+      "id": "stat_1_label",
+      "label": "Stat 1 label",
+      "default": "Cards sold"
+    },
+    {
+      "type": "text",
+      "id": "stat_2_number",
+      "label": "Stat 2 number",
+      "default": "4.9"
+    },
+    {
+      "type": "text",
+      "id": "stat_2_suffix",
+      "label": "Stat 2 suffix",
+      "default": "/5"
+    },
+    {
+      "type": "text",
+      "id": "stat_2_label",
+      "label": "Stat 2 label",
+      "default": "Collector rating"
+    },
+    {
+      "type": "text",
+      "id": "stat_3_number",
+      "label": "Stat 3 number",
+      "default": "100"
+    },
+    {
+      "type": "text",
+      "id": "stat_3_suffix",
+      "label": "Stat 3 suffix",
+      "default": "%"
+    },
+    {
+      "type": "text",
+      "id": "stat_3_label",
+      "label": "Stat 3 label",
+      "default": "Authenticated"
+    },
+    {
+      "type": "header",
+      "content": "Card stage"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Card layout",
+      "options": [
+        { "value": "fan", "label": "Fan" },
+        { "value": "stack", "label": "Stack" },
+        { "value": "single", "label": "Single card" }
+      ],
+      "default": "fan",
+      "info": "Add up to 5 card blocks. Phones show the middle three."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image"
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "Background video",
+      "info": "Plays muted on a loop and replaces the image."
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "label": "Image or video overlay",
+      "default": 60
+    },
+    {
+      "type": "checkbox",
+      "id": "show_floor",
+      "label": "Show perspective grid floor",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_particles",
+      "label": "Show floating sparks",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_height",
+      "label": "Fill the screen on desktop",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 0
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Card",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Card image",
+          "info": "63:88 trading-card photos on a dark or transparent background look best."
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product",
+          "info": "Links the card to the product. Its featured image is used when no card image is set."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Secret rare"
+        },
+        {
+          "type": "select",
+          "id": "foil",
+          "label": "Holo foil",
+          "options": [
+            { "value": "subtle", "label": "Subtle" },
+            { "value": "rainbow", "label": "Rainbow" },
+            { "value": "intense", "label": "Intense" }
+          ],
+          "default": "rainbow"
+        },
+        {
+          "type": "checkbox",
+          "id": "graded",
+          "label": "Graded slab",
+          "info": "Uses the taller slab shape.",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "max_blocks": 5,
+  "presets": [
+    {
+      "name": "Hero — card fan",
+      "blocks": [
+        {
+          "type": "card",
+          "settings": { "label": "Alt art", "foil": "subtle", "graded": false }
+        },
+        {
+          "type": "card",
+          "settings": { "label": "Secret rare", "foil": "rainbow", "graded": false }
+        },
+        {
+          "type": "card",
+          "settings": { "label": "PSA 10 Gem mint", "foil": "intense", "graded": true }
+        },
+        {
+          "type": "card",
+          "settings": { "label": "1st edition", "foil": "rainbow", "graded": false }
+        },
+        {
+          "type": "card",
+          "settings": { "label": "Full art", "foil": "subtle", "graded": false }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

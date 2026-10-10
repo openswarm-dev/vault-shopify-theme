@@ -76,6 +76,115 @@
           "other": "Only {{ count }} left"
         }
       }
+    },
+    "card": {
+      "price_from_html": "<span class=\"price__from\">From</span> {{ price }}",
+      "saving_chip": "−{{ percent }}%",
+      "saving_label": "Save {{ percent }}%",
+      "sale_off": "{{ percent }}% off",
+      "demo": {
+        "title_1": "Ember Drake — 1st Edition Holo",
+        "title_2": "Void Reaper — Secret Rare",
+        "title_3": "Inferno Kirin — Alt Art",
+        "title_4": "Tide Sovereign — Full Art",
+        "title_5": "Crimson Titan — Black Star Promo",
+        "title_6": "Astral Oracle — Gold Secret",
+        "title_7": "Ember Drake — Shadowless Holo",
+        "title_8": "Void Reaper — Reverse Holo",
+        "title_9": "Inferno Rising Booster Box",
+        "title_10": "Tide Sovereign — Gem Mint",
+        "title_11": "Crimson Titan — Ultra Rare",
+        "title_12": "Astral Oracle — Manga Rare",
+        "meta_1": "Origins · #004/102",
+        "meta_2": "Shadowfall · #113/110",
+        "meta_3": "Inferno Rising · #025/198",
+        "meta_4": "Tidebound · #067/165",
+        "meta_5": "Promo · #SV-001",
+        "meta_6": "Astral Echoes · #201/195",
+        "meta_7": "Origins · #004/102",
+        "meta_8": "Shadowfall · #041/110",
+        "meta_9": "Inferno Rising · 36 packs",
+        "meta_10": "Tidebound · #067/165",
+        "meta_11": "Crimson Vault · #150/165",
+        "meta_12": "Astral Echoes · #188/195",
+        "rarity_holo": "Holo Rare",
+        "rarity_secret": "Secret Rare",
+        "rarity_alt": "Alt Art",
+        "rarity_full": "Full Art",
+        "rarity_promo": "Promo",
+        "rarity_gold": "Gold Secret Rare",
+        "rarity_reverse": "Reverse Holo",
+        "rarity_ultra": "Ultra Rare",
+        "rarity_manga": "Manga Rare",
+        "detail_nm_en": "Near Mint · English",
+        "detail_nm_jp": "Near Mint · Japanese",
+        "detail_lp_en": "Lightly Played · English",
+        "detail_sealed": "Factory sealed"
+      }
+    },
+    "pdp": {
+      "breadcrumb": "Breadcrumb",
+      "home": "Home",
+      "gallery": {
+        "label": "Product media",
+        "slide_role": "slide",
+        "slide": "Media {{ index }} of {{ count }}",
+        "show_media": "Show media {{ index }}",
+        "previous": "Previous image",
+        "next": "Next image",
+        "open_zoom": "Open zoom view",
+        "zoom_title": "Zoomed product images",
+        "zoom_in": "Toggle zoom",
+        "zoom_hint_touch": "Tap to zoom · Pinch or drag to pan",
+        "zoom_hint_pointer": "Click to zoom · Move to pan",
+        "flip": "Flip",
+        "flip_label": "Flip the card to see the back"
+      },
+      "stock": {
+        "in_stock": "In stock",
+        "low": {
+          "one": "Only 1 left",
+          "other": "Only {{ count }} left"
+        },
+        "sold_out": "Sold out",
+        "sold_out_note": "This one's been pulled. New stock lands every week.",
+        "backorder": "Available on backorder",
+        "backorder_note": "Ships as soon as it's restocked"
+      },
+      "price": {
+        "tax_included": "Tax included.",
+        "tax_excluded": "Taxes calculated at checkout.",
+        "shipping_policy_html": "<a href=\"{{ link }}\">Shipping</a> calculated at checkout."
+      },
+      "variant": {
+        "label": "Variant",
+        "sold_out": "sold out",
+        "unavailable": "unavailable"
+      },
+      "quantity": {
+        "available": {
+          "one": "Last one available",
+          "other": "{{ count }} available"
+        }
+      },
+      "specs": {
+        "verify": "Verify"
+      },
+      "cert": {
+        "kicker": "Certified authentic",
+        "verify_html": "Verify cert <span class=\"mono\">#{{ cert }}</span> on {{ grader }}"
+      },
+      "share": {
+        "label": "Share",
+        "share": "Share",
+        "copy": "Copy link",
+        "copied": "Link copied to clipboard",
+        "copy_error": "Couldn't copy the link. Copy it from the address bar instead."
+      },
+      "sticky": {
+        "label": "Quick add to cart",
+        "back_to_top": "Back to product images"
+      }
     }
   },
   "collector": {
@@ -111,6 +220,598 @@
         "one": "{{ count }} item",
         "other": "{{ count }} items"
       }
+    }
+  },
+  "sections": {
+    "announcement_bar": {
+      "label": "Announcements",
+      "previous": "Previous announcement",
+      "next": "Next announcement"
+    },
+    "header": {
+      "navigation": "Main",
+      "shop_all": "Shop all {{ title }}",
+      "view_all": "View all",
+      "close_menu": "Close menu",
+      "featured": "Featured",
+      "log_in": "Log in",
+      "my_account": "My account",
+      "region": "Region & language"
+    },
+    "mobile_dock": {
+      "label": "Quick navigation",
+      "shop": "Shop"
+    },
+    "predictive_search": {
+      "label": "Search the store",
+      "placeholder": "Search cards, sets, slabs…",
+      "clear": "Clear search",
+      "submit": "Search",
+      "close": "Close search",
+      "popular": "Popular searches",
+      "jump_to": "Jump to",
+      "suggestions": "Suggestions",
+      "results": "Search suggestions",
+      "products": "Products",
+      "collections": "Collections",
+      "pages": "Pages & articles",
+      "search_for": "Search for “{{ terms }}”",
+      "no_results": "No matches for “{{ terms }}”",
+      "no_results_hint": "Check the spelling, or try a set name, card number or grader.",
+      "results_count": {
+        "one": "{{ count }} suggestion available",
+        "other": "{{ count }} suggestions available"
+      },
+      "products_count": {
+        "one": "{{ count }} item",
+        "other": "{{ count }} items"
+      },
+      "hint_navigate": "Navigate",
+      "hint_open": "Open",
+      "hint_close": "Close"
+    },
+    "cart_drawer": {
+      "free_shipping_label": "Free shipping progress",
+      "empty_text": "Singles, graded slabs and sealed product are waiting in the vault.",
+      "shop_all": "Start collecting",
+      "login_html": "Have an account? <a href=\"{{ link }}\">Log in</a> to check out faster.",
+      "upsell_heading": "Complete your collection",
+      "upsell_heading_empty": "Trending in the vault",
+      "add_named": "Add {{ title }} to cart",
+      "choose_named": "Choose options for {{ title }}",
+      "remove_named": "Remove {{ title }}",
+      "each": "{{ price }} each",
+      "note_placeholder": "Gift message, sleeve preferences or delivery notes",
+      "note_saving": "Saving note…",
+      "note_saved": "Note saved",
+      "view_cart": "View cart",
+      "secure_checkout": "Secure, encrypted checkout",
+      "payment_methods": "Accepted payment methods",
+      "discounts": "Discounts"
+    },
+    "footer": {
+      "newsletter_fine": "Unsubscribe anytime. We never share your email.",
+      "country": "Country / region",
+      "language": "Language",
+      "update": "Update",
+      "payment_methods": "Accepted payment methods",
+      "policies": "Store policies",
+      "back_to_top": "Back to top"
+    },
+    "social_icons": {
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "youtube": "YouTube",
+      "x": "X",
+      "facebook": "Facebook",
+      "discord": "Discord",
+      "twitch": "Twitch",
+      "whatnot": "Whatnot",
+      "ebay": "eBay"
+    },
+    "featured_collection": {
+      "tabs_label": "Browse collections",
+      "tab_fallback": "Collection {{ number }}",
+      "all_products": "The full vault",
+      "products": "Products",
+      "item_count": {
+        "one": "{{ count }} item",
+        "other": "{{ count }} items"
+      }
+    },
+    "collection_list": {
+      "label": "Collections",
+      "item_count": {
+        "one": "{{ count }} item",
+        "other": "{{ count }} items"
+      },
+      "defaults": {
+        "title_1": "Pokémon",
+        "title_2": "Magic: The Gathering",
+        "title_3": "Yu-Gi-Oh!",
+        "title_4": "One Piece",
+        "title_5": "Lorcana",
+        "title_6": "Sports Cards",
+        "caption_1": "Vintage holos to modern chase cards",
+        "caption_2": "Reserved List to Commander staples",
+        "caption_3": "Ghost rares and 1st Editions",
+        "caption_4": "Manga rares and alt arts",
+        "caption_5": "Enchanted and cold-foil singles",
+        "caption_6": "Rookies, autos and numbered parallels"
+      }
+    },
+    "drop_countdown": {
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "days_short": "Days",
+      "hours_short": "Hrs",
+      "minutes_short": "Min",
+      "seconds_short": "Sec",
+      "opens_at": "{{ date }} · {{ time }}",
+      "tba": "Drop date to be announced",
+      "timer_label": "Countdown to the drop",
+      "remaining": "Time remaining: {{ days }} days, {{ hours }} hours, {{ minutes }} minutes",
+      "final_hours": "Final 24 hours",
+      "notify_button": "Notify me",
+      "notify_success": "You're on the list. We'll email you the moment the Vault opens.",
+      "live": "Live now"
+    },
+    "grade_scale": {
+      "tablist_label": "Grading scale",
+      "condition": "Condition",
+      "out_of_ten": "{{ score }}/10"
+    },
+    "testimonials": {
+      "verified": "Verified collector",
+      "view_product": "View {{ product }}",
+      "rating_max": "/ 5",
+      "aggregate": "from {{ count }} collectors",
+      "reviews_label": "Customer reviews",
+      "pause": "Pause reviews",
+      "play": "Play reviews"
+    },
+    "newsletter": {
+      "success_title": "Welcome to the Vault"
+    },
+    "video": {
+      "label": "Video",
+      "play": "Play video",
+      "play_named": "Play video: {{ title }}",
+      "pause_background": "Pause background video",
+      "play_background": "Play background video"
+    },
+    "custom_liquid": {
+      "empty": "Add Liquid code in the section settings to show it here. This note is only visible in the theme editor."
+    },
+    "main_cart": {
+      "eyebrow": "Secure checkout",
+      "items_heading": "Items in your cart",
+      "product": "Product",
+      "quantity": "Quantity",
+      "total": "Total",
+      "each": "{{ price }} each",
+      "update": "Update cart",
+      "summary": "Order summary",
+      "free_shipping_progress": "Progress towards free shipping",
+      "shipping": "Shipping",
+      "shipping_at_checkout": "Calculated at checkout",
+      "estimated_total": "Estimated total",
+      "note_toggle": "Add an order note",
+      "note_hint": "Packing requests, gift notes or grading instructions.",
+      "note_saved": "Note saved",
+      "taxes_included": "Taxes included. Shipping calculated at checkout.",
+      "updated": "Cart updated. Estimated total: {{ total }}",
+      "removed": "{{ title }} removed from your cart",
+      "empty_eyebrow": "Nothing in the binder yet",
+      "empty_heading_html": "Your cart is <em>empty</em>",
+      "empty_login_html": "Have an account? <a href=\"{{ url }}\">Log in</a> to check out faster.",
+      "browse_collections": "Browse collections",
+      "upsell_heading": "Complete the binder"
+    },
+    "main_page": {
+      "empty": "Add content to this page in Online Store > Pages. It appears here with full reading typography."
+    },
+    "contact_form": {
+      "card_title": "Send a message",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone number",
+      "topic": "Topic",
+      "message": "Message",
+      "topics_default": "General question, Selling a collection, Order help, Grading question",
+      "send": "Send message",
+      "success": "Message received. We'll reply within one business day.",
+      "error_heading": "Please check the following:",
+      "required_note": "* Required fields",
+      "aside_label": "Other ways to reach us"
+    },
+    "featured_product": {
+      "view_details": "View full details",
+      "editor_note": "Pick a product in the theme editor to feature it here.",
+      "demo": {
+        "title": "Ember Drake Holo — 1st Edition",
+        "game": "Pokémon",
+        "set": "Base Set",
+        "number": "4/102",
+        "rarity": "Holo Rare",
+        "condition": "Gem Mint",
+        "language": "English"
+      }
+    },
+    "product_recommendations": {
+      "label": "Recommended products",
+      "loading": "Loading recommendations",
+      "editor_empty": "Recommendations appear here once your store has products that sell together. They're hidden from customers when there's nothing to show."
+    },
+    "hero_pack": {
+      "scroll": "Scroll",
+      "view_product": "View {{ title }}"
+    },
+    "marquee": {
+      "label": "Store highlights"
+    },
+    "holo_showcase": {
+      "flip": "Flip card",
+      "card_front": "Card front",
+      "card_back": "Card back",
+      "view_card": "View card"
+    },
+    "card_flip_reveal": {
+      "reveal": "Reveal card {{ number }}",
+      "reveal_all": "Reveal all",
+      "tap_to_reveal": "Tap to reveal",
+      "click_to_reveal": "Click to reveal",
+      "chase": "Chase"
+    }
+  },
+  "collections": {
+    "banner": {
+      "breadcrumb": "Breadcrumb",
+      "home": "Home",
+      "collections": "Collections",
+      "product_label": {
+        "one": "item",
+        "other": "items"
+      },
+      "read_more": "Read more",
+      "read_less": "Show less",
+      "quick_links": "Shop this collection by"
+    },
+    "toolbar": {
+      "label": "Product tools",
+      "results_html": {
+        "one": "<strong>{{ count }}</strong> result",
+        "other": "<strong>{{ count }}</strong> results"
+      },
+      "sort_by": "Sort by",
+      "filter_and_sort": "Filter & sort",
+      "sort": "Sort",
+      "active_filters": {
+        "one": "{{ count }} filter applied",
+        "other": "{{ count }} filters applied"
+      },
+      "density": "Grid layout",
+      "columns": {
+        "one": "{{ count }} column",
+        "other": "{{ count }} columns"
+      }
+    },
+    "facets": {
+      "heading": "Filters",
+      "show_more": "Show {{ count }} more",
+      "show_less": "Show less",
+      "product_count": {
+        "one": "{{ count }} product",
+        "other": "{{ count }} products"
+      },
+      "price_from": "From",
+      "price_to": "To",
+      "price_min_label": "Minimum price",
+      "price_max_label": "Maximum price",
+      "max_price": "The highest price is {{ price }}",
+      "price_range_chip": "{{ min }} – {{ max }}",
+      "price_min_chip": "Over {{ price }}",
+      "price_max_chip": "Under {{ price }}",
+      "active_label": "Active filters",
+      "remove_filter": "Remove filter {{ filter }}",
+      "clear": "Clear",
+      "show_results": {
+        "one": "Show {{ count }} result",
+        "other": "Show {{ count }} results"
+      },
+      "selected": {
+        "one": "{{ count }} selected",
+        "other": "{{ count }} selected"
+      }
+    },
+    "grid": {
+      "label": "Products",
+      "all_loaded": "That's the whole binder",
+      "previous": "Show earlier items",
+      "load_error": "Couldn't load more items. Please try again."
+    },
+    "empty": {
+      "filtered_heading_html": "No cards match those <em>filters</em>",
+      "filtered_text": "Try removing a filter or two. Fresh stock lands in the vault every week.",
+      "clear_filters": "Clear filters",
+      "heading_html": "This binder is <em>empty</em>",
+      "text": "Nothing has been slotted into this collection yet. Check back after the next drop.",
+      "browse_all": "Browse all cards",
+      "placeholder_note": "Sample cards shown. Add products to this collection to replace them."
+    },
+    "placeholder": {
+      "product_names": "Ember Drake ex|Void Reaper Secret Rare|Inferno Kirin Alt Art|Tide Sovereign Holo|Crimson Titan Promo|Astral Oracle Full Art|Booster Box Display|Elite Trainer Box",
+      "collection_names": "Pokémon|Magic: The Gathering|Yu-Gi-Oh!|One Piece|Disney Lorcana|Sports cards|Graded slabs|Sealed product",
+      "sample": "Sample"
+    },
+    "list": {
+      "count": {
+        "one": "{{ count }} collection",
+        "other": "{{ count }} collections"
+      },
+      "empty": "Sample collections shown. Collections you create will appear here."
+    }
+  },
+  "templates": {
+    "404": {
+      "eyebrow": "Error 404",
+      "title_html": "This card isn't in our <em>vault</em>",
+      "text": "The page you're after was moved, sold out or never printed. Search the vault or jump back to the latest drops.",
+      "search_label": "Search cards, sets and slabs",
+      "home": "Back home",
+      "new_arrivals": "New arrivals",
+      "flip": "Flip card",
+      "card_name": "Not Found",
+      "card_type": "Lost · Stage 404",
+      "card_ability": "Vanish: this page leaves play. Search the vault to draw a new one."
+    },
+    "search": {
+      "title": "Search",
+      "input_label": "Search the store",
+      "placeholder": "Search cards, sets, slabs…",
+      "submit": "Search",
+      "clear": "Clear search",
+      "results_for": {
+        "one": "{{ count }} result for",
+        "other": "{{ count }} results for"
+      },
+      "no_results_for": "No results for",
+      "empty_text": "Check the spelling, try a set name or card number, or explore one of these instead.",
+      "start_text": "Type a card name, set, grader or product. We'll search every binder in the vault.",
+      "popular": "Popular searches",
+      "type_label": "Result type",
+      "types": {
+        "all": "All",
+        "products": "Products",
+        "articles": "Articles",
+        "pages": "Pages"
+      },
+      "group_products": "Products",
+      "group_articles": "From the journal",
+      "group_pages": "Pages",
+      "page_cta": "View page"
+    },
+    "password": {
+      "heading_html": "The vault <em>opens</em> soon",
+      "owner_button": "Store owner? Enter password",
+      "owner_button_short": "Owner login",
+      "modal_title": "Enter store password",
+      "modal_text": "This store is password protected. Enter the password to preview it.",
+      "password_label": "Password",
+      "enter": "Enter store",
+      "admin_link_html": "Are you the store owner? <a href=\"/admin\">Log in here</a>",
+      "countdown_label": "Doors open in",
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Mins",
+      "seconds": "Secs"
+    }
+  },
+  "blogs": {
+    "blog": {
+      "all_stories": "All stories",
+      "filter_label": "Filter stories by topic",
+      "tagged": "Showing stories tagged \"{{ tag }}\"",
+      "clear_filter": "Clear filter",
+      "empty_heading": "No stories yet",
+      "empty_text": "The first grading guides and pull stories are being written. Check back after the next drop.",
+      "empty_tag_heading": "Nothing tagged \"{{ tag }}\" yet",
+      "empty_tag_text": "Try another topic or browse every story."
+    },
+    "article": {
+      "read_time": {
+        "one": "{{ count }} min read",
+        "other": "{{ count }} min read"
+      },
+      "by_author": "By {{ author }}",
+      "read_story": "Read story",
+      "breadcrumb": "Breadcrumb",
+      "tags": "Tags",
+      "share": {
+        "label": "Share this story",
+        "copy": "Copy link",
+        "copied": "Link copied",
+        "copy_error": "Couldn't copy the link. Copy it from the address bar instead.",
+        "native": "Share"
+      },
+      "pager_label": "More stories",
+      "previous": "Previous story",
+      "next": "Next story",
+      "back_to_blog": "Back to {{ blog }}",
+      "comments": {
+        "one": "{{ count }} comment",
+        "other": "{{ count }} comments"
+      },
+      "leave_comment": "Leave a comment",
+      "comment_name": "Name",
+      "comment_email": "Email",
+      "comment_message": "Comment",
+      "post_comment": "Post comment",
+      "comment_success": "Thanks! Your comment is live.",
+      "comment_success_moderated": "Thanks! Your comment will appear once it's approved.",
+      "comment_error": "Please check the following:",
+      "comment_moderated_note": "Comments are reviewed before they're published."
+    }
+  },
+  "gift_cards": {
+    "issued": {
+      "title": "Your {{ value }} gift card for {{ shop }}",
+      "eyebrow": "A gift from {{ shop }}",
+      "heading_html": "Your <em>{{ value }}</em> gift card",
+      "subtext": "Spend it on singles, graded slabs, sealed product and supplies. Enter the code at checkout.",
+      "card_label": "Gift card",
+      "card_type": "Store credit · Any game",
+      "card_text": "Redeem on singles, graded slabs, sealed product and supplies.",
+      "balance": "Balance",
+      "original_value": "Original value",
+      "expires": "Expires",
+      "no_expiry": "Never",
+      "expired": "Expired on {{ expiry }}",
+      "disabled": "This gift card is no longer active",
+      "code_label": "Gift card code",
+      "copy_code": "Copy code",
+      "copied": "Copied",
+      "copy_error": "Couldn't copy. Select the code and copy it manually.",
+      "qr_label": "Redeem in store",
+      "qr_text": "Show this QR code at the counter, or enter the code at online checkout.",
+      "qr_image_alt": "QR code for this gift card",
+      "add_to_apple_wallet": "Add to Apple Wallet",
+      "shop_link": "Start shopping",
+      "print": "Print",
+      "message_label": "A note for you"
+    }
+  },
+  "customer": {
+    "errors": {
+      "heading": "Please check the following:"
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "password_confirm": "Confirm password",
+      "new_password": "New password",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "show_password": "Show password",
+      "hide_password": "Hide password"
+    },
+    "perks": {
+      "track": "Track every order",
+      "alerts": "Early drop alerts",
+      "checkout": "Faster, secure checkout"
+    },
+    "login": {
+      "title_html": "Welcome <em>back</em>",
+      "forgot_password": "Forgot your password?",
+      "submit": "Log in",
+      "new_customer": "New to the vault?",
+      "create_account": "Create an account",
+      "guest_continue": "Continue as guest"
+    },
+    "recover_password": {
+      "eyebrow": "Account recovery",
+      "title_html": "Reset your <em>password</em>",
+      "subtext": "Enter your email and we'll send you a secure link to set a new password.",
+      "submit": "Send reset link",
+      "cancel": "Back to log in",
+      "success": "Check your inbox. We've sent you a link to reset your password."
+    },
+    "register": {
+      "title_html": "Create your <em>account</em>",
+      "password_hint": "Use at least 5 characters.",
+      "marketing": "Email me about drops, restocks and members-only pricing",
+      "submit": "Create account",
+      "have_account": "Already have an account?",
+      "login": "Log in"
+    },
+    "activate_account": {
+      "eyebrow": "Almost there",
+      "title_html": "Activate your <em>account</em>",
+      "subtext": "Create a password to finish setting up your collector account.",
+      "submit": "Activate account",
+      "decline": "Decline invitation"
+    },
+    "reset_password": {
+      "title_html": "Set a new <em>password</em>",
+      "subtext": "Choose a new password for your account.",
+      "submit": "Reset password"
+    },
+    "account": {
+      "eyebrow": "Collector account",
+      "welcome_html": "Welcome back, <em>{{ name }}</em>",
+      "addresses": "Addresses",
+      "logout": "Log out",
+      "orders_count": "Orders",
+      "total_spent": "Total spent",
+      "addresses_count": "Saved addresses",
+      "default_address": "Default address",
+      "no_address": "You haven't saved an address yet.",
+      "manage_addresses": {
+        "one": "Manage addresses ({{ count }})",
+        "other": "Manage addresses ({{ count }})"
+      },
+      "return": "Back to account"
+    },
+    "orders": {
+      "title": "Order history",
+      "order_number": "Order",
+      "date": "Date",
+      "payment_status": "Payment",
+      "fulfillment_status": "Fulfillment",
+      "total": "Total",
+      "view_order": "View order",
+      "cancelled": "Cancelled",
+      "none_title": "No orders yet",
+      "none_text": "Your first pull is waiting. Orders you place will show up here."
+    },
+    "order": {
+      "eyebrow": "Order details",
+      "title": "Order {{ name }}",
+      "date_html": "Placed on {{ date }}",
+      "cancelled_html": "Cancelled on {{ date }}.",
+      "cancelled_reason": "Reason: {{ reason }}",
+      "items": "Items",
+      "sku": "SKU",
+      "fulfilled_html": "Shipped on {{ date }}",
+      "track_shipment": "Track shipment",
+      "summary": "Summary",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "tax": "Tax",
+      "duties": "Duties",
+      "total": "Total",
+      "refunded": "Refunded",
+      "shipping_address": "Shipping address",
+      "billing_address": "Billing address",
+      "no_shipping": "No shipping address for this order."
+    },
+    "addresses": {
+      "eyebrow": "Address book",
+      "title_html": "Your <em>addresses</em>",
+      "subtext": "Save where your slabs and sealed boxes should land.",
+      "add_new": "Add a new address",
+      "add": "Add address",
+      "update": "Save address",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "delete_confirm": "Are you sure you want to delete this address?",
+      "default": "Default",
+      "set_default": "Set as default address",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "company": "Company",
+      "address1": "Address",
+      "address2": "Apartment, suite, etc.",
+      "city": "City",
+      "country": "Country/region",
+      "province": "Province / State",
+      "zip": "Postal / ZIP code",
+      "phone": "Phone",
+      "none_title": "No saved addresses",
+      "none_text": "Add an address above for faster checkout next time."
     }
   }
 }

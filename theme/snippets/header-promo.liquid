@@ -1,0 +1,67 @@
+{%- comment -%}
+  Promo card from a header "mega_promo" block — used in desktop mega menus and the menu drawer.
+  Falls back to placeholder-card art when no image is chosen.
+  Usage: {% render 'header-promo', block: block, index: 1, attrs: true, layout: 'stack', sizes: '280px' %}
+  Params:
+    block   required — the mega_promo block
+    index   placeholder art variant (1–6)
+    attrs   true → output block.shopify_attributes (only on one rendering per block)
+    layout  'stack' (image above text, default) | 'row' (thumbnail beside text)
+    sizes   image sizes attribute (default 280px)
+    class   optional extra classes
+{%- endcomment -%}
+{%- liquid
+  assign promo_layout = layout | default: 'stack'
+  assign promo_sizes = sizes | default: '280px'
+  assign promo_index = index | default: 1
+  assign promo_url = block.settings.link | default: routes.all_products_collection_url
+  assign promo_mod = promo_index | modulo: 2
+  assign promo_graded = false
+  if promo_mod == 0
+    assign promo_graded = true
+  endif
+-%}
+<a
+  href="{{ promo_url }}"
+  class="header-promo header-promo--{{ promo_layout }}{% if class %} {{ class }}{% endif %}"
+  data-panel-item
+  {% if attrs %}
+    {{ block.shopify_attributes }}
+  {% endif %}
+>
+  <span class="header-promo__media">
+    {%- if block.settings.image != blank -%}
+      {{
+        block.settings.image
+        | image_url: width: 720
+        | image_tag:
+          class: 'header-promo__img',
+          loading: 'lazy',
+          widths: '120, 240, 360, 480, 720',
+          sizes: promo_sizes,
+          alt: ''
+      }}
+    {%- else -%}
+      <span class="header-promo__art">
+        {%- render 'placeholder-card', variant: promo_index, uid: block.id, graded: promo_graded -%}
+      </span>
+    {%- endif -%}
+  </span>
+  <span class="header-promo__body">
+    {%- if block.settings.eyebrow != blank -%}
+      <span class="header-promo__eyebrow">{{ block.settings.eyebrow | escape }}</span>
+    {%- endif -%}
+    {%- if block.settings.heading != blank -%}
+      <span class="header-promo__heading h4">{{ block.settings.heading }}</span>
+    {%- endif -%}
+    {%- if block.settings.text != blank -%}
+      <span class="header-promo__text">{{ block.settings.text | escape }}</span>
+    {%- endif -%}
+    {%- if block.settings.link_label != blank -%}
+      <span class="header-promo__cta">
+        {{- block.settings.link_label | escape -}}
+        {%- render 'icon', name: 'arrow-right', size: 14 -%}
+      </span>
+    {%- endif -%}
+  </span>
+</a>

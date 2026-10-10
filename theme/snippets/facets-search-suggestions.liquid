@@ -1,0 +1,34 @@
+{%- comment -%}
+  Collection suggestion grid for the search page (before a search and when nothing matches).
+  Falls back to the store's first collections when no list is picked; renders nothing without collections.
+  Usage: {% render 'facets-search-suggestions', heading: 'Explore the vault', collection_list: section.settings.suggested_collections, section_id: section.id %}
+  Params:
+    heading          section heading text
+    collection_list  collection_list setting (optional)
+    section_id       (required) section.id
+{%- endcomment -%}
+{%- liquid
+  assign sg_list = collection_list
+  if sg_list == blank or sg_list.size == 0
+    assign sg_list = collections
+  endif
+  assign sg_sizes = '(min-width: 990px) calc((100vw - 120px) / 4), calc((100vw - 56px) / 2)'
+-%}
+{%- if sg_list.size > 0 -%}
+  <div class="page-width search-suggestions">
+    {%- if heading != blank -%}
+      <h2 class="search-suggestions__title h3" id="SearchSuggestions-{{ section_id }}" data-reveal>{{ heading | escape }}</h2>
+    {%- endif -%}
+    <ul
+      class="grid search-suggestions__grid"
+      role="list"
+      style="--cols-mobile: 2; --cols-tablet: 2; --cols-desktop: 4;"
+    >
+      {%- for suggestion in sg_list limit: 4 -%}
+        <li class="search-suggestions__item">
+          {%- render 'card-collection', collection: suggestion, index: forloop.index0, size: 'sm', sizes: sg_sizes -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+{%- endif -%}

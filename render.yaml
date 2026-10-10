@@ -1,0 +1,14 @@
+# Render Blueprint — hosts the Vault theme preview (a Shopify storefront emulator with demo data).
+# The real theme lives in ./theme and is uploaded to Shopify separately (npm run package).
+services:
+  - type: web
+    name: vault-theme-preview
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: node dev/server.mjs
+    healthCheckPath: /__status
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production

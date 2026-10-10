@@ -1,0 +1,18 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-404",
+      "settings": {
+        "heading": "This card isn't in our <em>vault</em>",
+        "text": "The page you're after was moved, sold out or never printed. Search the vault or jump back to the latest drops.",
+        "show_search": true,
+        "button_label": "New arrivals",
+        "button_link": "/collections/all",
+        "color_scheme": "scheme-1",
+        "padding_top": 80,
+        "padding_bottom": 100
+      }
+    }
+  },
+  "order": ["main"]
+}

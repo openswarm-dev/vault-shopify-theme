@@ -1,0 +1,193 @@
+{%- comment -%}
+  Predictive search results, fetched by <predictive-search> (assets/component-predictive-search.js)
+  from routes.predictive_search_url with section_id=predictive-search.
+  Combobox/listbox pattern: every result is an <li role="option" id="…"> containing a link,
+  grouped (role="group") by type; the last option submits a full search for the terms.
+{%- endcomment -%}
+{%- liquid
+  assign ps_products = predictive_search.resources.products
+  assign ps_collections = predictive_search.resources.collections
+  assign ps_pages = predictive_search.resources.pages
+  assign ps_articles = predictive_search.resources.articles
+  assign ps_queries = predictive_search.resources.queries
+  assign ps_terms = predictive_search.terms
+  assign ps_aside_total = ps_queries.size | plus: ps_collections.size | plus: ps_pages.size | plus: ps_articles.size
+  assign ps_total = ps_aside_total | plus: ps_products.size
+  assign show_price = settings.predictive_search_show_price
+-%}
+<div class="ps-results" id="predictive-search-results" data-ps-results-inner>
+  {%- if predictive_search.performed -%}
+    <p class="visually-hidden" data-ps-count>{{ 'sections.predictive_search.results_count' | t: count: ps_total }}</p>
+
+    {%- if ps_total == 0 -%}
+      <div class="ps-empty" data-ps-item>
+        <span class="ps-empty__icon" aria-hidden="true">{% render 'icon', name: 'cards', size: 26 %}</span>
+        <p class="ps-empty__title">{{ 'sections.predictive_search.no_results' | t: terms: ps_terms }}</p>
+        <p class="ps-empty__hint">{{ 'sections.predictive_search.no_results_hint' | t }}</p>
+      </div>
+    {%- endif -%}
+
+    <div
+      id="predictive-search-listbox"
+      class="ps-results__grid{% if ps_products.size == 0 or ps_aside_total == 0 %} ps-results__grid--single{% endif %}"
+      role="listbox"
+      aria-label="{{ 'sections.predictive_search.results' | t }}"
+    >
+      {%- if ps_aside_total > 0 -%}
+        <div class="ps-results__aside">
+          {%- if ps_queries.size > 0 -%}
+            <div class="ps-group ps-group--queries">
+              <p class="ps-group__title" aria-hidden="true">{{ 'sections.predictive_search.suggestions' | t }}</p>
+              <ul class="ps-group__list" role="group" aria-label="{{ 'sections.predictive_search.suggestions' | t }}">
+                {%- for query in ps_queries -%}
+                  <li class="ps-option ps-query" role="option" id="ps-query-{{ forloop.index }}" aria-selected="false" data-ps-item>
+                    <a href="{{ query.url }}" class="ps-query__link" tabindex="-1">
+                      {%- render 'icon', name: 'search', size: 15, class: 'ps-query__icon' -%}
+                      <span class="ps-query__text">{{ query.styled_text }}</span>
+                      {%- render 'icon', name: 'arrow-up-right', size: 14, class: 'ps-option__go' -%}
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+
+          {%- if ps_collections.size > 0 -%}
+            <div class="ps-group ps-group--collections">
+              <p class="ps-group__title" aria-hidden="true">{{ 'sections.predictive_search.collections' | t }}</p>
+              <ul class="ps-group__list" role="group" aria-label="{{ 'sections.predictive_search.collections' | t }}">
+                {%- for collection in ps_collections -%}
+                  <li class="ps-option" role="option" id="ps-collection-{{ forloop.index }}" aria-selected="false" data-ps-item>
+                    <a href="{{ collection.url }}" class="ps-row" tabindex="-1">
+                      <span class="ps-row__thumb">
+                        {%- if collection.featured_image != blank -%}
+                          {{
+                            collection.featured_image
+                            | image_url: width: 96
+                            | image_tag: loading: 'lazy', widths: '48, 72, 96', sizes: '40px', alt: '', class: 'ps-row__img'
+                          }}
+                        {%- else -%}
+                          {%- render 'icon', name: 'layers', size: 18 -%}
+                        {%- endif -%}
+                      </span>
+                      <span class="ps-row__text">
+                        <span class="ps-row__title">{{ collection.title | escape }}</span>
+                        <span class="ps-row__meta">{{ 'sections.predictive_search.products_count' | t: count: collection.products_count }}</span>
+                      </span>
+                      {%- render 'icon', name: 'arrow-up-right', size: 14, class: 'ps-option__go' -%}
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+
+          {%- if ps_pages.size > 0 or ps_articles.size > 0 -%}
+            <div class="ps-group ps-group--pages">
+              <p class="ps-group__title" aria-hidden="true">{{ 'sections.predictive_search.pages' | t }}</p>
+              <ul class="ps-group__list" role="group" aria-label="{{ 'sections.predictive_search.pages' | t }}">
+                {%- for page in ps_pages -%}
+                  <li class="ps-option" role="option" id="ps-page-{{ forloop.index }}" aria-selected="false" data-ps-item>
+                    <a href="{{ page.url }}" class="ps-row" tabindex="-1">
+                      <span class="ps-row__thumb">{% render 'icon', name: 'info', size: 18 %}</span>
+                      <span class="ps-row__text">
+                        <span class="ps-row__title">{{ page.title | escape }}</span>
+                      </span>
+                      {%- render 'icon', name: 'arrow-up-right', size: 14, class: 'ps-option__go' -%}
+                    </a>
+                  </li>
+                {%- endfor -%}
+                {%- for article in ps_articles -%}
+                  <li class="ps-option" role="option" id="ps-article-{{ forloop.index }}" aria-selected="false" data-ps-item>
+                    <a href="{{ article.url }}" class="ps-row" tabindex="-1">
+                      <span class="ps-row__thumb">
+                        {%- if article.image != blank -%}
+                          {{
+                            article.image
+                            | image_url: width: 96
+                            | image_tag: loading: 'lazy', widths: '48, 72, 96', sizes: '40px', alt: '', class: 'ps-row__img'
+                          }}
+                        {%- else -%}
+                          {%- render 'icon', name: 'chat', size: 18 -%}
+                        {%- endif -%}
+                      </span>
+                      <span class="ps-row__text">
+                        <span class="ps-row__title">{{ article.title | escape }}</span>
+                        {%- if article.published_at -%}
+                          <span class="ps-row__meta">{{ article.published_at | time_tag: format: 'date' }}</span>
+                        {%- endif -%}
+                      </span>
+                      {%- render 'icon', name: 'arrow-up-right', size: 14, class: 'ps-option__go' -%}
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if ps_products.size > 0 -%}
+        <div class="ps-results__main">
+          <div class="ps-group ps-group--products">
+            <p class="ps-group__title" aria-hidden="true">{{ 'sections.predictive_search.products' | t }}</p>
+            <ul class="ps-group__list ps-products" role="group" aria-label="{{ 'sections.predictive_search.products' | t }}">
+              {%- for product in ps_products -%}
+                <li class="ps-option ps-product" role="option" id="ps-product-{{ forloop.index }}" aria-selected="false" data-ps-item>
+                  <a href="{{ product.url }}" class="ps-product__link" tabindex="-1">
+                    <span class="ps-product__media">
+                      {%- if product.featured_image != blank -%}
+                        {{
+                          product.featured_image
+                          | image_url: width: 160
+                          | image_tag:
+                            loading: 'lazy',
+                            widths: '64, 96, 128, 160',
+                            sizes: '64px',
+                            alt: '',
+                            class: 'ps-product__img'
+                        }}
+                      {%- else -%}
+                        {%- render 'placeholder-card', variant: forloop.index, uid: product.handle -%}
+                      {%- endif -%}
+                    </span>
+                    <div class="ps-product__info">
+                      <span class="ps-product__title">{{ product.title | escape | highlight: ps_terms }}</span>
+                      <div class="ps-product__badges">
+                        {%- render 'card-badges', product: product, context: 'cart' -%}
+                      </div>
+                      {%- if show_price -%}
+                        <div class="ps-product__price">
+                          {%- render 'price', product: product, size: 'sm', show_saving: false -%}
+                        </div>
+                      {%- endif -%}
+                    </div>
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        </div>
+      {%- endif -%}
+
+      <div class="ps-results__footer">
+        <ul class="ps-search-for" role="presentation">
+          <li class="ps-option ps-search-for__option" role="option" id="ps-search-for" aria-selected="false" data-ps-item>
+            <button type="submit" form="SearchDrawerForm" class="ps-search-for__btn" tabindex="-1">
+              <span class="ps-search-for__icon" aria-hidden="true">{% render 'icon', name: 'search', size: 16 %}</span>
+              <span class="ps-search-for__text">{{ 'sections.predictive_search.search_for' | t: terms: ps_terms }}</span>
+              {%- render 'icon', name: 'arrow-right', size: 16, class: 'ps-option__go' -%}
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Predictive search",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,260 @@
+/* ==========================================================================
+   VAULT — component-card-collection.css
+   Collection tile rendered by snippets/card-collection.liquid.
+
+   The tile is a size container: type, spacing and the placeholder card fan
+   respond to the tile's own box (square / portrait tiles centre the fan,
+   landscape tiles push it to the right and crop it like a dealt hand).
+   Shapes: --sm 1:1 · --md 4:5 · --lg 2:3 — layouts may override with
+   `aspect-ratio: auto; height: 100%` (bento).
+   ========================================================================== */
+
+.collection-card {
+  --tile-ratio: 4 / 5;
+  --tile-pad: clamp(.875rem, .35rem + 5cqi, 1.75rem);
+  container: collection-card / size;
+  position: relative;
+  isolation: isolate;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--tile-ratio);
+  overflow: hidden;
+  border: 1px solid rgb(var(--color-text-rgb) / .08);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(70% 60% at 68% 32%, rgb(var(--color-accent-rgb) / .26), transparent 70%),
+    radial-gradient(60% 50% at 0% 100%, rgb(var(--color-accent-rgb) / .1), transparent 70%),
+    linear-gradient(155deg, color-mix(in srgb, var(--color-surface) 90%, white) 0%, var(--color-surface) 38%, var(--color-bg) 100%);
+  box-shadow: inset 0 1px 0 rgb(var(--color-text-rgb) / .06);
+  color: var(--color-text);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color .4s var(--ease-out),
+    box-shadow .55s var(--ease-out),
+    scale .35s var(--ease-out);
+}
+.collection-card--sm { --tile-ratio: 1 / 1; }
+.collection-card--lg { --tile-ratio: 2 / 3; }
+
+.collection-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
+}
+.collection-card:active { scale: .985; }
+
+/* Spotlight glow (core ::after, z-index 2) sits above the art, below the text. */
+
+/* ---------- Media ---------- */
+.collection-card__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.collection-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: scale 1.2s var(--ease-out);
+}
+
+.collection-card__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgb(var(--color-bg-rgb) / .5) 0%, transparent 26%),
+    linear-gradient(0deg, rgb(var(--color-bg-rgb) / .94) 0%, rgb(var(--color-bg-rgb) / .55) 32%, transparent 62%);
+}
+.collection-card--art .collection-card__shade {
+  background:
+    linear-gradient(0deg, rgb(var(--color-bg-rgb) / .92) 0%, rgb(var(--color-bg-rgb) / .4) 30%, transparent 55%);
+}
+
+/* ---------- Placeholder art: a fanned hand of cards ---------- */
+.collection-card__fan {
+  position: absolute;
+  inset: 0;
+}
+.collection-card__fan-card {
+  position: absolute;
+  left: 50%;
+  top: 11%;
+  height: 62%;
+  aspect-ratio: 63 / 88;
+  translate: -50% 0;
+  transform-origin: 50% 115%;
+  filter: drop-shadow(0 18px 22px rgb(0 0 0 / .55));
+  transition:
+    rotate .8s var(--ease-out),
+    translate .8s var(--ease-out);
+}
+.collection-card__fan-card > svg {
+  width: 100%;
+  height: 100%;
+}
+.collection-card__fan-card--front { rotate: 6deg; translate: -30% 0; }
+.collection-card__fan-card--back { rotate: -10deg; translate: -76% 4%; }
+.collection-card__fan-card--back > svg { opacity: .9; }
+.collection-card__fan-card--third { rotate: -24deg; translate: -112% 12%; }
+.collection-card__fan-card--third > svg { opacity: .7; }
+
+/* Three-card hands are wider: nudge the group back to centre. */
+.collection-card--lg .collection-card__fan-card { left: 60%; }
+
+/* Landscape tiles: the hand moves right, bigger and cropped by the edge,
+   with a side shade so the title reads cleanly over the art. */
+@container collection-card (min-aspect-ratio: 5 / 4) {
+  .collection-card__fan-card {
+    left: 70%;
+    top: 12%;
+    height: 94%;
+  }
+  .collection-card--lg .collection-card__fan-card { left: 72%; }
+  .collection-card--art .collection-card__shade {
+    background:
+      linear-gradient(90deg, rgb(var(--color-bg-rgb) / .8) 0%, rgb(var(--color-bg-rgb) / .35) 36%, transparent 62%),
+      linear-gradient(0deg, rgb(var(--color-bg-rgb) / .85) 0%, transparent 48%);
+  }
+}
+
+/* ---------- Text ---------- */
+.collection-card__top,
+.collection-card__bottom {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: var(--tile-pad);
+}
+.collection-card__top {
+  top: 0;
+  align-items: center;
+}
+.collection-card__bottom {
+  bottom: 0;
+  align-items: flex-end;
+}
+
+.collection-card__index {
+  font-size: var(--text-xs);
+  letter-spacing: .1em;
+  color: rgb(var(--color-text-rgb) / .62);
+}
+
+.collection-card__count {
+  display: inline-flex;
+  align-items: center;
+  height: 1.625rem;
+  padding: 0 .65rem;
+  border: 1px solid rgb(var(--color-text-rgb) / .14);
+  border-radius: 99px;
+  background: rgb(var(--color-bg-rgb) / .55);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.collection-card__text {
+  display: grid;
+  gap: .4rem;
+  min-width: 0;
+}
+
+.collection-card__title {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-stretch: var(--font-display-stretch);
+  text-transform: var(--font-display-case);
+  font-size: calc(clamp(1rem, .5rem + 5.6cqi, 2.25rem) * var(--heading-adjust, 1));
+  line-height: 1.02;
+  letter-spacing: -.01em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+.collection-card--sm .collection-card__title {
+  font-size: calc(clamp(.95rem, .5rem + 6cqi, 1.75rem) * var(--heading-adjust, 1));
+}
+.collection-card--lg .collection-card__title {
+  font-size: calc(clamp(1.125rem, .5rem + 7cqi, 3.5rem) * var(--heading-adjust, 1));
+}
+
+.collection-card__caption {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  max-width: 34ch;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: rgb(var(--color-text-rgb) / .74);
+}
+
+.collection-card__arrow {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgb(var(--color-text-rgb) / .18);
+  border-radius: 50%;
+  background: rgb(var(--color-bg-rgb) / .45);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition:
+    background-color .35s var(--ease-out),
+    border-color .35s var(--ease-out),
+    color .35s var(--ease-out),
+    box-shadow .35s var(--ease-out),
+    rotate .55s var(--ease-back),
+    translate .55s var(--ease-out);
+}
+
+/* ---------- Hover (desktop pointers only) ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .collection-card:hover {
+    border-color: rgb(var(--color-accent-rgb) / .5);
+    box-shadow:
+      inset 0 1px 0 rgb(var(--color-text-rgb) / .08),
+      0 30px 60px -30px rgb(0 0 0 / .9),
+      0 20px 50px -28px rgb(var(--color-accent-rgb) / .55);
+  }
+  .collection-card:hover .collection-card__img { scale: 1.06; }
+  .collection-card:hover .collection-card__arrow {
+    background: var(--color-accent);
+    border-color: transparent;
+    color: var(--color-on-accent);
+    box-shadow: 0 10px 26px -8px rgb(var(--color-accent-rgb) / .85);
+    rotate: 45deg;
+    translate: 3px 0;
+  }
+  .collection-card:hover .collection-card__fan-card--front { rotate: 11deg; translate: -22% -4%; }
+  .collection-card:hover .collection-card__fan-card--back { rotate: -15deg; translate: -88% 2%; }
+  .collection-card:hover .collection-card__fan-card--third { rotate: -30deg; translate: -128% 10%; }
+}
+
+/* ---------- Small tiles ---------- */
+@container collection-card (max-width: 260px) {
+  .collection-card__arrow { width: 38px; height: 38px; }
+  .collection-card__bottom { gap: .5rem; }
+}
+@container collection-card (max-width: 220px) {
+  .collection-card__caption { display: none; }
+  .collection-card__arrow { width: 34px; height: 34px; }
+  .collection-card__arrow .icon { width: 15px; height: 15px; }
+  .collection-card__count { height: 1.375rem; padding: 0 .5rem; font-size: .625rem; letter-spacing: .06em; }
+  .collection-card__top { padding-bottom: 0; }
+}
+@container collection-card (max-height: 190px) {
+  .collection-card__caption { display: none; }
+}

@@ -1,0 +1,86 @@
+{
+  "type": "header",
+  "name": "Header group",
+  "sections": {
+    "announcement-bar": {
+      "type": "announcement-bar",
+      "blocks": {
+        "announcement-shipping": {
+          "type": "announcement",
+          "settings": {
+            "text": "Free insured shipping on orders over $75",
+            "icon": "truck"
+          }
+        },
+        "announcement-verified": {
+          "type": "announcement",
+          "settings": {
+            "text": "Every graded slab verified — cert links on every listing",
+            "icon": "verified"
+          }
+        },
+        "announcement-drops": {
+          "type": "announcement",
+          "settings": {
+            "text": "New drops every Friday · 6PM ET",
+            "icon": "calendar"
+          }
+        }
+      },
+      "block_order": [
+        "announcement-shipping",
+        "announcement-verified",
+        "announcement-drops"
+      ],
+      "settings": {
+        "mode": "rotate",
+        "interval": 4.5,
+        "speed": 40,
+        "color_scheme": "scheme-4"
+      }
+    },
+    "header": {
+      "type": "header",
+      "blocks": {
+        "promo-graded": {
+          "type": "mega_promo",
+          "settings": {
+            "menu_item": "Pokémon",
+            "eyebrow": "Just landed",
+            "heading": "Graded <em>grails</em>",
+            "text": "PSA 10 and BGS 9.5 slabs, cert-verified and insured to your door.",
+            "link_label": "Shop slabs"
+          }
+        },
+        "promo-sealed": {
+          "type": "mega_promo",
+          "settings": {
+            "menu_item": "Pokémon",
+            "eyebrow": "Sealed",
+            "heading": "Booster boxes, <em>untouched</em>",
+            "text": "Factory-sealed displays, ETBs and cases straight from distribution.",
+            "link_label": "Shop sealed"
+          }
+        }
+      },
+      "block_order": [
+        "promo-graded",
+        "promo-sealed"
+      ],
+      "settings": {
+        "menu": "main-menu",
+        "sticky": "scroll_up",
+        "transparent_home": true,
+        "search_popular": "Charizard, PSA 10, Booster box, Moonbreon, One Piece OP-09, Black Lotus",
+        "drawer_show_promo": true,
+        "drawer_show_social": true,
+        "drawer_show_localization": true,
+        "color_scheme": "scheme-1"
+      }
+    }
+  },
+  "order": [
+    "announcement-bar",
+    "header"
+  ]
+}

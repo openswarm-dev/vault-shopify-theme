@@ -1,0 +1,50 @@
+{%- comment -%}
+  Empty-results state with a fanned "missing cards" illustration (outlined card shapes + glowing lens).
+  Usage:
+    {% render 'facets-empty',
+      heading: heading_html,
+      text: 'Try removing a filter…',
+      button_label: 'Clear filters',
+      button_url: clear_url,
+      button_ajax: true,
+      secondary_label: 'Browse all cards',
+      secondary_url: routes.all_products_collection_url
+    %}
+  Params:
+    heading          (required) heading HTML (may contain <em> for an accent word)
+    text             supporting copy
+    button_label     primary button label
+    button_url       primary button URL
+    button_ajax      true → primary button is handled by <vault-facets> (data-facets-link)
+    secondary_label  optional secondary link label
+    secondary_url    optional secondary link URL
+    icon             icon name inside the lens (default 'search')
+{%- endcomment -%}
+{%- assign fe_icon = icon | default: 'search' -%}
+<div class="facets-empty" data-reveal="fade-up">
+  <div class="facets-empty__art" aria-hidden="true">
+    <span class="facets-empty__card facets-empty__card--1"></span>
+    <span class="facets-empty__card facets-empty__card--2"></span>
+    <span class="facets-empty__card facets-empty__card--3"></span>
+    <span class="facets-empty__lens">{% render 'icon', name: fe_icon, size: 26, stroke: 2 %}</span>
+  </div>
+  <h2 class="facets-empty__heading h3">{{ heading }}</h2>
+  {%- if text != blank -%}
+    <p class="facets-empty__text">{{ text }}</p>
+  {%- endif -%}
+  {%- if button_label != blank or secondary_label != blank -%}
+    <div class="facets-empty__actions">
+      {%- if button_label != blank and button_url != blank -%}
+        <a href="{{ button_url }}" class="btn btn--primary"{% if button_ajax %} data-facets-link{% endif %}>
+          {{- button_label -}}
+        </a>
+      {%- endif -%}
+      {%- if secondary_label != blank and secondary_url != blank -%}
+        <a href="{{ secondary_url }}" class="btn btn--secondary">
+          {{- secondary_label -}}
+          {%- render 'icon', name: 'arrow-right', size: 16 -%}
+        </a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>

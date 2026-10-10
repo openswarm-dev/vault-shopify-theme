@@ -1,0 +1,28 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-search",
+      "settings": {
+        "eyebrow": "Search",
+        "heading": "Search the <em>vault</em>",
+        "popular_searches": "Charizard, Booster box, PSA 10, Black Lotus, Elite Trainer Box, Luffy",
+        "suggestions_heading": "Explore the vault",
+        "results_per_page": 24,
+        "columns_desktop": 4,
+        "columns_tablet": 3,
+        "columns_mobile": "2",
+        "show_density": true,
+        "pagination_type": "load_more",
+        "enable_filtering": true,
+        "filter_layout": "drawer",
+        "enable_sorting": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 70,
+        "padding_bottom": 100
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

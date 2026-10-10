@@ -1,0 +1,49 @@
+{%- comment -%}
+  Free-shipping progress (cart drawer). Shown when settings.free_shipping_threshold is a positive
+  number (major units of the store currency) and the cart has items. The fill is animated by
+  component-cart-drawer.js (from the previous value; sparkle burst when unlocked).
+{%- endcomment -%}
+{%- liquid
+  assign threshold_cents = settings.free_shipping_threshold | strip | remove: ',' | times: 100 | round
+-%}
+{%- if threshold_cents > 0 and cart.item_count > 0 -%}
+  {%- liquid
+    assign remaining = threshold_cents | minus: cart.total_price
+    assign remaining_money = remaining | at_least: 0 | money
+    assign progress = cart.total_price | times: 1.0 | divided_by: threshold_cents | at_most: 1 | round: 4
+    assign progress_pct = progress | times: 100 | round
+    assign unlocked = false
+    if remaining <= 0
+      assign unlocked = true
+    endif
+  -%}
+  <div
+    class="cart-progress{% if unlocked %} is-unlocked{% endif %}"
+    data-cart-progress
+    data-progress="{{ progress }}"
+    data-unlocked="{{ unlocked }}"
+  >
+    <p class="cart-progress__text">
+      {%- if unlocked -%}
+        {%- render 'icon', name: 'sparkle', size: 16, class: 'cart-progress__icon' -%}
+        <span>{{ 'cart.general.free_shipping_unlocked' | t }}</span>
+      {%- else -%}
+        {%- render 'icon', name: 'truck', size: 16, class: 'cart-progress__icon' -%}
+        <span>{{ 'cart.general.free_shipping_remaining' | t: amount: remaining_money }}</span>
+      {%- endif -%}
+    </p>
+    <div class="cart-progress__bar">
+      <div
+        class="cart-progress__track"
+        role="progressbar"
+        aria-label="{{ 'sections.cart_drawer.free_shipping_label' | t }}"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="{{ progress_pct }}"
+      >
+        <span class="cart-progress__fill" style="--progress: {{ progress }};" data-cart-progress-fill></span>
+      </div>
+      <span class="cart-progress__burst" data-cart-progress-burst aria-hidden="true"></span>
+    </div>
+  </div>
+{%- endif -%}

@@ -1,0 +1,28 @@
+/* ==========================================================================
+   VAULT — section-main-page.css
+   Long-form content page: split display title over a grid/glow backdrop,
+   72ch reading column (typography lives in component-prose.css).
+   ========================================================================== */
+
+.main-page { overflow: clip; }
+.main-page__head { margin-inline: auto; }
+.main-page__title { max-width: 16ch; }
+.page-head--center.main-page__head .main-page__title { max-width: 18ch; }
+
+@media (min-width: 750px) {
+  .main-page__title { font-size: calc(var(--h1) * 1.05); }
+}
+
+.main-page__content { padding-bottom: var(--space-4); }
+
+.main-page__empty {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 1rem 1.25rem;
+  border: 1px dashed rgb(var(--color-text-rgb) / .25);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.main-page__empty .icon { color: var(--color-accent); }

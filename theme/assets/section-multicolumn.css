@@ -1,0 +1,276 @@
+/* ==========================================================================
+   Multicolumn — trust bar / features / numbered steps
+   Styles: .multicolumn--cards · .multicolumn--minimal · .multicolumn--numbered
+   Columns come from inline vars --mc-cols-mobile|tablet|desktop.
+   ========================================================================== */
+
+.multicolumn__list {
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(var(--mc-cols-mobile, 1), minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
+}
+@media (min-width: 750px) {
+  .multicolumn__list { grid-template-columns: repeat(var(--mc-cols-tablet, 2), minmax(0, 1fr)); }
+}
+@media (min-width: 990px) {
+  .multicolumn__list { grid-template-columns: repeat(var(--mc-cols-desktop, 4), minmax(0, 1fr)); }
+}
+
+.multicolumn__item { min-width: 0; display: flex; }
+.multicolumn__card {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.multicolumn__body { display: grid; gap: var(--space-2); min-width: 0; }
+.multicolumn__title {
+  font-size: var(--h5);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+.multicolumn__text { color: var(--color-muted); font-size: var(--text-sm); line-height: 1.6; }
+.multicolumn__text > * + * { margin-top: .6em; }
+.multicolumn__cta { justify-self: start; margin-top: var(--space-2); font-size: var(--text-sm); }
+
+/* Stretched link: the whole column is clickable, only one tab stop. */
+.multicolumn__link { color: inherit; }
+.multicolumn__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+}
+.multicolumn__link:focus-visible { outline: none; }
+.multicolumn__link:focus-visible::after {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.multicolumn__cta.link { color: var(--color-accent); }
+
+/* Icons */
+.multicolumn__icon {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  color: var(--color-accent);
+  background: radial-gradient(circle at 50% 30%, rgb(var(--color-accent-rgb) / .3), rgb(var(--color-accent-rgb) / .06) 72%);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--color-accent-rgb) / .38),
+    0 0 26px -6px rgb(var(--color-accent-rgb) / .7);
+  transition: transform .6s var(--ease-back), box-shadow var(--dur-slow) var(--ease-out);
+}
+.multicolumn__icon--image {
+  background: rgb(var(--color-text-rgb) / .04);
+  box-shadow: inset 0 0 0 1px rgb(var(--color-text-rgb) / .1);
+  overflow: hidden;
+}
+.multicolumn__icon--image img { width: 100%; height: 100%; object-fit: contain; padding: 10%; }
+
+/* Center alignment */
+.multicolumn--center .multicolumn__card { align-items: center; text-align: center; }
+.multicolumn--center .multicolumn__cta { justify-self: center; }
+
+/* ---------- Mobile swipeable row ---------- */
+@media (max-width: 749px) {
+  .multicolumn .multicolumn__list--scroll {
+    display: flex;
+    gap: var(--grid-gap);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    scroll-padding-inline: var(--gutter);
+  }
+  .multicolumn .multicolumn__list--scroll::-webkit-scrollbar { display: none; }
+  .multicolumn__list--scroll > .multicolumn__item {
+    flex: 0 0 min(80%, 300px);
+    scroll-snap-align: start;
+  }
+}
+
+/* ==========================================================================
+   Style: cards — glass surfaces, spotlight hover, red-glow icon
+   ========================================================================== */
+.multicolumn--cards .multicolumn__card {
+  isolation: isolate;
+  padding: clamp(1.25rem, 1rem + 1.1vw, 2rem);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgb(var(--color-accent-rgb) / .07), transparent 60%),
+    linear-gradient(180deg, rgb(var(--color-surface-rgb) / .92), rgb(var(--color-surface-rgb) / .58));
+  border: 1px solid rgb(var(--color-text-rgb) / .08);
+  box-shadow: var(--shadow-sm);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  transition:
+    transform var(--dur-slow) var(--ease-out),
+    border-color var(--dur-slow) var(--ease-out),
+    box-shadow var(--dur-slow) var(--ease-out);
+}
+/* Crisp top highlight, like light catching the edge of a slab */
+.multicolumn--cards .multicolumn__card::before {
+  content: "";
+  position: absolute;
+  inset: 0 12% auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--color-text-rgb) / .28), transparent);
+  pointer-events: none;
+}
+.multicolumn--cards .multicolumn__body { gap: var(--space-3); }
+.multicolumn--cards .multicolumn__title { font-size: var(--h5); }
+@media (min-width: 990px) {
+  .multicolumn--cards .multicolumn__card { gap: var(--space-6); }
+  .multicolumn--cards .multicolumn__icon { width: 56px; height: 56px; }
+}
+.multicolumn--cards .multicolumn__card--linked:active { transform: scale(.985); }
+
+@media (hover: hover) and (pointer: fine) {
+  .multicolumn--cards .multicolumn__card:hover {
+    transform: translateY(-6px);
+    border-color: rgb(var(--color-accent-rgb) / .4);
+    box-shadow:
+      0 28px 60px -28px rgb(var(--color-accent-rgb) / .55),
+      0 18px 40px -24px rgb(0 0 0 / .7);
+  }
+  .multicolumn--cards .multicolumn__card:hover .multicolumn__icon {
+    transform: scale(1.08) rotate(-6deg);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--color-accent-rgb) / .7),
+      0 0 38px -4px rgb(var(--color-accent-rgb) / .95);
+  }
+  .multicolumn--cards .multicolumn__card--linked:hover .multicolumn__cta { background-size: 100% 1px; }
+  .multicolumn--cards .multicolumn__card--linked:hover .multicolumn__cta .icon { transform: translateX(3px); }
+}
+
+/* ==========================================================================
+   Style: minimal — compact trust bar with hairline dividers
+   Hairlines are drawn with outward box-shadows; the list clips the outer edge.
+   ========================================================================== */
+.multicolumn--minimal .multicolumn__list {
+  gap: 0;
+  overflow: hidden;
+  border-block: 1px solid var(--color-border);
+}
+.multicolumn--minimal .multicolumn__item { box-shadow: -1px -1px 0 0 var(--color-border); }
+.multicolumn--minimal .multicolumn__card {
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-4);
+}
+.multicolumn--minimal .multicolumn__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: rgb(var(--color-accent-rgb) / .1);
+  box-shadow: inset 0 0 0 1px rgb(var(--color-accent-rgb) / .3), 0 0 18px -6px rgb(var(--color-accent-rgb) / .8);
+}
+.multicolumn--minimal .multicolumn__icon .icon { width: 20px; height: 20px; }
+.multicolumn--minimal .multicolumn__body { gap: .2rem; }
+.multicolumn--minimal .multicolumn__title {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  font-stretch: normal;
+  letter-spacing: .01em;
+  text-transform: none;
+  line-height: 1.3;
+}
+.multicolumn--minimal .multicolumn__text { font-size: var(--text-xs); line-height: 1.5; }
+.multicolumn--minimal .multicolumn__cta { font-size: var(--text-xs); margin-top: .25rem; }
+
+@media (min-width: 750px) {
+  .multicolumn--minimal .multicolumn__card {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-6) var(--space-5);
+  }
+  .multicolumn--minimal.multicolumn--center .multicolumn__card { justify-content: center; text-align: left; }
+  .multicolumn--minimal .multicolumn__text { font-size: var(--text-sm); }
+}
+@media (min-width: 990px) {
+  .multicolumn--minimal .multicolumn__card { padding: var(--space-6) clamp(1rem, 2vw, 2rem); }
+}
+/* In the swipeable row each item gets a soft tile instead of a grid hairline */
+@media (max-width: 749px) {
+  .multicolumn--minimal .multicolumn__list--scroll { gap: 0; overflow-x: auto; overflow-y: hidden; }
+  .multicolumn--minimal .multicolumn__list--scroll > .multicolumn__item { flex-basis: min(72%, 260px); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .multicolumn--minimal .multicolumn__card { transition: background-color var(--dur) var(--ease-out); }
+  .multicolumn--minimal .multicolumn__card--linked:hover { background: rgb(var(--color-text-rgb) / .03); }
+  .multicolumn--minimal .multicolumn__card:hover .multicolumn__icon { transform: translateY(-2px) scale(1.06); }
+}
+
+/* ==========================================================================
+   Style: numbered — oversized outline numbers + red progress hairline
+   ========================================================================== */
+.multicolumn--numbered .multicolumn__list { row-gap: clamp(2rem, 1.5rem + 2vw, 3rem); }
+.multicolumn--numbered .multicolumn__card {
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+.multicolumn--numbered .multicolumn__card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 64px;
+  height: 2px;
+  background: var(--color-accent);
+  box-shadow: 0 0 14px rgb(var(--color-accent-rgb) / .9);
+  transform-origin: 0 50%;
+  transition: transform 1s var(--ease-out) .1s, width var(--dur-slow) var(--ease-out);
+}
+.multicolumn--center.multicolumn--numbered .multicolumn__card::before { left: 50%; translate: -50% 0; transform-origin: 50% 50%; }
+html.motion-ok .multicolumn--numbered .multicolumn__item:not(.is-revealed) .multicolumn__card::before { transform: scaleX(0); }
+
+.multicolumn__number {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-stretch: var(--font-display-stretch);
+  font-size: calc(clamp(3.5rem, 2.6rem + 4vw, 6.75rem) * var(--heading-adjust, 1));
+  line-height: .9;
+  letter-spacing: -.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(var(--color-text-rgb) / .38);
+  background: var(--accent-gradient) 0 100% / 100% 0% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-variant-numeric: tabular-nums;
+  transition: background-size .7s var(--ease-out), -webkit-text-stroke-color var(--dur-slow);
+  user-select: none;
+}
+.multicolumn--numbered .multicolumn__title { font-size: var(--h4); }
+.multicolumn--numbered .multicolumn__text { font-size: var(--text-base); max-width: 42ch; }
+.multicolumn--center.multicolumn--numbered .multicolumn__text { margin-inline: auto; }
+.multicolumn--numbered .multicolumn__icon--image { width: 48px; height: 48px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .multicolumn--numbered .multicolumn__card:hover::before { width: 100%; }
+  .multicolumn--numbered .multicolumn__card:hover .multicolumn__number {
+    background-size: 100% 100%;
+    -webkit-text-stroke-color: transparent;
+  }
+}
+/* Touch devices: give the first step a filled number so the style still has a focal point */
+@media (hover: none) {
+  .multicolumn--numbered .multicolumn__item:first-child .multicolumn__number { background-size: 100% 100%; -webkit-text-stroke-color: transparent; }
+}
+.multicolumn--numbered .multicolumn__card:focus-within .multicolumn__number { background-size: 100% 100%; -webkit-text-stroke-color: transparent; }

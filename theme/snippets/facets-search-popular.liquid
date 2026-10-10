@@ -1,0 +1,31 @@
+{%- comment -%}
+  "Popular searches" pill links for the search page (no-query and empty states).
+  Usage: {% render 'facets-search-popular', terms: section.settings.popular_searches, class: 'my-class' %}
+  Params:
+    terms  (required) comma-separated search terms, e.g. "Charizard, PSA 10, Booster box"
+    class  extra wrapper classes
+{%- endcomment -%}
+{%- assign ps_terms = terms | split: ',' -%}
+{%- if ps_terms.size > 0 -%}
+  <div class="search-popular{% if class %} {{ class }}{% endif %}" data-reveal="fade-up">
+    <p class="search-popular__label">
+      {%- render 'icon', name: 'flame', size: 16 -%}
+      {{- 'templates.search.popular' | t -}}
+    </p>
+    <ul class="search-popular__list list-reset" role="list">
+      {%- for term in ps_terms -%}
+        {%- assign ps_term = term | strip -%}
+        {%- if ps_term != blank -%}
+          <li class="search-popular__item">
+            <a
+              class="pill search-popular__pill"
+              href="{{ routes.search_url }}?q={{ ps_term | url_encode }}&amp;options%5Bprefix%5D=last"
+            >
+              {{- ps_term | escape -}}
+            </a>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+{%- endif -%}

@@ -1,0 +1,497 @@
+/* ==========================================================================
+   VAULT — Holo showcase (sections/holo-showcase.liquid)
+   Two modes:
+   · Free (phones, tablets, short screens, reduced motion): card on top with a flip
+     button, features stacked below as glass cards.
+   · Pinned (≥990px wide, ≥620px tall, motion allowed): a tall section with a sticky
+     stage; section-holo-showcase.js links the card rotation, feature callouts,
+     connector lines and progress rail to scroll. The layout half of this mode is
+     pure CSS (no layout shift when the script boots); the hidden-until-reached
+     states only apply once the script adds .is-pinned.
+   Card transform layers: .hs-card__rotator (scroll / flip, Motion) → holo-card > .holo (core tilt).
+   ========================================================================== */
+
+.section-holo-showcase { position: relative; }
+.hs {
+  --hs-gap: clamp(48px, 5vw, 96px);
+  position: relative;
+  display: block;
+}
+.hs__sticky { position: relative; }
+
+/* ---------- Backdrop ---------- */
+.hs__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hs__grid {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: radial-gradient(60% 55% at 50% 58%, #000 10%, transparent 75%);
+  mask-image: radial-gradient(60% 55% at 50% 58%, #000 10%, transparent 75%);
+}
+.hs__glow {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: min(130vw, 920px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--color-accent-rgb) / .3), rgb(var(--color-accent-rgb) / .1) 46%, transparent 72%);
+}
+html.motion-ok .hs__glow { animation: hs-breathe 6s var(--ease-in-out) infinite alternate; }
+
+.hs__inner { position: relative; z-index: 1; }
+.hs__header .section-header { margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.25rem); }
+
+/* ---------- Stage (free mode, mobile-first) ---------- */
+.hs__stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .875rem;
+}
+.hs__card-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+  margin-bottom: 1.5rem;
+}
+
+/* ---------- Card + 3D faces ---------- */
+.hs-card {
+  position: relative;
+  width: min(72vw, 300px);
+  perspective: 1600px;
+  -webkit-tap-highlight-color: transparent;
+}
+.hs.is-ready:not(.is-pinned) .hs-card { cursor: pointer; }
+.hs-card__rotator {
+  position: relative;
+  aspect-ratio: 1 / var(--ar);
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+.hs:not(.is-motion) .hs-card__rotator { transition: transform .7s var(--ease-out); }
+.hs:not(.is-motion).is-flipped .hs-card__rotator { transform: rotateY(180deg); }
+
+.hs-card__face {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-card);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.hs-card__face--front { transform: rotateY(0deg); }
+.hs-card__face--back { transform: rotateY(180deg); }
+.hs-card--slab .hs-card__face { border-radius: calc(var(--radius-card) * 1.3); }
+
+.hs-card__holo,
+.hs-card__holo .holo {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+.hs-card__media {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--color-surface);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / .08),
+    0 40px 80px -30px rgb(0 0 0 / .9),
+    0 0 70px -20px rgb(var(--color-accent-rgb) / .45);
+}
+.hs-card--slab .hs-card__media { background: transparent; }
+.hs-card__media > .placeholder-card { position: absolute; inset: 0; }
+.hs-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hs-card--slab .hs-card__img { object-fit: contain; }
+
+.hs-card__shadow {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -8%;
+  height: 10%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / .75), transparent);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+/* ---------- Designed card back (vault emblem on crimson / graphite) ---------- */
+.hs-back {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  color: #fff;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .1), 0 40px 80px -30px rgb(0 0 0 / .9);
+}
+.hs-back__card {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6%;
+  overflow: hidden;
+  border-radius: inherit;
+  container-type: inline-size;
+  border: 5px solid #1b1c21;
+  background:
+    radial-gradient(85% 60% at 50% 46%, rgb(var(--color-accent-rgb) / .78), rgb(var(--color-accent-rgb) / .18) 58%, transparent 80%),
+    linear-gradient(160deg, #2a2b31 0%, #121316 55%, #08090b 100%);
+}
+.hs-back__pattern {
+  position: absolute;
+  inset: 0;
+  opacity: .5;
+  background:
+    repeating-linear-gradient(45deg, rgb(255 255 255 / .07) 0 1px, transparent 1px 11px),
+    repeating-linear-gradient(-45deg, rgb(255 255 255 / .07) 0 1px, transparent 1px 11px);
+  -webkit-mask-image: radial-gradient(closest-side, transparent 30%, #000 85%);
+  mask-image: radial-gradient(closest-side, transparent 30%, #000 85%);
+}
+.hs-back__ring {
+  position: absolute;
+  inset: 5%;
+  border-radius: calc(var(--radius-card) * .7);
+  border: 1px solid rgb(255 255 255 / .22);
+  box-shadow: inset 0 0 0 4px rgb(0 0 0 / .25);
+}
+.hs-back__emblem {
+  position: relative;
+  width: 46%;
+  height: auto;
+  filter: drop-shadow(0 0 18px rgb(var(--color-accent-rgb) / .8));
+}
+.hs-back__hub { fill: var(--color-accent); stroke: #fff; stroke-width: 2; }
+.hs-back__brand {
+  position: relative;
+  max-width: 82%;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(.5rem, 4.2cqi, 1rem);
+  letter-spacing: .16em;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: .9;
+}
+.hs-back--slab {
+  padding: 5% 6% 6%;
+  gap: 4%;
+  background: linear-gradient(160deg, rgb(255 255 255 / .2), rgb(255 255 255 / .05) 40%, rgb(255 255 255 / .12));
+  border: 1px solid rgb(255 255 255 / .3);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.hs-back--slab .hs-back__card { flex: 1; border-radius: calc(var(--radius-card) * .8); }
+.hs-back__label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6%;
+  height: 15%;
+  padding: 0 6%;
+  border-radius: calc(var(--radius-card) * .6);
+  background: #f2f2f3;
+  color: #111214;
+}
+.hs-back__barcode {
+  flex: 1;
+  height: 52%;
+  background: repeating-linear-gradient(90deg, #111214 0 2px, transparent 2px 4px, #111214 4px 5px, transparent 5px 8px, #111214 8px 11px, transparent 11px 13px);
+}
+.hs-back__cert { font-size: clamp(.5rem, .4rem + .35vw, .7rem); letter-spacing: .08em; white-space: nowrap; }
+.hs-back__sticker {
+  flex: none;
+  width: 18%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--holo-gradient);
+  background-size: 200% 100%;
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / .6);
+}
+html.motion-ok .hs-back__sticker { animation: holo-shift 5s linear infinite; }
+
+/* ---------- Flip button + product bar ---------- */
+.hs__flip {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 44px;
+  padding: 0 1.15rem;
+  border-radius: 99px;
+  border: 1px solid rgb(var(--color-text-rgb) / .18);
+  background: rgb(var(--color-surface-rgb) / .6);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transition: border-color var(--dur), background-color var(--dur);
+}
+.hs__flip .icon { color: var(--color-accent); transition: transform .5s var(--ease-out); }
+.hs__flip[aria-pressed="true"] {
+  border-color: rgb(var(--color-accent-rgb) / .8);
+  background: rgb(var(--color-accent-rgb) / .14);
+}
+.hs__flip[aria-pressed="true"] .icon { transform: rotate(180deg); }
+@media (hover: hover) and (pointer: fine) {
+  .hs__flip:hover { border-color: rgb(var(--color-accent-rgb) / .8); }
+}
+
+.hs__product {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem 1rem;
+  width: min(100%, 420px);
+  padding: .75rem .75rem .75rem 1.1rem;
+  border-radius: var(--radius-lg);
+}
+.hs__product-text { display: grid; gap: .2rem; min-width: 0; flex: 1 1 160px; }
+.hs__product-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.hs__product-cta { flex: none; }
+
+/* ---------- Features (free mode) ---------- */
+.hs-feature { position: relative; min-width: 0; }
+.hs-feature__card {
+  height: 100%;
+  padding: 1.2rem 1.25rem 1.35rem;
+  border-radius: var(--radius-lg);
+}
+.hs-feature__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.hs-feature__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgb(var(--color-accent-rgb) / .35);
+  background: rgb(var(--color-accent-rgb) / .12);
+  color: var(--color-accent);
+}
+.hs-feature__index { color: var(--color-muted); font-size: var(--text-xs); }
+.hs-feature__title { margin-bottom: .45rem; font-size: var(--h5); }
+.hs-feature__text { color: var(--color-muted); font-size: var(--text-sm); line-height: 1.6; }
+.hs-feature__line,
+.hs-feature__dot,
+.hs__rail { display: none; }
+
+/* ---------- Tablet ---------- */
+@media (min-width: 750px) {
+  .hs__stage { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .hs__card-col { grid-column: 1 / -1; margin-bottom: 2rem; }
+  .hs-card { width: 330px; }
+}
+@media (min-width: 750px) and (max-width: 989px) {
+  .hs-feature:nth-child(even):last-child { grid-column: 1 / -1; }
+}
+
+/* ---------- Desktop, not pinned (reduced motion or short screens) ---------- */
+@media (min-width: 990px) {
+  .hs__stage { grid-template-columns: repeat(var(--hs-count), minmax(0, 1fr)); gap: var(--grid-gap); }
+  .hs-card { width: 340px; }
+}
+
+/* ---------- Desktop, pinned scrollytelling ---------- */
+@media (min-width: 990px) and (min-height: 620px) {
+  html.motion-ok .section-holo-showcase { padding-block: 0; }
+  html.motion-ok .hs {
+    --hs-product-h: 0px;
+    height: calc(100vh + var(--hs-count) * 36vh);
+  }
+  html.motion-ok .hs--product { --hs-product-h: 104px; }
+  html.motion-ok .hs__sticky {
+    position: sticky;
+    top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+    overflow: hidden;
+  }
+  html.motion-ok .hs__inner {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    padding-block: clamp(1.25rem, 4vh, 3rem) clamp(3.75rem, 9vh, 5.5rem);
+  }
+  html.motion-ok .hs__header .section-header { margin-bottom: clamp(1rem, 3vh, 2.25rem); }
+  html.motion-ok .hs__header .section-header__heading { font-size: min(var(--h2), 6.2vh); }
+  html.motion-ok .hs__header .lead { font-size: var(--text-base); }
+
+  /* Size container: the card is sized from the stage's real height (cqh), so it can never
+     outgrow the space between the heading and the progress rail. */
+  html.motion-ok .hs__stage {
+    container-type: size;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: repeat(var(--hs-rows), minmax(0, 1fr));
+    column-gap: var(--hs-gap);
+    row-gap: 0;
+  }
+  html.motion-ok .hs__card-col {
+    --hs-card-h: clamp(200px, calc(100cqh / 1.1 - var(--hs-product-h)), 600px);
+    grid-column: 2;
+    grid-row: 1 / -1;
+    justify-content: center;
+    gap: 1rem;
+    width: calc(var(--hs-card-h) / var(--ar));
+    height: 100%;
+    margin: 0;
+  }
+  html.motion-ok .hs-card { width: 100%; }
+  html.motion-ok .hs__product { width: 100%; padding: .7rem .7rem .7rem 1rem; }
+
+  html.motion-ok .hs-feature {
+    grid-column: 1;
+    grid-row: var(--row);
+    align-self: center;
+    justify-self: end;
+    width: min(100%, 340px);
+  }
+  html.motion-ok .hs-feature--right {
+    grid-column: 3;
+    justify-self: start;
+    translate: 0 22%;
+  }
+
+  /* Connector line + dot reaching from each callout to the card. */
+  html.motion-ok .hs-feature__line {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: calc(var(--hs-gap) - 12px);
+    height: 2px;
+    margin-top: -1px;
+    overflow: visible;
+    fill: none;
+    stroke: rgb(var(--color-accent-rgb) / .85);
+    stroke-width: 1.5;
+  }
+  html.motion-ok .hs-feature__line path {
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  html.motion-ok .hs-feature--right .hs-feature__line { left: auto; right: 100%; }
+  html.motion-ok .hs-feature__dot {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: calc(100% + var(--hs-gap) - 16px);
+    width: 9px;
+    height: 9px;
+    margin-top: -4.5px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 0 4px rgb(var(--color-accent-rgb) / .2), 0 0 14px rgb(var(--color-accent-rgb) / .9);
+  }
+  html.motion-ok .hs-feature--right .hs-feature__dot { left: auto; right: calc(100% + var(--hs-gap) - 16px); }
+
+  /* Progress rail. */
+  html.motion-ok .hs__rail {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(1rem, 3.5vh, 2rem);
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    translate: -50% 0;
+    color: var(--color-muted);
+    font-size: var(--text-xs);
+  }
+  .hs__count b { color: var(--color-text); font-weight: 700; }
+  .hs__segments { display: flex; gap: 6px; }
+  .hs__seg {
+    position: relative;
+    width: 44px;
+    height: 3px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: rgb(var(--color-text-rgb) / .14);
+  }
+  .hs__seg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--color-accent);
+    box-shadow: 0 0 10px rgb(var(--color-accent-rgb) / .9);
+    transform: scaleX(var(--seg, 0));
+    transform-origin: 0 50%;
+  }
+
+  /* Script-driven states: callouts wait for their scroll position. */
+  .hs.is-pinned .hs-feature {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateX(-28px);
+    transition: opacity .55s var(--ease-out), transform .75s var(--ease-out), filter .55s var(--ease-out);
+  }
+  .hs.is-pinned .hs-feature--right { transform: translateX(28px); }
+  .hs.is-pinned .hs-feature.is-in { opacity: .5; filter: none; transform: none; }
+  .hs.is-pinned .hs-feature.is-active { opacity: 1; }
+  .hs.is-pinned .hs-feature__card { transition: border-color .5s var(--ease-out), box-shadow .5s var(--ease-out); }
+  .hs.is-pinned .hs-feature.is-active .hs-feature__card {
+    border-color: rgb(var(--color-accent-rgb) / .45);
+    box-shadow: 0 0 0 1px rgb(var(--color-accent-rgb) / .18), 0 24px 60px -24px rgb(var(--color-accent-rgb) / .55);
+  }
+  .hs.is-pinned .hs-feature__line path {
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset .8s var(--ease-out) .15s;
+  }
+  .hs.is-pinned .hs-feature.is-in .hs-feature__line path { stroke-dashoffset: 0; }
+  .hs.is-pinned .hs-feature__dot {
+    transform: scale(0);
+    transition: transform .45s var(--ease-back) .55s;
+  }
+  .hs.is-pinned .hs-feature.is-in .hs-feature__dot { transform: scale(1); }
+}
+@media (min-width: 990px) and (min-height: 620px) and (max-height: 780px) {
+  html.motion-ok .hs__header .lead { display: none; }
+  html.motion-ok .hs-feature__card { padding: 1rem 1.1rem 1.1rem; }
+  html.motion-ok .hs-feature__top { margin-bottom: .6rem; }
+  html.motion-ok .hs-feature__icon { width: 34px; height: 34px; }
+  html.motion-ok .hs-feature__text { font-size: var(--text-xs); line-height: 1.55; }
+}
+
+@keyframes hs-breathe {
+  from { transform: scale(.92); opacity: .75; }
+  to { transform: scale(1.06); opacity: 1; }
+}

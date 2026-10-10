@@ -1,0 +1,214 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sid = section.id
+  assign heading = section.settings.heading
+  if heading == blank
+    assign heading = 'customer.register.title_html' | t
+  endif
+-%}
+
+<section
+  id="Section-{{ sid }}"
+  class="section customer customer--auth color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ sid }}"
+>
+  <div class="customer__backdrop" aria-hidden="true"></div>
+
+  <div class="page-width auth">
+    <div class="auth__stage">
+      {% render 'customer-fan', uid: sid %}
+
+      <div class="auth-card" data-reveal="fade-up">
+        <div class="auth-panel">
+          <header class="auth-panel__head">
+            {%- if section.settings.eyebrow != blank -%}
+              <p class="eyebrow">{{ section.settings.eyebrow | escape }}</p>
+            {%- endif -%}
+            <h1 class="h2 auth-panel__title" data-split>{{ heading }}</h1>
+            {%- if section.settings.text != blank -%}
+              <p class="auth-panel__text">{{ section.settings.text | escape }}</p>
+            {%- endif -%}
+          </header>
+
+          {%- form 'create_customer', class: 'auth-form', novalidate: 'novalidate' -%}
+            {% render 'customer-form-errors', form: form %}
+            <div class="auth-form__pair">
+              <div class="field">
+                <input
+                  class="field__input"
+                  type="text"
+                  id="RegisterFirstName-{{ sid }}"
+                  name="customer[first_name]"
+                  value="{{ form.first_name }}"
+                  autocomplete="given-name"
+                  placeholder=" "
+                >
+                <label class="field__label" for="RegisterFirstName-{{ sid }}">{{ 'customer.fields.first_name' | t }}</label>
+              </div>
+              <div class="field">
+                <input
+                  class="field__input"
+                  type="text"
+                  id="RegisterLastName-{{ sid }}"
+                  name="customer[last_name]"
+                  value="{{ form.last_name }}"
+                  autocomplete="family-name"
+                  placeholder=" "
+                >
+                <label class="field__label" for="RegisterLastName-{{ sid }}">{{ 'customer.fields.last_name' | t }}</label>
+              </div>
+            </div>
+            <div class="field">
+              <input
+                class="field__input"
+                type="email"
+                id="RegisterEmail-{{ sid }}"
+                name="customer[email]"
+                value="{{ form.email }}"
+                autocomplete="email"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder=" "
+                required
+                aria-required="true"
+                {% if form.errors contains 'email' %}
+                  aria-invalid="true"
+                {% endif %}
+              >
+              <label class="field__label" for="RegisterEmail-{{ sid }}">{{ 'customer.fields.email' | t }}</label>
+            </div>
+            <div class="field field--password">
+              <input
+                class="field__input"
+                type="password"
+                id="RegisterPassword-{{ sid }}"
+                name="customer[password]"
+                autocomplete="new-password"
+                placeholder=" "
+                required
+                aria-required="true"
+                aria-describedby="RegisterPasswordHint-{{ sid }}"
+                {% if form.errors contains 'password' %}
+                  aria-invalid="true"
+                {% endif %}
+              >
+              <label class="field__label" for="RegisterPassword-{{ sid }}">{{ 'customer.fields.password' | t }}</label>
+              <button
+                type="button"
+                class="field__button field__reveal"
+                data-password-toggle
+                aria-controls="RegisterPassword-{{ sid }}"
+                aria-pressed="false"
+                aria-label="{{ 'customer.fields.show_password' | t }}"
+                data-show-label="{{ 'customer.fields.show_password' | t }}"
+                data-hide-label="{{ 'customer.fields.hide_password' | t }}"
+                hidden
+              >
+                {%- render 'icon', name: 'eye', size: 20 -%}
+              </button>
+            </div>
+            <p class="auth-form__hint" id="RegisterPasswordHint-{{ sid }}">{{ 'customer.register.password_hint' | t }}</p>
+
+            {%- if section.settings.show_marketing -%}
+              <label class="check auth-form__check" for="RegisterMarketing-{{ sid }}">
+                <input type="checkbox" id="RegisterMarketing-{{ sid }}" name="customer[accepts_marketing]" value="true">
+                <span>{{ 'customer.register.marketing' | t }}</span>
+              </label>
+            {%- endif -%}
+
+            <button type="submit" class="btn btn--primary btn--lg btn--block">
+              <span>{{ 'customer.register.submit' | t }}</span>
+              {%- render 'icon', name: 'arrow-right', size: 18 -%}
+            </button>
+          {%- endform -%}
+
+          <p class="auth-switch">
+            {{- 'customer.register.have_account' | t }}
+            <a href="{{ routes.account_login_url }}" class="link link--accent">{{ 'customer.register.login' | t }}</a>
+          </p>
+        </div>
+      </div>
+
+      {%- if section.settings.show_perks -%}
+        <ul class="auth-perks" role="list" data-reveal="fade">
+          <li>{% render 'icon', name: 'truck', size: 16 %}<span>{{ 'customer.perks.track' | t }}</span></li>
+          <li>{% render 'icon', name: 'bolt', size: 16 %}<span>{{ 'customer.perks.alerts' | t }}</span></li>
+          <li>{% render 'icon', name: 'shield', size: 16 %}<span>{{ 'customer.perks.checkout' | t }}</span></li>
+        </ul>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<script src="{{ 'customer.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Register",
+  "class": "shopify-section--main-register",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Join the vault"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Create your <em>account</em>"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Text",
+      "default": "Track every order, save addresses and hear about drops before anyone else."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_marketing",
+      "label": "Show email signup checkbox",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_perks",
+      "label": "Show account perks",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 80
+    }
+  ]
+}
+{% endschema %}

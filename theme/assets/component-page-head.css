@@ -1,0 +1,98 @@
+/* ==========================================================================
+   VAULT — component-page-head.css  (pages slice)
+   Shared page heading + decorative backdrop used by cart, page, blog and
+   other content pages.
+     .page-backdrop  → absolutely positioned grid + crimson glow (decorative)
+     .page-head      → eyebrow + display title + subtitle + meta row
+   ========================================================================== */
+
+/* Decorative backdrop: faint grid that fades out + a soft red glow from the top.
+   Siblings of the backdrop are lifted above it. */
+.page-backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: min(760px, 100%);
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(56% 62% at 50% -8%, rgb(var(--color-accent-rgb) / .17), transparent 72%),
+    radial-gradient(30% 40% at 92% 18%, rgb(var(--color-accent-rgb) / .07), transparent 70%);
+}
+.page-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(var(--color-text-rgb) / .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--color-text-rgb) / .05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: center top;
+  -webkit-mask-image: radial-gradient(ellipse 72% 78% at 50% 0%, #000 18%, transparent 74%);
+  mask-image: radial-gradient(ellipse 72% 78% at 50% 0%, #000 18%, transparent 74%);
+}
+.page-backdrop ~ * { position: relative; z-index: 1; }
+
+/* Heading block */
+.page-head {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  text-align: left;
+  padding-bottom: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+  margin-bottom: clamp(1.75rem, 1.2rem + 2vw, 3.25rem);
+  border-bottom: 1px solid var(--color-border);
+}
+.page-head--center { justify-items: center; text-align: center; }
+.page-head--flush { border-bottom: 0; padding-bottom: 0; }
+.page-head__title {
+  max-width: 18ch;
+  font-size: var(--h1);
+}
+.page-head--center .page-head__title { margin-inline: auto; }
+.page-head__title--xl { font-size: var(--h0); max-width: 14ch; }
+.page-head__sub {
+  max-width: 62ch;
+  color: var(--color-muted);
+  font-size: var(--text-lg);
+  line-height: 1.55;
+}
+.page-head__sub > * + * { margin-top: .75em; }
+.page-head--center .page-head__sub { margin-inline: auto; }
+.page-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+.page-head--center .page-head__meta { justify-content: center; }
+
+/* Small crumb above titles ("Journal / Grading") */
+.page-crumb {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.page-crumb a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  transition: color var(--dur);
+}
+.page-crumb a:hover { color: var(--color-text); }
+.page-crumb__sep { opacity: .4; }
+@media (pointer: coarse) {
+  .page-crumb a { min-height: 44px; }
+}
+
+@media (min-width: 750px) {
+  .page-head { gap: var(--space-5); }
+}

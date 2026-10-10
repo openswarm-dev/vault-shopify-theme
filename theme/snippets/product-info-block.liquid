@@ -1,0 +1,515 @@
+{%- comment -%}
+  Renders ONE product-info block (main-product and featured-product share these block types).
+  Regions marked data-variant-swap="…" are refreshed by <product-info> after a variant change
+  (Section Rendering API) — keep their keys stable: price | badges | inventory | buy | quantity | specs | cert.
+
+  Usage (inside the blocks loop of a product section):
+    {% render 'product-info-block',
+      block: block,
+      product: product,            # blank → demo content (featured-product without a product)
+      variant: current_variant,
+      section_id: section.id,
+      form_id: product_form_id,
+      context: 'main'              # main | featured
+    %}
+{%- endcomment -%}
+{%- liquid
+  assign b = block.settings
+  assign ctx = context | default: 'main'
+  assign is_demo = false
+  if product == blank
+    assign is_demo = true
+  endif
+-%}
+{%- case block.type -%}
+  {%- when 'game_line' -%}
+    {%- liquid
+      if is_demo
+        assign gl_game = 'sections.featured_product.demo.game' | t
+        assign gl_set = 'sections.featured_product.demo.set' | t
+        assign gl_number = 'sections.featured_product.demo.number' | t
+      else
+        capture cd_raw
+          render 'product-collector-data', product: product, variant: variant
+        endcapture
+        assign cd = cd_raw | split: '~|~'
+        assign gl_game = cd[0]
+        assign gl_set = cd[1]
+        assign gl_number = cd[2] | remove_first: '#'
+        if gl_game == blank and b.vendor_fallback
+          assign gl_game = product.vendor
+        endif
+      endif
+      unless b.show_game
+        assign gl_game = ''
+      endunless
+      unless b.show_set
+        assign gl_set = ''
+      endunless
+      unless b.show_number
+        assign gl_number = ''
+      endunless
+    -%}
+    {%- if gl_game != blank or gl_set != blank or gl_number != blank -%}
+      <p class="pdp-block pdp-gameline mono" data-block-id="{{ block.id }}" data-reveal="fade" {{ block.shopify_attributes }}>
+        {%- if gl_game != blank -%}
+          <span class="pdp-gameline__item pdp-gameline__game">{{ gl_game | escape }}</span>
+        {%- endif -%}
+        {%- if gl_set != blank -%}
+          <span class="pdp-gameline__item">{{ gl_set | escape }}</span>
+        {%- endif -%}
+        {%- if gl_number != blank -%}
+          <span class="pdp-gameline__item">#{{ gl_number | escape }}</span>
+        {%- endif -%}
+      </p>
+    {%- endif -%}
+
+  {%- when 'title' -%}
+    {%- liquid
+      if is_demo
+        assign t_title = 'sections.featured_product.demo.title' | t
+      else
+        assign t_title = product.title
+      endif
+    -%}
+    {%- if ctx == 'main' -%}
+      <h1 class="pdp-block pdp-title h2" data-block-id="{{ block.id }}" data-split {{ block.shopify_attributes }}>
+        {{- t_title | escape -}}
+      </h1>
+    {%- else -%}
+      <h3 class="pdp-block pdp-title pdp-title--featured h3" data-block-id="{{ block.id }}" data-split {{ block.shopify_attributes }}>
+        {%- if is_demo -%}
+          {{- t_title | escape -}}
+        {%- else -%}
+          <a href="{{ product.url }}" class="pdp-title__link">{{ t_title | escape }}</a>
+        {%- endif -%}
+      </h3>
+    {%- endif -%}
+
+  {%- when 'badges' -%}
+    <div class="pdp-block pdp-badges" data-block-id="{{ block.id }}" data-reveal="fade" {{ block.shopify_attributes }}>
+      <div class="pdp-badges__inner" data-variant-swap="badges">
+        {%- if is_demo -%}
+          <div class="badges">
+            <span class="badge badge--grade" data-grader="psa" data-gem>
+              <span class="badge__grader">PSA</span>
+              <span class="badge__score">10</span>
+            </span>
+            <span class="badge badge--rarity" data-tier="holo">{{ 'sections.featured_product.demo.rarity' | t }}</span>
+          </div>
+        {%- else -%}
+          {%- render 'card-badges', product: product, variant: variant, context: 'product' -%}
+        {%- endif -%}
+      </div>
+    </div>
+
+  {%- when 'price' -%}
+    <div class="pdp-block pdp-price" data-block-id="{{ block.id }}" data-reveal="fade-up" {{ block.shopify_attributes }}>
+      <div class="pdp-price__row" data-variant-swap="price">
+        {%- if is_demo -%}
+          <p class="pdp-demo-price">{{ 125000 | money }}</p>
+        {%- else -%}
+          {%- render 'price', product: product, use_variant: true, size: 'lg' -%}
+        {%- endif -%}
+      </div>
+      {%- if b.show_tax_note and is_demo == false -%}
+        <p class="pdp-price__note">
+          {%- if cart.taxes_included -%}
+            {{ 'products.pdp.price.tax_included' | t }}
+          {%- else -%}
+            {{ 'products.pdp.price.tax_excluded' | t }}
+          {%- endif -%}
+          {%- if shop.shipping_policy.body != blank %}
+            {{ 'products.pdp.price.shipping_policy_html' | t: link: shop.shipping_policy.url }}
+          {%- endif -%}
+        </p>
+      {%- endif -%}
+    </div>
+
+  {%- when 'inventory' -%}
+    {%- liquid
+      assign inv_state = 'in'
+      assign inv_qty = 1
+      assign inv_pct = 100
+      if is_demo
+        assign inv_state = 'low'
+        assign inv_pct = 34
+      else
+        assign inv_qty = variant.inventory_quantity | default: 0
+        assign threshold = settings.low_stock_threshold | default: 0
+        assign tracked = false
+        if variant.inventory_management == 'shopify'
+          assign tracked = true
+        endif
+        if variant.available == false
+          assign inv_state = 'out'
+        elsif tracked and inv_qty <= 0
+          assign inv_state = 'backorder'
+        elsif tracked and threshold > 0 and inv_qty <= threshold
+          assign inv_state = 'low'
+          assign inv_pct = inv_qty | times: 100 | divided_by: threshold | at_most: 100 | at_least: 12
+        endif
+      endif
+    -%}
+    <div class="pdp-block pdp-stock" data-block-id="{{ block.id }}" data-reveal="fade-up" {{ block.shopify_attributes }}>
+      <div class="pdp-stock__inner" data-variant-swap="inventory">
+        <p class="pdp-stock__line" data-state="{{ inv_state }}">
+          <span class="pdp-stock__dot" aria-hidden="true"></span>
+          <span class="pdp-stock__label">
+            {%- case inv_state -%}
+              {%- when 'low' -%}
+                {{ 'products.pdp.stock.low' | t: count: inv_qty }}
+              {%- when 'out' -%}
+                {{ 'products.pdp.stock.sold_out' | t }}
+              {%- when 'backorder' -%}
+                {{ 'products.pdp.stock.backorder' | t }}
+              {%- else -%}
+                {{ 'products.pdp.stock.in_stock' | t }}
+            {%- endcase -%}
+          </span>
+          {%- comment -%} Keep a real space between label and note for screen readers. {%- endcomment %}
+          {% case inv_state -%}
+            {%- when 'low' -%}
+              {%- if b.low_stock_note != blank -%}
+                <span class="pdp-stock__note">{{ b.low_stock_note | escape }}</span>
+              {%- endif -%}
+            {%- when 'out' -%}
+              <span class="pdp-stock__note">{{ 'products.pdp.stock.sold_out_note' | t }}</span>
+            {%- when 'backorder' -%}
+              <span class="pdp-stock__note">{{ 'products.pdp.stock.backorder_note' | t }}</span>
+            {%- else -%}
+              {%- if b.in_stock_note != blank -%}
+                <span class="pdp-stock__note">{{ b.in_stock_note | escape }}</span>
+              {%- endif -%}
+          {%- endcase -%}
+        </p>
+        {%- if inv_state == 'low' and b.show_meter -%}
+          <span class="pdp-stock__meter" aria-hidden="true"><span style="--fill: {{ inv_pct | divided_by: 100.0 }};"></span></span>
+        {%- endif -%}
+      </div>
+    </div>
+
+  {%- when 'variant_picker' -%}
+    {%- unless is_demo or product.has_only_default_variant -%}
+      <div class="pdp-block pdp-picker" data-block-id="{{ block.id }}" data-reveal="fade-up" {{ block.shopify_attributes }}>
+        {%- render 'product-variant-picker', product: product, variant: variant, section_id: section_id, picker_type: b.picker_type -%}
+      </div>
+    {%- endunless -%}
+
+  {%- when 'quantity' -%}
+    {%- unless is_demo -%}
+      {%- liquid
+        # Cap the quantity at stock only when inventory is tracked and overselling is denied.
+        assign q_max = 0
+        if variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny' and variant.inventory_quantity > 0
+          assign q_max = variant.inventory_quantity
+        endif
+      -%}
+      <div class="pdp-block pdp-qty" data-block-id="{{ block.id }}" data-reveal="fade-up" {{ block.shopify_attributes }}>
+        <label class="pdp-label" for="Quantity-{{ section_id }}">{{ 'products.product.quantity' | t }}</label>
+        <div class="pdp-qty__row" data-variant-swap="quantity">
+          <quantity-input class="qty pdp-qty__input">
+            <button type="button" data-qty="minus" aria-label="{{ 'accessibility.decrease_quantity' | t: product: product.title | escape }}">
+              {%- render 'icon', name: 'minus', size: 16, stroke: 2 -%}
+            </button>
+            <input
+              id="Quantity-{{ section_id }}"
+              type="number"
+              name="quantity"
+              value="1"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              form="{{ form_id }}"
+              {% if q_max > 0 %}
+                max="{{ q_max }}"
+              {% endif %}
+            >
+            <button type="button" data-qty="plus" aria-label="{{ 'accessibility.increase_quantity' | t: product: product.title | escape }}">
+              {%- render 'icon', name: 'plus', size: 16, stroke: 2 -%}
+            </button>
+          </quantity-input>
+          <span class="pdp-qty__hint" data-qty-hint{% if q_max == 0 or q_max > 10 %} hidden{% endif %}>
+            {%- if q_max > 0 -%}
+              {{ 'products.pdp.quantity.available' | t: count: q_max }}
+            {%- endif -%}
+          </span>
+        </div>
+      </div>
+    {%- endunless -%}
+
+  {%- when 'buy_buttons' -%}
+    <div class="pdp-block pdp-buy" data-block-id="{{ block.id }}" data-buy-block data-reveal="fade-up" {{ block.shopify_attributes }}>
+      {%- if is_demo -%}
+        <button type="button" class="btn btn--primary btn--lg btn--block pdp-atc" disabled>
+          {%- render 'icon', name: 'cart', size: 18, stroke: 2 -%}
+          <span>{{ 'products.product.add_to_cart' | t }}</span>
+        </button>
+        {%- if request.design_mode -%}
+          <p class="pdp-buy__note">{{ 'sections.featured_product.editor_note' | t }}</p>
+        {%- endif -%}
+      {%- else -%}
+        {%- form 'product', product, id: form_id, class: 'pdp-form', novalidate: 'novalidate', data-cart-form: '' -%}
+          <input type="hidden" name="id" value="{{ variant.id }}" data-variant-id>
+          <noscript>
+            <div class="select pdp-buy__noscript">
+              <label class="visually-hidden" for="NoscriptVariant-{{ section_id }}">{{ 'products.pdp.variant.label' | t }}</label>
+              <select class="select__select" name="id" id="NoscriptVariant-{{ section_id }}">
+                {%- for v in product.variants -%}
+                  <option
+                    value="{{ v.id }}"
+                    {% if v.id == variant.id %}
+                      selected
+                    {% endif %}
+                    {% unless v.available %}
+                      disabled
+                    {% endunless %}
+                  >
+                    {{ v.title | escape }} – {{ v.price | money | strip_html }}
+                  </option>
+                {%- endfor -%}
+              </select>
+            </div>
+          </noscript>
+          <div class="pdp-buy__atc" data-variant-swap="buy">
+            <button
+              type="submit"
+              name="add"
+              class="btn btn--primary btn--lg btn--block pdp-atc"
+              data-atc
+              data-magnetic="0.06"
+              {% unless variant.available %}
+                disabled
+              {% endunless %}
+            >
+              {%- render 'icon', name: 'cart', size: 18, stroke: 2 -%}
+              <span data-atc-label>
+                {%- if variant.available -%}
+                  {{ 'products.product.add_to_cart' | t }}
+                {%- else -%}
+                  {{ 'products.product.sold_out' | t }}
+                {%- endif -%}
+              </span>
+            </button>
+          </div>
+          {%- if b.show_dynamic_checkout -%}
+            {%- capture payment_html -%}{{ form | payment_button }}{%- endcapture -%}
+            {%- if payment_html contains '<' -%}
+              <div class="pdp-buy__dynamic">{{ payment_html }}</div>
+            {%- endif -%}
+          {%- endif -%}
+        {%- endform -%}
+      {%- endif -%}
+    </div>
+
+  {%- when 'collector_specs' -%}
+    {%- capture specs_html -%}
+      {%- render 'collector-specs', product: product, variant: variant, demo: is_demo -%}
+    {%- endcapture -%}
+    <div
+      class="pdp-block pdp-specs"
+      data-block-id="{{ block.id }}"
+      data-reveal="fade-up"
+      {{ block.shopify_attributes }}
+      {% if specs_html == blank %}
+        hidden
+      {% endif %}
+    >
+      {%- if b.heading != blank -%}
+        {%- if ctx == 'main' -%}
+          <h2 class="pdp-specs__heading h6">{{ b.heading | escape }}</h2>
+        {%- else -%}
+          <h4 class="pdp-specs__heading h6">{{ b.heading | escape }}</h4>
+        {%- endif -%}
+      {%- endif -%}
+      <div class="pdp-specs__body cs-container" data-variant-swap="specs">{{ specs_html }}</div>
+    </div>
+
+  {%- when 'trust' -%}
+    <ul class="pdp-block pdp-trust" role="list" data-block-id="{{ block.id }}" data-reveal="fade-up" {{ block.shopify_attributes }}>
+      {%- for i in (1..3) -%}
+        {%- liquid
+          assign k_icon = 'icon_' | append: i
+          assign k_title = 'title_' | append: i
+          assign k_text = 'text_' | append: i
+          assign tr_icon = b[k_icon] | default: 'shield'
+          assign tr_title = b[k_title]
+          assign tr_text = b[k_text]
+        -%}
+        {%- if tr_title != blank or tr_text != blank -%}
+          <li class="pdp-trust__item">
+            <span class="pdp-trust__icon">{% render 'icon', name: tr_icon, size: 18 %}</span>
+            <span class="pdp-trust__text">
+              {%- if tr_title != blank -%}
+                <span class="pdp-trust__title">{{ tr_title | escape }}</span>
+              {%- endif -%}
+              {%- if tr_text != blank -%}
+                <span class="pdp-trust__sub">{{ tr_text | escape }}</span>
+              {%- endif -%}
+            </span>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+
+  {%- when 'collapsible_tab' -%}
+    {%- liquid
+      assign tab_body = ''
+      case b.source
+        when 'description'
+          if is_demo == false
+            assign tab_body = product.description
+          endif
+        when 'page'
+          assign tab_body = b.page.content
+      endcase
+      if tab_body == blank
+        assign tab_body = b.content
+      endif
+    -%}
+    {%- if tab_body != blank -%}
+      <details
+        class="pdp-block accordion pdp-tab"
+        data-accordion
+        data-block-id="{{ block.id }}"
+        data-reveal="fade-up"
+        {{ block.shopify_attributes }}
+        {% if b.open %}
+          open
+        {% endif %}
+      >
+        <summary class="pdp-tab__summary">
+          <span class="pdp-tab__title">
+            {%- if b.icon != 'none' and b.icon != blank -%}
+              <span class="pdp-tab__icon">{% render 'icon', name: b.icon, size: 18 %}</span>
+            {%- endif -%}
+            {{- b.heading | escape -}}
+          </span>
+          <span class="accordion__icon" aria-hidden="true">{% render 'icon', name: 'plus', size: 14, stroke: 2 %}</span>
+        </summary>
+        <div class="accordion__content">
+          <div class="accordion__inner rte">{{ tab_body }}</div>
+        </div>
+      </details>
+    {%- endif -%}
+
+  {%- when 'share' -%}
+    {%- unless is_demo -%}
+      <div class="pdp-block pdp-share-block" data-block-id="{{ block.id }}" data-reveal="fade" {{ block.shopify_attributes }}>
+        <product-share
+          class="pdp-share"
+          data-url="{{ request.origin }}{{ product.url }}"
+          data-title="{{ product.title | escape }}"
+          data-copied="{{ 'products.pdp.share.copied' | t | escape }}"
+          data-copy-error="{{ 'products.pdp.share.copy_error' | t | escape }}"
+        >
+          <span class="pdp-label pdp-share__label">{{ 'products.pdp.share.label' | t }}</span>
+          <button type="button" class="pdp-share__btn" data-share-native hidden>
+            {%- render 'icon', name: 'arrow-up-right', size: 16, stroke: 2 -%}
+            <span>{{ 'products.pdp.share.share' | t }}</span>
+          </button>
+          <button type="button" class="pdp-share__btn" data-share-copy>
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/>
+              <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>
+            </svg>
+            <span data-share-copy-label>{{ 'products.pdp.share.copy' | t }}</span>
+          </button>
+        </product-share>
+      </div>
+    {%- endunless -%}
+
+  {%- when 'text' -%}
+    {%- if b.text != blank -%}
+      <div class="pdp-block pdp-text pdp-text--{{ b.style }} rte" data-block-id="{{ block.id }}" data-reveal="fade-up" {{ block.shopify_attributes }}>
+        {{- b.text -}}
+      </div>
+    {%- endif -%}
+
+  {%- when 'custom_liquid' -%}
+    <div class="pdp-block pdp-liquid" data-block-id="{{ block.id }}" {{ block.shopify_attributes }}>
+      {{- b.custom_liquid -}}
+    </div>
+
+  {%- when 'cert_verify' -%}
+    {%- liquid
+      assign cv_show = false
+      if is_demo
+        assign cv_cert = '48213907'
+        assign cv_grader = 'PSA'
+        assign cv_url = ''
+        assign cv_show = true
+      else
+        capture cd_raw
+          render 'product-collector-data', product: product, variant: variant
+        endcapture
+        assign cd = cd_raw | split: '~|~'
+        assign cv_grader = cd[7]
+        assign cv_cert = cd[10]
+        assign cv_url = cd[11]
+        if settings.collector_cert_links and cv_url != blank
+          assign cv_show = true
+        endif
+      endif
+    -%}
+    {%- if cv_show -%}
+      {%- capture cv_inner -%}
+        <span class="pdp-cert__seal">{% render 'icon', name: 'verified', size: 22 %}</span>
+        <span class="pdp-cert__text">
+          <span class="pdp-cert__kicker">{{ 'products.pdp.cert.kicker' | t }}</span>
+          <span class="pdp-cert__title">{{ 'products.pdp.cert.verify_html' | t: cert: cv_cert, grader: cv_grader }}</span>
+        </span>
+        <span class="pdp-cert__arrow">{% render 'icon', name: 'arrow-up-right', size: 18 %}</span>
+      {%- endcapture -%}
+      <div class="pdp-block pdp-cert-block" data-block-id="{{ block.id }}" data-reveal="fade-up" {{ block.shopify_attributes }}>
+        {%- if is_demo -%}
+          <div class="pdp-cert is-demo">{{ cv_inner }}</div>
+        {%- else -%}
+          <a class="pdp-cert" href="{{ cv_url }}" target="_blank" rel="noopener">
+            {{- cv_inner -}}
+            <span class="visually-hidden">({{ 'accessibility.new_window' | t }})</span>
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+  {%- when 'popup' -%}
+    {%- liquid
+      assign pop_id = 'PopupModal-' | append: block.id
+      assign pop_title = b.heading
+      assign pop_body = b.content
+      if b.page != blank
+        assign pop_title = b.page.title
+        assign pop_body = b.page.content
+      endif
+    -%}
+    <div class="pdp-block pdp-popup" data-block-id="{{ block.id }}" data-reveal="fade" {{ block.shopify_attributes }}>
+      <button
+        type="button"
+        class="pdp-popup__trigger"
+        data-drawer-open="{{ pop_id }}"
+        aria-haspopup="dialog"
+        aria-controls="{{ pop_id }}"
+        aria-expanded="false"
+      >
+        {%- render 'icon', name: 'info', size: 16 -%}
+        <span>{{ b.text | escape }}</span>
+        {%- render 'icon', name: 'arrow-right', size: 14 -%}
+      </button>
+      <vault-drawer id="{{ pop_id }}" data-placement="center" data-mobile-placement="bottom" style="--modal-width: 640px;">
+        <dialog class="drawer" aria-labelledby="PopupTitle-{{ block.id }}">
+          <div class="drawer__overlay" data-drawer-close></div>
+          <div class="drawer__panel pdp-popup__panel">
+            <div class="drawer__handle" data-drawer-handle></div>
+            <div class="drawer__header">
+              <h2 class="drawer__title" id="PopupTitle-{{ block.id }}">{{ pop_title | escape }}</h2>
+              <button type="button" class="btn btn--icon btn--ghost" data-drawer-close data-drawer-focus aria-label="{{ 'accessibility.close' | t }}">
+                {%- render 'icon', name: 'close', size: 20 -%}
+              </button>
+            </div>
+            <div class="drawer__body pdp-popup__body rte" data-drawer-item>{{ pop_body }}</div>
+          </div>
+        </dialog>
+      </vault-drawer>
+    </div>
+{%- endcase -%}

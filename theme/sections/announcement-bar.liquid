@@ -1,0 +1,216 @@
+{%- comment -%}
+  Announcement bar (header group). Modes:
+  - rotate:  one message at a time; Motion slides the outgoing one up and springs the next in,
+             auto-advances, pauses on hover/focus, arrows on ≥750px, swipe on touch.
+  - marquee: continuous <vault-marquee> ticker.
+  A single announcement is always static. Fixed height → no layout shift.
+{%- endcomment -%}
+{%- liquid
+  assign announcement_count = section.blocks.size
+  assign mode = section.settings.mode
+  if announcement_count < 2
+    assign mode = 'static'
+  endif
+-%}
+{%- if announcement_count > 0 -%}
+  {{ 'section-announcement-bar.css' | asset_url | stylesheet_tag }}
+
+  <announcement-bar
+    class="announcement announcement--{{ mode }} color-{{ section.settings.color_scheme }} section-bg"
+    data-mode="{{ mode }}"
+    data-interval="{{ section.settings.interval }}"
+    role="region"
+    aria-label="{{ 'sections.announcement_bar.label' | t }}"
+  >
+    {%- if mode == 'marquee' -%}
+      <vault-marquee
+        class="announcement__marquee"
+        data-speed="{{ section.settings.speed }}"
+        data-direction="left"
+        data-scroll-velocity="true"
+        data-pause-hover
+        data-fade
+      >
+        <div class="marquee__track">
+          <div class="marquee__group">
+            {%- for block in section.blocks -%}
+              <div class="announcement__item" {{ block.shopify_attributes }}>
+                {%- render 'header-announcement', block: block -%}
+              </div>
+              <span class="announcement__sep" aria-hidden="true"></span>
+            {%- endfor -%}
+          </div>
+        </div>
+      </vault-marquee>
+    {%- else -%}
+      <div class="announcement__inner page-width">
+        {%- if mode == 'rotate' -%}
+          <button
+            type="button"
+            class="announcement__arrow announcement__arrow--prev"
+            data-announcement-prev
+            aria-label="{{ 'sections.announcement_bar.previous' | t }}"
+          >
+            {%- render 'icon', name: 'chevron-left', size: 14, stroke: 2 -%}
+          </button>
+        {%- endif -%}
+
+        <div class="announcement__viewport" data-announcement-viewport aria-live="off">
+          {%- for block in section.blocks -%}
+            <div
+              class="announcement__slide{% if forloop.first %} is-active{% endif %}"
+              data-announcement-slide
+              {% unless forloop.first %}
+                aria-hidden="true"
+              {% endunless %}
+              {{ block.shopify_attributes }}
+            >
+              {%- render 'header-announcement', block: block -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if mode == 'rotate' -%}
+          <button
+            type="button"
+            class="announcement__arrow announcement__arrow--next"
+            data-announcement-next
+            aria-label="{{ 'sections.announcement_bar.next' | t }}"
+          >
+            {%- render 'icon', name: 'chevron-right', size: 14, stroke: 2 -%}
+          </button>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </announcement-bar>
+
+  {%- if mode == 'rotate' -%}
+    <script src="{{ 'section-announcement-bar.js' | asset_url }}" defer="defer"></script>
+  {%- endif -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "class": "vault-announcement-section",
+  "enabled_on": {
+    "groups": ["header"]
+  },
+  "max_blocks": 8,
+  "settings": [
+    {
+      "type": "select",
+      "id": "mode",
+      "label": "Style",
+      "options": [
+        { "value": "rotate", "label": "Rotate one at a time" },
+        { "value": "marquee", "label": "Scrolling ticker" }
+      ],
+      "default": "rotate",
+      "info": "A single announcement is always shown static."
+    },
+    {
+      "type": "range",
+      "id": "interval",
+      "label": "Change every",
+      "min": 3,
+      "max": 10,
+      "step": 0.5,
+      "unit": "s",
+      "default": 4.5,
+      "visible_if": "{{ section.settings.mode == 'rotate' }}"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Ticker speed",
+      "min": 20,
+      "max": 80,
+      "step": 5,
+      "default": 40,
+      "visible_if": "{{ section.settings.mode == 'marquee' }}"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-4"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "announcement",
+      "name": "Announcement",
+      "settings": [
+        {
+          "type": "inline_richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "Free insured shipping on orders over $75"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "verified", "label": "Verified badge" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "flame", "label": "Flame" },
+            { "value": "bolt", "label": "Bolt" },
+            { "value": "gift", "label": "Gift" },
+            { "value": "calendar", "label": "Calendar" },
+            { "value": "clock", "label": "Clock" },
+            { "value": "award", "label": "Award" },
+            { "value": "trophy", "label": "Trophy" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "box", "label": "Box" },
+            { "value": "tag", "label": "Tag" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "return", "label": "Returns" },
+            { "value": "globe", "label": "Globe" },
+            { "value": "star", "label": "Star" },
+            { "value": "chat", "label": "Chat" }
+          ],
+          "default": "truck"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement bar",
+      "blocks": [
+        {
+          "type": "announcement",
+          "settings": {
+            "text": "Free insured shipping on orders over $75",
+            "icon": "truck"
+          }
+        },
+        {
+          "type": "announcement",
+          "settings": {
+            "text": "Every graded slab verified — cert links on every listing",
+            "icon": "verified"
+          }
+        },
+        {
+          "type": "announcement",
+          "settings": {
+            "text": "New drops every Friday · 6PM ET",
+            "icon": "calendar"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,365 @@
+/* ==========================================================================
+   VAULT — Card flip reveal (sections/card-flip-reveal.liquid)
+   Card transform layers (outer → inner), one driver each:
+     .cfr-card__lift     lift + scale peak mid-flip (Motion); also the perspective parent
+     .cfr-card__rotator  rotateY 180 → 0 (Motion spring)
+     holo-card > .holo   tilt + foil (core)
+   Face-down is the starting pose only under html.motion-ok; without motion the fronts show.
+   ========================================================================== */
+
+.section-card-flip-reveal { overflow: hidden; }
+@supports (overflow: clip) {
+  .section-card-flip-reveal { overflow: clip; }
+}
+
+.cfr { position: relative; display: block; }
+.cfr__glow {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  width: min(150vw, 1200px);
+  height: 70%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--color-accent-rgb) / .16), transparent 72%);
+  pointer-events: none;
+}
+.cfr .page-width { position: relative; }
+
+/* ---------- Header ---------- */
+.cfr__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: clamp(1.75rem, 1.25rem + 2vw, 3rem);
+}
+.cfr__head .section-header { margin-bottom: 0; }
+.cfr__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem 1.5rem;
+}
+.cfr__link { min-height: 44px; }
+
+/* ---------- Grid / carousel ---------- */
+.cfr__grid { row-gap: clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem); }
+.cfr__list { margin: 0; padding: 0; list-style: none; }
+.cfr__carousel .carousel__track { padding-top: 14px; padding-bottom: 18px; }
+.cfr__carousel:not([data-scrollable]) .cfr__controls { display: none; }
+
+.cfr-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .95rem;
+  min-width: 0;
+}
+
+/* ---------- Card ---------- */
+.cfr-card {
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.cfr-card__lift {
+  position: relative;
+  perspective: 1100px;
+}
+.cfr-card__rotator {
+  position: relative;
+  z-index: 1;
+  aspect-ratio: 63 / 88;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+.cfr-card__face {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-card);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.cfr-card__face--front { transform: rotateY(0deg); }
+.cfr-card__face--back { transform: rotateY(180deg); }
+.cfr-card__link,
+.cfr-card__holo,
+.cfr-card__holo .holo {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+.cfr-card__media {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--color-surface);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .06), 0 24px 40px -22px rgb(0 0 0 / .85);
+  transition: box-shadow .6s var(--ease-out);
+}
+.cfr-card__media > .placeholder-card { position: absolute; inset: 0; }
+.cfr-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Bottom-left keeps the card name (top of the art) visible; the flip toggle owns the top-right. */
+.cfr-card__badges {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 4;
+  pointer-events: none;
+}
+.cfr-card__badges:empty { display: none; }
+
+.cfr-card__shadow {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: -6%;
+  height: 11%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / .75), transparent);
+  filter: blur(6px);
+  opacity: .5;
+  pointer-events: none;
+}
+.cfr-card__burst {
+  position: absolute;
+  inset: -28% -34%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--color-accent-rgb) / .9), rgb(var(--color-accent-rgb) / .35) 42%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Chase cards glow once revealed (always, when nothing flips). */
+.cfr-item--chase.is-lit .cfr-card__media,
+.cfr.is-static .cfr-item--chase .cfr-card__media,
+html:not(.motion-ok) .cfr-item--chase .cfr-card__media {
+  box-shadow:
+    0 0 0 1px rgb(var(--color-accent-rgb) / .7),
+    0 0 40px -4px rgb(var(--color-accent-rgb) / .75),
+    0 24px 40px -22px rgb(0 0 0 / .85);
+}
+html.motion-ok .cfr-item--chase.is-lit .cfr-card__lift::before {
+  content: "";
+  position: absolute;
+  inset: 6%;
+  z-index: 0;
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 60px 8px rgb(var(--color-accent-rgb) / .5);
+  animation: cfr-pulse 2.6s var(--ease-in-out) infinite;
+  pointer-events: none;
+}
+
+/* ---------- Designed card back ---------- */
+.cfr-back {
+  container-type: inline-size;
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 9%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  color: #fff;
+  background:
+    radial-gradient(90% 60% at 50% 44%, rgb(var(--color-accent-rgb) / .72), rgb(var(--color-accent-rgb) / .16) 60%, transparent 82%),
+    linear-gradient(160deg, #2a2b31 0%, #111215 55%, #08090b 100%);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .08), 0 24px 40px -22px rgb(0 0 0 / .85);
+}
+.cfr-back__pattern {
+  position: absolute;
+  inset: 0;
+  opacity: .55;
+  background:
+    repeating-linear-gradient(45deg, rgb(255 255 255 / .07) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(-45deg, rgb(255 255 255 / .07) 0 1px, transparent 1px 9px);
+  -webkit-mask-image: radial-gradient(closest-side, transparent 35%, #000 90%);
+  mask-image: radial-gradient(closest-side, transparent 35%, #000 90%);
+}
+/* Holo foil border that shimmers around the back. */
+.cfr-back__shimmer {
+  position: absolute;
+  inset: 5px;
+  padding: 1.5px;
+  border-radius: max(2px, calc(var(--radius-card) - 3px));
+  background: var(--holo-gradient);
+  background-size: 300% 100%;
+  opacity: .9;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+html.motion-ok .cfr-back__shimmer { animation: holo-shift 3.5s linear infinite; }
+.cfr-back__emblem {
+  position: relative;
+  width: 46%;
+  height: auto;
+  filter: drop-shadow(0 0 14px rgb(var(--color-accent-rgb) / .85));
+  transition: transform .6s var(--ease-back);
+}
+.cfr-back__lock { fill: var(--color-accent); stroke: #fff; stroke-width: 1.5; }
+.cfr-back__brand {
+  position: relative;
+  max-width: 80%;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(.45rem, 4.4cqi, .8rem);
+  letter-spacing: .16em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: .85;
+}
+
+/* ---------- Face-down pose + interaction states (motion only) ---------- */
+html.motion-ok .cfr:not(.is-static) .cfr-card__rotator { transform: rotateY(180deg); }
+/* Failsafe: if the section script never boots, show the fronts after a moment. */
+html.motion-ok .cfr:not(.is-ready):not(.is-static) .cfr-card__rotator { animation: cfr-failsafe .01s linear 4s forwards; }
+
+.cfr.is-ready .cfr-item:not(.is-revealed) .cfr-card { cursor: pointer; }
+.cfr.is-ready .cfr-item:not(.is-revealed) .cfr-card__face--front { pointer-events: none; }
+.cfr--click.is-ready .cfr-item:not(.is-revealed) .cfr-back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  animation: cfr-invite 2.4s var(--ease-in-out) infinite;
+}
+@media (hover: hover) and (pointer: fine) {
+  .cfr.is-ready .cfr-item:not(.is-revealed) .cfr-card:hover .cfr-back__emblem { transform: scale(1.08) rotate(-10deg); }
+}
+
+/* Flip toggle: 32px visual, 44px hit area. */
+.cfr-card__toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--color-text-rgb) / .18);
+  background: rgb(var(--color-bg-rgb) / .62);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--color-text);
+  transition: opacity var(--dur) var(--ease-out), background-color var(--dur), border-color var(--dur);
+}
+.cfr-card__toggle::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+.cfr-card__toggle .icon { width: 16px; height: 16px; }
+.cfr-card__toggle[aria-pressed="false"] { border-color: rgb(255 255 255 / .3); background: rgb(0 0 0 / .35); color: #fff; }
+@media (hover: hover) and (pointer: fine) {
+  .cfr-card__toggle { opacity: 0; }
+  .cfr-card:hover .cfr-card__toggle,
+  .cfr-card__toggle:focus-visible { opacity: 1; }
+  .cfr-card__toggle:hover { border-color: rgb(var(--color-accent-rgb) / .8); background: rgb(var(--color-accent-rgb) / .2); }
+}
+
+/* ---------- Info ---------- */
+.cfr-item__meta { display: grid; }
+.cfr-item__meta > * { grid-area: 1 / 1; }
+.cfr-item__info {
+  display: grid;
+  align-content: start;
+  gap: .3rem;
+  min-width: 0;
+  transition: opacity .5s var(--ease-out) .28s, transform .6s var(--ease-out) .28s, visibility 0s linear 0s;
+}
+.cfr.is-ready .cfr-item:not(.is-revealed) .cfr-item__info {
+  opacity: 0;
+  transform: translateY(8px);
+  visibility: hidden;
+  transition: opacity .2s, transform .2s, visibility 0s linear .2s;
+}
+.cfr-item__chase {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: .4rem;
+  color: var(--color-accent);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.cfr-item__chase::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+.cfr-item__title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-stretch: normal;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: none;
+}
+.cfr-item__link { transition: color var(--dur); }
+@media (hover: hover) and (pointer: fine) {
+  .cfr-item__link:hover { color: var(--color-accent); }
+}
+.cfr-item__price {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.cfr-item__hint {
+  display: none;
+  align-items: center;
+  align-self: start;
+  gap: .45rem;
+  color: var(--color-muted);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.cfr-item__hint .icon { color: var(--color-accent); }
+.cfr-item__hint-mouse { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .cfr-item__hint-touch { display: none; }
+  .cfr-item__hint-mouse { display: inline; }
+}
+.cfr--click.is-ready .cfr-item:not(.is-revealed) .cfr-item__hint { display: flex; }
+
+@media (min-width: 750px) {
+  .cfr-card__badges { bottom: 10px; left: 10px; }
+}
+
+@keyframes cfr-failsafe { to { transform: none; } }
+@keyframes cfr-pulse {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}
+@keyframes cfr-invite {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgb(var(--color-accent-rgb) / 0); }
+  50% { box-shadow: inset 0 0 0 2px rgb(var(--color-accent-rgb) / .85), 0 0 24px -4px rgb(var(--color-accent-rgb) / .8); }
+}

@@ -1,0 +1,120 @@
+{%- comment -%}
+  Collection tile — image (or fanned placeholder card art), dark gradient, display title,
+  product count, arrow chip and a spotlight glow. The whole tile is one link.
+
+  Usage:
+    {% render 'card-collection', collection: collection, index: forloop.index0, size: 'md', sizes: tile_sizes %}
+    {% render 'card-collection', collection: block.settings.collection, image: block.settings.image, title: block.settings.title, caption: block.settings.caption %}
+
+  Params:
+    collection  collection object (required for real tiles; may be blank for sample tiles)
+    image       image override (image_picker)
+    title       title override
+    caption     short line under the title (optional)
+    url         link override (default collection.url, or /collections/all when blank)
+    index       0-based position → "01" numbering and placeholder art (default 0)
+    size        sm | md | lg (default md) — shape in plain grids, type scale everywhere
+    sizes       image `sizes` attribute
+    show_count  default true — "124 items" when a collection is set
+    reveal      default true → data-reveal entrance
+    section_id  optional, keeps placeholder SVG ids unique when several lists share a page
+    class       extra classes on the root
+  Styles: assets/component-card-collection.css (loaded here).
+{%- endcomment -%}
+{%- liquid
+  assign tile_index = index | default: 0
+  assign tile_number = tile_index | plus: 1
+  assign tile_size = size | default: 'md'
+  assign tile_sizes = sizes | default: '(min-width: 990px) 33vw, (min-width: 750px) 50vw, 100vw'
+
+  assign tile_title = title
+  if tile_title == blank
+    assign tile_title = collection.title
+  endif
+
+  assign tile_url = url
+  if tile_url == blank
+    assign tile_url = collection.url
+  endif
+  if tile_url == blank
+    assign tile_url = routes.all_products_collection_url
+  endif
+
+  assign tile_image = image
+  if tile_image == blank
+    assign tile_image = collection.featured_image
+  endif
+
+  assign tile_count = ''
+  if show_count != false and collection != blank and collection.products_count > 0
+    assign tile_count = 'sections.collection_list.item_count' | t: count: collection.products_count
+  endif
+
+  assign art_front = tile_index | times: 2 | modulo: 6 | plus: 1
+  assign art_back = art_front | plus: 2 | modulo: 6 | plus: 1
+  assign art_third = art_front | plus: 3 | modulo: 6 | plus: 1
+  assign uid = 'cc-' | append: section_id | append: '-' | append: collection.id | append: '-' | append: tile_index
+  assign uid_a = uid | append: '-a'
+  assign uid_b = uid | append: '-b'
+  assign uid_c = uid | append: '-c'
+-%}
+{{ 'component-card-collection.css' | asset_url | stylesheet_tag }}
+<a
+  href="{{ tile_url }}"
+  class="collection-card collection-card--{{ tile_size }}{% if tile_image != blank %} collection-card--image{% else %} collection-card--art{% endif %}{% if class != blank %} {{ class }}{% endif %}"
+  data-spotlight
+  {% unless reveal == false %}
+    data-reveal
+  {% endunless %}
+>
+  <span class="collection-card__media" aria-hidden="true">
+    {%- if tile_image != blank -%}
+      {{-
+        tile_image
+        | image_url: width: 1400
+        | image_tag:
+          widths: '300, 450, 600, 800, 1000, 1200, 1400',
+          sizes: tile_sizes,
+          loading: 'lazy',
+          alt: '',
+          class: 'collection-card__img'
+      -}}
+    {%- else -%}
+      <span class="collection-card__fan">
+        {%- if tile_size == 'lg' -%}
+          <span class="collection-card__fan-card collection-card__fan-card--third">
+            {%- render 'placeholder-card', variant: art_third, uid: uid_c -%}
+          </span>
+        {%- endif -%}
+        <span class="collection-card__fan-card collection-card__fan-card--back">
+          {%- render 'placeholder-card', variant: art_back, uid: uid_b -%}
+        </span>
+        <span class="collection-card__fan-card collection-card__fan-card--front">
+          {%- render 'placeholder-card', variant: art_front, uid: uid_a -%}
+        </span>
+      </span>
+    {%- endif -%}
+  </span>
+  <span class="collection-card__shade" aria-hidden="true"></span>
+
+  <span class="collection-card__bottom">
+    <span class="collection-card__text">
+      <span class="collection-card__title">{{ tile_title | escape }}</span>
+      {%- if caption != blank -%}
+        <span class="collection-card__caption">{{ caption | escape }}</span>
+      {%- endif -%}
+    </span>
+    <span class="collection-card__arrow" aria-hidden="true">
+      {%- render 'icon', name: 'arrow-up-right', size: 18, stroke: 2 -%}
+    </span>
+  </span>
+
+  <span class="collection-card__top">
+    <span class="collection-card__index mono" aria-hidden="true">
+      {%- if tile_number < 10 %}0{% endif %}{{ tile_number -}}
+    </span>
+    {%- if tile_count != blank -%}
+      <span class="collection-card__count">{{ tile_count }}</span>
+    {%- endif -%}
+  </span>
+</a>

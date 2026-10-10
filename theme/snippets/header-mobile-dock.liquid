@@ -1,0 +1,127 @@
+{%- comment -%}
+  App-style bottom navigation for phones (<750px), rendered by sections/header.liquid when
+  settings.mobile_dock is on and the template is not a product page.
+  Root carries [data-dock] → core sets html.has-dock and --dock-height (body is padded by it).
+  <mobile-dock> (assets/component-mobile-dock.js) springs a red pill between items.
+  Params:
+    menu  optional — the header linklist (to decide whether the Shop panel exists)
+{%- endcomment -%}
+{%- liquid
+  assign dock_current = ''
+  case template.name
+    when 'index'
+      assign dock_current = 'home'
+    when 'collection', 'list-collections'
+      assign dock_current = 'shop'
+    when 'search'
+      assign dock_current = 'search'
+    when 'cart'
+      assign dock_current = 'cart'
+  endcase
+  if template.directory == 'customers'
+    assign dock_current = 'account'
+  endif
+
+  assign shop_menu = settings.mobile_dock_shop_menu
+  assign shop_target = ''
+  if shop_menu != blank and shop_menu.links.size > 0 and shop_menu.handle != menu.handle
+    assign shop_target = 'MenuDrawer-Shop'
+  endif
+
+  assign dock_items = 4
+  if shop.customer_accounts_enabled
+    assign dock_items = 5
+  endif
+-%}
+<mobile-dock class="dock" data-dock>
+  <nav class="dock__nav" aria-label="{{ 'sections.mobile_dock.label' | t }}">
+    <ul class="dock__list" role="list" data-dock-list style="--dock-items: {{ dock_items }};">
+      <li class="dock__cell">
+        <a
+          href="{{ routes.root_url }}"
+          class="dock__item"
+          data-dock-item="home"
+          {% if dock_current == 'home' %}
+            aria-current="page"
+          {% endif %}
+        >
+          <span class="dock__label">{{ 'accessibility.home' | t }}</span>
+          <span class="dock__icon">{% render 'icon', name: 'home', size: 22 %}</span>
+        </a>
+      </li>
+      <li class="dock__cell">
+        <a
+          href="{{ routes.collections_url }}"
+          class="dock__item"
+          data-dock-item="shop"
+          data-drawer-open="MenuDrawer"
+          aria-controls="MenuDrawer"
+          aria-expanded="false"
+          {% if shop_target != blank %}
+            data-menu-target="{{ shop_target }}"
+          {% endif %}
+          {% if dock_current == 'shop' %}
+            aria-current="true"
+          {% endif %}
+        >
+          <span class="dock__label">{{ 'sections.mobile_dock.shop' | t }}</span>
+          <span class="dock__icon">{% render 'icon', name: 'cards', size: 22 %}</span>
+        </a>
+      </li>
+      <li class="dock__cell">
+        <a
+          href="{{ routes.search_url }}"
+          class="dock__item"
+          data-dock-item="search"
+          data-drawer-open="SearchDrawer"
+          aria-controls="SearchDrawer"
+          aria-expanded="false"
+          {% if dock_current == 'search' %}
+            aria-current="page"
+          {% endif %}
+        >
+          <span class="dock__label">{{ 'accessibility.search' | t }}</span>
+          <span class="dock__icon">{% render 'icon', name: 'search', size: 22 %}</span>
+        </a>
+      </li>
+      {%- if shop.customer_accounts_enabled -%}
+        <li class="dock__cell">
+          <a
+            href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}"
+            class="dock__item"
+            data-dock-item="account"
+            {% if dock_current == 'account' %}
+              aria-current="page"
+            {% endif %}
+          >
+            <span class="dock__label">{{ 'accessibility.account' | t }}</span>
+            <span class="dock__icon">{% render 'icon', name: 'user', size: 22 %}</span>
+          </a>
+        </li>
+      {%- endif -%}
+      <li class="dock__cell">
+        <a
+          href="{{ routes.cart_url }}"
+          class="dock__item"
+          data-dock-item="cart"
+          data-cart-icon
+          {% if settings.cart_type == 'drawer' %}
+            data-drawer-open="CartDrawer"
+            aria-controls="CartDrawer"
+            aria-expanded="false"
+          {% endif %}
+          {% if dock_current == 'cart' %}
+            aria-current="page"
+          {% endif %}
+        >
+          <span class="dock__label">{{ 'accessibility.cart' | t }}</span>
+          <span class="dock__icon">
+            {%- render 'icon', name: 'cart', size: 22 -%}
+            {%- render 'header-cart-count' -%}
+          </span>
+        </a>
+      </li>
+    </ul>
+    <span class="dock__pill" data-dock-pill aria-hidden="true"></span>
+  </nav>
+</mobile-dock>

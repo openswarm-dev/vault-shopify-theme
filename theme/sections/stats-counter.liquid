@@ -1,0 +1,291 @@
+{{ 'section-stats-counter.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sc_stats = section.blocks | where: 'type', 'stat'
+  assign sc_count = sc_stats.size
+  assign sc_align = section.settings.alignment | default: 'center'
+
+  # Widest formatted value (in characters) sizes every number the same and decides
+  # whether four stats share one row on tablets.
+  assign sc_max_chars = 2
+  for block in sc_stats
+    assign c_raw = block.settings.number | default: '0' | strip | remove: ',' | remove: '-'
+    assign c_int = c_raw | split: '.' | first | size | at_least: 1
+    assign c_commas = c_int | minus: 1 | divided_by: 3 | floor
+    assign c_dec = block.settings.decimals | default: 0
+    assign c_prefix_len = block.settings.prefix | size
+    assign c_suffix_len = block.settings.suffix | size
+    assign c_len = c_int | plus: c_commas | plus: c_prefix_len | plus: c_suffix_len
+    if c_dec > 0
+      assign c_len = c_len | plus: c_dec | plus: 1
+    endif
+    if c_len > sc_max_chars
+      assign sc_max_chars = c_len
+    endif
+  endfor
+
+  assign sc_cols_mobile = 2
+  if sc_count < 2
+    assign sc_cols_mobile = 1
+  endif
+  assign sc_cols_tablet = sc_count
+  if sc_count == 4 and sc_max_chars > 4
+    assign sc_cols_tablet = 2
+  endif
+  assign sc_cols_desktop = sc_count
+  assign sc_heading_id = 'StatsHeading-' | append: section.id
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-stats-counter color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+>
+  {%- if section.settings.show_glow or section.settings.show_grid -%}
+    <div class="sc-atmos" aria-hidden="true">
+      {%- if section.settings.show_glow -%}<span class="sc-atmos__glow"></span>{%- endif -%}
+      {%- if section.settings.show_grid -%}<span class="sc-atmos__grid bg-grid"></span>{%- endif -%}
+    </div>
+  {%- endif -%}
+
+  <div class="page-width sc sc--{{ sc_align }}">
+    {% render 'section-header',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      text: section.settings.text,
+      align: sc_align,
+      size: 'h2',
+      tag: 'h2',
+      id: sc_heading_id
+    %}
+
+    {%- if sc_count > 0 -%}
+      <div
+        class="sc-grid"
+        style="--chars: {{ sc_max_chars }}; --sc-cols-mobile: {{ sc_cols_mobile }}; --sc-cols-tablet: {{ sc_cols_tablet }}; --sc-cols-desktop: {{ sc_cols_desktop }};"
+      >
+        {%- for block in sc_stats -%}
+          {%- liquid
+            assign i = forloop.index0
+            assign n = sc_count
+
+            # ---- Format the number for no-JS (thousands separators, fixed decimals)
+            assign raw = block.settings.number | default: '0' | strip | remove: ','
+            assign decimals = block.settings.decimals | default: 0
+            assign num = raw | plus: 0
+            assign rounded = num | round: decimals | append: ''
+            assign int_part = rounded | split: '.' | first
+            assign dec_part = ''
+            if rounded contains '.'
+              assign dec_part = rounded | split: '.' | last
+            endif
+            assign sign = ''
+            if int_part contains '-'
+              assign sign = '-'
+              assign int_part = int_part | remove: '-'
+            endif
+            assign digits = int_part | split: ''
+            assign formatted = ''
+            for d in digits
+              assign left = digits.size | minus: forloop.index
+              assign formatted = formatted | append: d
+              assign group = left | modulo: 3
+              if left > 0 and group == 0
+                assign formatted = formatted | append: ','
+              endif
+            endfor
+            if decimals > 0
+              assign dec_part = dec_part | append: '000' | slice: 0, decimals
+              assign formatted = formatted | append: '.' | append: dec_part
+            endif
+            assign formatted = sign | append: formatted
+
+            # ---- Hairline placement per breakpoint (right edge = not last in row, bottom = not last row)
+            assign line_classes = ''
+            assign bp_cols = sc_cols_mobile | append: ',' | append: sc_cols_tablet | append: ',' | append: sc_cols_desktop | split: ','
+            assign bp_names = 'm,t,d' | split: ','
+            for c_str in bp_cols
+              assign c = c_str | plus: 0
+              assign bp = bp_names[forloop.index0]
+              assign col = i | modulo: c
+              assign row = i | divided_by: c | floor
+              assign last_row = n | minus: 1 | divided_by: c | floor
+              assign last_col = c | minus: 1
+              assign last_index = n | minus: 1
+              if col < last_col and i < last_index
+                assign line_classes = line_classes | append: ' sc-r-' | append: bp
+              endif
+              if row < last_row
+                assign line_classes = line_classes | append: ' sc-b-' | append: bp
+              endif
+            endfor
+
+            assign spans_mobile = false
+            if n == 3 and i == 2
+              assign spans_mobile = true
+            endif
+          -%}
+          <div
+            class="sc-stat{{ line_classes }}{% if spans_mobile %} sc-stat--span-mobile{% endif %}"
+            data-reveal
+            data-spotlight
+            {{ block.shopify_attributes }}
+          >
+            {%- if block.settings.icon != 'none' -%}
+              <span class="sc-stat__icon" aria-hidden="true">{% render 'icon', name: block.settings.icon, size: 20 %}</span>
+            {%- endif -%}
+            <p class="sc-stat__value">
+              <span class="visually-hidden">
+                {{- block.settings.prefix | escape }}{{ formatted }}{{ block.settings.suffix | escape -}}
+              </span>
+              <span class="sc-stat__figure" aria-hidden="true">
+                {%- if block.settings.prefix != blank -%}
+                  <span class="sc-stat__affix">{{ block.settings.prefix | escape }}</span>
+                {%- endif -%}
+                <span
+                  class="sc-stat__num"
+                  data-count-to="{{ num }}"
+                  data-count-decimals="{{ decimals }}"
+                  data-count-duration="2.2"
+                >
+                  {{- formatted -}}
+                </span>
+                {%- if block.settings.suffix != blank -%}
+                  <span class="sc-stat__affix sc-stat__affix--suffix">{{ block.settings.suffix | escape }}</span>
+                {%- endif -%}
+              </span>
+            </p>
+            <span class="sc-stat__bar" aria-hidden="true"></span>
+            {%- if block.settings.label != blank -%}
+              <p class="sc-stat__label">{{ block.settings.label | escape }}</p>
+            {%- endif -%}
+            {%- if block.settings.description != blank -%}
+              <p class="sc-stat__desc">{{ block.settings.description | escape }}</p>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Stats counter",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "By the numbers" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Italicize words to highlight them in the accent color.", "default": "Trusted by collectors <em>worldwide</em>" },
+    { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Every order is hand-checked, sleeved and insured before it leaves the vault. Here's what that adds up to.</p>" },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "center"
+    },
+    { "type": "checkbox", "id": "show_glow", "label": "Show background glow", "default": true },
+    { "type": "checkbox", "id": "show_grid", "label": "Show grid lines", "default": true },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Stat",
+      "settings": [
+        { "type": "text", "id": "number", "label": "Number", "info": "Digits only, e.g. 48 or 99.8", "default": "48" },
+        { "type": "range", "id": "decimals", "min": 0, "max": 2, "step": 1, "label": "Decimal places", "default": 0 },
+        { "type": "text", "id": "prefix", "label": "Prefix", "info": "e.g. $ or <" },
+        { "type": "text", "id": "suffix", "label": "Suffix", "info": "Shown in the accent color, e.g. K+, % or h", "default": "K+" },
+        { "type": "text", "id": "label", "label": "Label", "default": "Cards shipped" },
+        { "type": "text", "id": "description", "label": "Description", "default": "Sleeved, top-loaded and insured" },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "award", "label": "Award" },
+            { "value": "star", "label": "Star" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "box", "label": "Box" },
+            { "value": "layers", "label": "Layers" },
+            { "value": "trophy", "label": "Trophy" },
+            { "value": "bolt", "label": "Lightning" },
+            { "value": "flame", "label": "Flame" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "verified", "label": "Verified" },
+            { "value": "clock", "label": "Clock" },
+            { "value": "globe", "label": "Globe" },
+            { "value": "heart", "label": "Heart" },
+            { "value": "chat", "label": "Chat" },
+            { "value": "tag", "label": "Tag" }
+          ],
+          "default": "cards"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "Stats counter",
+      "blocks": [
+        {
+          "type": "stat",
+          "settings": {
+            "number": "48",
+            "decimals": 0,
+            "suffix": "K+",
+            "label": "Cards shipped",
+            "description": "Sleeved, top-loaded and insured",
+            "icon": "cards"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "number": "99.8",
+            "decimals": 1,
+            "suffix": "%",
+            "label": "Positive feedback",
+            "description": "Across 2,300+ verified reviews",
+            "icon": "star"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "number": "12",
+            "decimals": 0,
+            "suffix": "K+",
+            "label": "Graded slabs sold",
+            "description": "PSA, BGS, CGC and SGC",
+            "icon": "award"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "number": "24",
+            "decimals": 0,
+            "suffix": "h",
+            "label": "Average dispatch",
+            "description": "Order by 2pm for same-day",
+            "icon": "truck"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

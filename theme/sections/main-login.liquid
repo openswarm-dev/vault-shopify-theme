@@ -1,0 +1,230 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sid = section.id
+  assign heading = section.settings.heading
+  if heading == blank
+    assign heading = 'customer.login.title_html' | t
+  endif
+-%}
+
+<section
+  id="Section-{{ sid }}"
+  class="section customer customer--auth color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ sid }}"
+>
+  <div class="customer__backdrop" aria-hidden="true"></div>
+
+  <div class="page-width auth">
+    <div class="auth__stage">
+      {% render 'customer-fan', uid: sid %}
+
+      <div class="auth-card" data-auth-card data-reveal="fade-up">
+        {%- comment -%} Recover panel comes first so `#recover:target ~ #login` can hide the login panel without JS. {%- endcomment -%}
+        <div id="recover" class="auth-panel auth-panel--recover" tabindex="-1" data-auth-panel="recover">
+          <header class="auth-panel__head">
+            <p class="eyebrow">{{ 'customer.recover_password.eyebrow' | t }}</p>
+            <h2 class="h2 auth-panel__title">{{ 'customer.recover_password.title_html' | t }}</h2>
+            <p class="auth-panel__text">{{ 'customer.recover_password.subtext' | t }}</p>
+          </header>
+
+          {%- form 'recover_customer_password', class: 'auth-form' -%}
+            {%- assign recover_success = form.posted_successfully? -%}
+            {% render 'customer-form-errors', form: form %}
+            <div class="field">
+              <input
+                class="field__input"
+                type="email"
+                id="RecoverEmail-{{ sid }}"
+                name="email"
+                autocomplete="email"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder=" "
+                required
+                aria-required="true"
+                {% if form.errors %}
+                  aria-invalid="true"
+                {% endif %}
+              >
+              <label class="field__label" for="RecoverEmail-{{ sid }}">{{ 'customer.fields.email' | t }}</label>
+            </div>
+            <button type="submit" class="btn btn--primary btn--lg btn--block">
+              <span>{{ 'customer.recover_password.submit' | t }}</span>
+              {%- render 'icon', name: 'arrow-right', size: 18 -%}
+            </button>
+            <a href="#login" class="link link--muted auth-form__back">
+              {%- render 'icon', name: 'arrow-left', size: 16 -%}
+              {{- 'customer.recover_password.cancel' | t -}}
+            </a>
+          {%- endform -%}
+        </div>
+
+        <div id="login" class="auth-panel auth-panel--login" tabindex="-1" data-auth-panel="login">
+          <header class="auth-panel__head">
+            {%- if section.settings.eyebrow != blank -%}
+              <p class="eyebrow">{{ section.settings.eyebrow | escape }}</p>
+            {%- endif -%}
+            <h1 class="h2 auth-panel__title" data-split>{{ heading }}</h1>
+            {%- if section.settings.text != blank -%}
+              <p class="auth-panel__text">{{ section.settings.text | escape }}</p>
+            {%- endif -%}
+          </header>
+
+          {%- if recover_success -%}
+            <div class="form-message form-message--success" role="status" tabindex="-1" data-form-message>
+              {%- render 'icon', name: 'mail', size: 18 -%}
+              <p>{{ 'customer.recover_password.success' | t }}</p>
+            </div>
+          {%- endif -%}
+
+          {%- form 'customer_login', class: 'auth-form', novalidate: 'novalidate' -%}
+            {% render 'customer-form-errors', form: form %}
+            <div class="field">
+              <input
+                class="field__input"
+                type="email"
+                id="LoginEmail-{{ sid }}"
+                name="customer[email]"
+                autocomplete="email"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder=" "
+                required
+                aria-required="true"
+                {% if form.errors contains 'form' %}
+                  aria-invalid="true"
+                {% endif %}
+              >
+              <label class="field__label" for="LoginEmail-{{ sid }}">{{ 'customer.fields.email' | t }}</label>
+            </div>
+            <div class="field field--password">
+              <input
+                class="field__input"
+                type="password"
+                id="LoginPassword-{{ sid }}"
+                name="customer[password]"
+                autocomplete="current-password"
+                placeholder=" "
+                required
+                aria-required="true"
+                {% if form.errors contains 'form' %}
+                  aria-invalid="true"
+                {% endif %}
+              >
+              <label class="field__label" for="LoginPassword-{{ sid }}">{{ 'customer.fields.password' | t }}</label>
+              <button
+                type="button"
+                class="field__button field__reveal"
+                data-password-toggle
+                aria-controls="LoginPassword-{{ sid }}"
+                aria-pressed="false"
+                aria-label="{{ 'customer.fields.show_password' | t }}"
+                data-show-label="{{ 'customer.fields.show_password' | t }}"
+                data-hide-label="{{ 'customer.fields.hide_password' | t }}"
+                hidden
+              >
+                {%- render 'icon', name: 'eye', size: 20 -%}
+              </button>
+            </div>
+            <div class="auth-form__row">
+              <a href="#recover" class="link link--muted auth-form__forgot">{{ 'customer.login.forgot_password' | t }}</a>
+            </div>
+            <button type="submit" class="btn btn--primary btn--lg btn--block">
+              {%- render 'icon', name: 'lock', size: 18 -%}
+              <span>{{ 'customer.login.submit' | t }}</span>
+            </button>
+          {%- endform -%}
+
+          <div class="auth-divider"><span>{{ 'customer.login.new_customer' | t }}</span></div>
+          <a href="{{ routes.account_register_url }}" class="btn btn--secondary btn--lg btn--block">
+            {{- 'customer.login.create_account' | t -}}
+          </a>
+
+          {%- if shop.checkout.guest_login -%}
+            {%- form 'guest_login', class: 'auth-guest' -%}
+              <button type="submit" class="btn btn--ghost btn--block">
+                <span>{{ 'customer.login.guest_continue' | t }}</span>
+                {%- render 'icon', name: 'arrow-right', size: 18 -%}
+              </button>
+            {%- endform -%}
+          {%- endif -%}
+        </div>
+      </div>
+
+      {%- if section.settings.show_perks -%}
+        <ul class="auth-perks" role="list" data-reveal="fade">
+          <li>{% render 'icon', name: 'truck', size: 16 %}<span>{{ 'customer.perks.track' | t }}</span></li>
+          <li>{% render 'icon', name: 'bolt', size: 16 %}<span>{{ 'customer.perks.alerts' | t }}</span></li>
+          <li>{% render 'icon', name: 'shield', size: 16 %}<span>{{ 'customer.perks.checkout' | t }}</span></li>
+        </ul>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<script src="{{ 'customer.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Login",
+  "class": "shopify-section--main-login",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Collector account"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Welcome <em>back</em>"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Text",
+      "default": "Log in to track orders, save addresses and check out faster."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_perks",
+      "label": "Show account perks",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 80
+    }
+  ]
+}
+{% endschema %}

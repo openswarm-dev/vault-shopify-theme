@@ -1,0 +1,36 @@
+{
+  "sections": {
+    "drop_countdown": {
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "days_short": "Days",
+      "hours_short": "Hrs",
+      "minutes_short": "Min",
+      "seconds_short": "Sec",
+      "opens_at": "{{ date }} · {{ time }}",
+      "tba": "Drop date to be announced",
+      "timer_label": "Countdown to the drop",
+      "remaining": "Time remaining: {{ days }} days, {{ hours }} hours, {{ minutes }} minutes",
+      "final_hours": "Final 24 hours",
+      "notify_button": "Notify me",
+      "notify_success": "You're on the list. We'll email you the moment the Vault opens.",
+      "live": "Live now"
+    },
+    "grade_scale": {
+      "tablist_label": "Grading scale",
+      "condition": "Condition",
+      "out_of_ten": "{{ score }}/10"
+    },
+    "testimonials": {
+      "verified": "Verified collector",
+      "view_product": "View {{ product }}",
+      "rating_max": "/ 5",
+      "aggregate": "from {{ count }} collectors",
+      "reviews_label": "Customer reviews",
+      "pause": "Pause reviews",
+      "play": "Play reviews"
+    }
+  }
+}

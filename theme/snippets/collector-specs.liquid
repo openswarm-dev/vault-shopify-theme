@@ -1,0 +1,155 @@
+{%- comment -%}
+  Collector spec grid for the product page: game, set, card number, rarity (tier dot), grade (slab label),
+  grading company, cert (with verify link), condition, language, year, population.
+  Only rows with values are printed; outputs nothing at all when the product has no collector data.
+
+  Usage:
+    {% render 'collector-specs', product: product, variant: current_variant %}
+  Params:
+    product  (required)
+    variant  (optional) — the selected variant (Condition / Language options override product data)
+    demo     (optional) — true prints realistic sample data (used by featured-product with no product picked)
+    class    (optional) — extra classes on the root
+{%- endcomment -%}
+{%- liquid
+  if demo
+    assign game = 'sections.featured_product.demo.game' | t
+    assign set_name = 'sections.featured_product.demo.set' | t
+    assign card_number = 'sections.featured_product.demo.number' | t
+    assign rarity = 'sections.featured_product.demo.rarity' | t
+    assign tier = 'holo'
+    assign grader_key = 'psa'
+    assign grader_label = 'PSA'
+    assign score = '10'
+    assign gem = 'gem'
+    assign cert = '48213907'
+    assign cert_url = ''
+    assign condition = 'sections.featured_product.demo.condition' | t
+    assign language = 'sections.featured_product.demo.language' | t
+    assign year = '1999'
+    assign population = '121'
+  else
+    capture cd_raw
+      render 'product-collector-data', product: product, variant: variant
+    endcapture
+    assign cd = cd_raw | split: '~|~'
+    assign game = cd[0]
+    assign set_name = cd[1]
+    assign card_number = cd[2]
+    assign rarity = cd[3]
+    assign tier = cd[4]
+    assign grader_key = cd[6]
+    assign grader_label = cd[7]
+    assign score = cd[8]
+    assign gem = cd[9]
+    assign cert = cd[10]
+    assign cert_url = cd[11]
+    assign condition = cd[12]
+    assign language = cd[13]
+    assign year = cd[14]
+    assign population = cd[15]
+  endif
+
+  assign has_rows = false
+  if game != blank or set_name != blank or card_number != blank or rarity != blank or score != blank or grader_label != blank
+    assign has_rows = true
+  elsif cert != blank or condition != blank or language != blank or year != blank or population != blank
+    assign has_rows = true
+  endif
+-%}
+{%- if has_rows -%}
+  {{ 'component-collector-specs.css' | asset_url | stylesheet_tag }}
+  <dl class="cs{% if class %} {{ class }}{% endif %}">
+    {%- if game != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.game' | t }}</dt>
+        <dd class="cs__value">{{ game | escape }}</dd>
+      </div>
+    {%- endif -%}
+    {%- if set_name != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.set' | t }}</dt>
+        <dd class="cs__value">{{ set_name | escape }}</dd>
+      </div>
+    {%- endif -%}
+    {%- if card_number != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.number' | t }}</dt>
+        <dd class="cs__value mono">{{ card_number | escape }}</dd>
+      </div>
+    {%- endif -%}
+    {%- if rarity != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.rarity' | t }}</dt>
+        <dd class="cs__value">
+          <span class="badge badge--rarity cs__tier" data-tier="{{ tier | default: 'common' }}">{{ rarity | escape }}</span>
+        </dd>
+      </div>
+    {%- endif -%}
+    {%- if score != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.grade' | t }}</dt>
+        <dd class="cs__value">
+          {%- if grader_label != blank -%}
+            <span class="badge badge--grade" data-grader="{{ grader_key }}"{% if gem != blank %} data-gem{% endif %}>
+              <span class="badge__grader">{{ grader_label | escape }}</span>
+              <span class="badge__score">{{ score | escape }}</span>
+            </span>
+          {%- else -%}
+            <span class="mono">{{ score | escape }}</span>
+          {%- endif -%}
+        </dd>
+      </div>
+    {%- endif -%}
+    {%- if grader_label != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.grader' | t }}</dt>
+        <dd class="cs__value">{{ grader_label | escape }}</dd>
+      </div>
+    {%- endif -%}
+    {%- if cert != blank -%}
+      <div class="cs__row cs__row--cert">
+        <dt class="cs__label">{{ 'collector.cert' | t }}</dt>
+        <dd class="cs__value">
+          <span class="mono">{{ cert | escape }}</span>
+          {%- if settings.collector_cert_links and cert_url != blank -%}
+            <a
+              href="{{ cert_url }}"
+              class="cs__verify"
+              target="_blank"
+              rel="noopener"
+            >
+              {{- 'products.pdp.specs.verify' | t -}}
+              {%- render 'icon', name: 'external', size: 13, stroke: 2 -%}
+              <span class="visually-hidden">({{ 'accessibility.new_window' | t }})</span>
+            </a>
+          {%- endif -%}
+        </dd>
+      </div>
+    {%- endif -%}
+    {%- if condition != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.condition' | t }}</dt>
+        <dd class="cs__value">{{ condition | escape }}</dd>
+      </div>
+    {%- endif -%}
+    {%- if language != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.language' | t }}</dt>
+        <dd class="cs__value">{{ language | escape }}</dd>
+      </div>
+    {%- endif -%}
+    {%- if year != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.year' | t }}</dt>
+        <dd class="cs__value mono">{{ year | escape }}</dd>
+      </div>
+    {%- endif -%}
+    {%- if population != blank -%}
+      <div class="cs__row">
+        <dt class="cs__label">{{ 'collector.population' | t }}</dt>
+        <dd class="cs__value mono">{{ population | escape }}</dd>
+      </div>
+    {%- endif -%}
+  </dl>
+{%- endif -%}

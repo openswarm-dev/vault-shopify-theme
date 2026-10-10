@@ -1,0 +1,179 @@
+{%- comment -%}
+  Collections index (/collections): heading + every collection as a tile grid
+  (2 / 3 / 4 columns on phones / tablet / desktop by default), sortable, paginated.
+  With no collections yet, sample tiles keep the page looking finished.
+{%- endcomment -%}
+{{ 'section-list-collections.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sid = section.id
+  assign sort = section.settings.sort
+  case sort
+    when 'products_high', 'products_low'
+      assign sorted_collections = collections | sort: 'all_products_count'
+    when 'date', 'date_reversed'
+      assign sorted_collections = collections | sort: 'published_at'
+    else
+      assign sorted_collections = collections | sort_natural: 'title'
+  endcase
+  if sort == 'products_high' or sort == 'date_reversed' or sort == 'alphabetical_reversed'
+    assign sorted_collections = sorted_collections | reverse
+  endif
+
+  assign cols_desktop = section.settings.columns_desktop
+  assign cols_tablet = section.settings.columns_tablet
+  assign cols_mobile = section.settings.columns_mobile | plus: 0
+  assign wide_from = settings.page_width | plus: 80
+  assign wide_px = settings.page_width | divided_by: cols_desktop
+  capture tile_sizes
+    echo '(min-width: ' | append: wide_from | append: 'px) ' | append: wide_px | append: 'px, '
+    echo '(min-width: 990px) calc((100vw - 96px) / ' | append: cols_desktop | append: '), '
+    echo '(min-width: 750px) calc((100vw - 80px) / ' | append: cols_tablet | append: '), '
+    echo 'calc((100vw - 44px) / ' | append: cols_mobile | append: ')'
+  endcapture
+  assign total_collections = collections.size
+-%}
+
+<section
+  id="Section-{{ sid }}"
+  class="section section-list-collections color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ sid }}"
+>
+  <div class="list-collections__backdrop" aria-hidden="true"></div>
+  <div class="page-width">
+    <div class="list-collections__head">
+      {%- render 'section-header',
+        eyebrow: section.settings.eyebrow,
+        heading: section.settings.heading,
+        text: section.settings.text,
+        size: 'h1',
+        tag: 'h1',
+        id: 'ListCollectionsHeading'
+      -%}
+      {%- if total_collections > 0 -%}
+        <p class="list-collections__count" data-reveal="fade">
+          <span class="list-collections__count-dot" aria-hidden="true"></span>
+          {{ 'collections.list.count' | t: count: total_collections }}
+        </p>
+      {%- endif -%}
+    </div>
+
+    {%- paginate sorted_collections by section.settings.per_page -%}
+      <ul
+        class="grid list-collections__grid list-collections__grid--{{ section.settings.tile_size }}"
+        role="list"
+        aria-labelledby="ListCollectionsHeading"
+        style="--cols-mobile: {{ cols_mobile }}; --cols-tablet: {{ cols_tablet }}; --cols-desktop: {{ cols_desktop }};"
+      >
+        {%- for collection in sorted_collections -%}
+          {%- assign tile_index = paginate.current_offset | plus: forloop.index0 -%}
+          <li class="list-collections__item">
+            {%- render 'card-collection',
+              collection: collection,
+              index: tile_index,
+              size: section.settings.tile_size,
+              sizes: tile_sizes
+            -%}
+          </li>
+        {%- else -%}
+          {%- assign sample_names = 'collections.placeholder.collection_names' | t | split: '|' -%}
+          {%- for name in sample_names limit: 8 -%}
+            {%- liquid
+              assign sample_variant = forloop.index0 | modulo: 6 | plus: 1
+              assign sample_back = forloop.index | modulo: 6 | plus: 1
+              assign sample_uid = sid | append: '-lc' | append: forloop.index
+              assign sample_uid_back = sample_uid | append: 'b'
+            -%}
+            <li class="list-collections__item">
+              <a
+                href="{{ routes.all_products_collection_url }}"
+                class="lc-sample"
+                data-spotlight
+                data-reveal="card"
+              >
+                <span class="lc-sample__art" aria-hidden="true">
+                  <span class="lc-sample__card lc-sample__card--back">
+                    {%- render 'placeholder-card', variant: sample_back, uid: sample_uid_back -%}
+                  </span>
+                  <span class="lc-sample__card lc-sample__card--front">
+                    {%- render 'placeholder-card', variant: sample_variant, uid: sample_uid -%}
+                  </span>
+                </span>
+                <span class="lc-sample__info">
+                  <span class="lc-sample__index tabular" aria-hidden="true">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+                  <span class="lc-sample__title">{{ name | escape }}</span>
+                  <span class="lc-sample__arrow" aria-hidden="true">{% render 'icon', name: 'arrow-up-right', size: 18 %}</span>
+                </span>
+              </a>
+            </li>
+          {%- endfor -%}
+        {%- endfor -%}
+      </ul>
+
+      {%- if total_collections == 0 and request.design_mode -%}
+        <p class="list-collections__note">
+          {%- render 'icon', name: 'info', size: 16 -%}
+          {{- 'collections.list.empty' | t -}}
+        </p>
+      {%- endif -%}
+
+      {%- render 'pagination', paginate: paginate -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collections list",
+  "class": "shopify-section--list-collections",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The vault" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Wrap a word in italics to make it red.", "default": "Every <em>binder</em>, one place" },
+    { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Pokémon to Lorcana, raw singles to gem-mint slabs and factory-sealed boxes. Pick a collection and start digging.</p>" },
+    {
+      "type": "select",
+      "id": "sort",
+      "label": "Sort collections",
+      "options": [
+        { "value": "alphabetical", "label": "Alphabetically, A–Z" },
+        { "value": "alphabetical_reversed", "label": "Alphabetically, Z–A" },
+        { "value": "products_high", "label": "Product count, high to low" },
+        { "value": "products_low", "label": "Product count, low to high" },
+        { "value": "date_reversed", "label": "Date, new to old" },
+        { "value": "date", "label": "Date, old to new" }
+      ],
+      "default": "alphabetical"
+    },
+    { "type": "header", "content": "Grid" },
+    {
+      "type": "select",
+      "id": "tile_size",
+      "label": "Tile size",
+      "options": [
+        { "value": "sm", "label": "Small" },
+        { "value": "md", "label": "Medium" },
+        { "value": "lg", "label": "Large" }
+      ],
+      "default": "md"
+    },
+    { "type": "range", "id": "per_page", "min": 12, "max": 48, "step": 4, "label": "Collections per page", "default": 24 },
+    { "type": "range", "id": "columns_desktop", "min": 3, "max": 5, "step": 1, "label": "Columns on desktop", "default": 4 },
+    { "type": "range", "id": "columns_tablet", "min": 2, "max": 4, "step": 1, "label": "Columns on tablet", "default": 3 },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on phones",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 70 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,71 @@
+{%- liquid
+  assign s = section.settings
+  assign wrapper_class = 'page-width'
+  if s.width == 'narrow'
+    assign wrapper_class = 'page-width page-width--narrow'
+  elsif s.width == 'full'
+    assign wrapper_class = 'custom-liquid__full'
+  endif
+-%}
+<section
+  id="Section-{{ section.id }}"
+  class="section section-custom-liquid color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+>
+  <div class="{{ wrapper_class }}">
+    {%- if s.custom_liquid != blank -%}
+      {{ s.custom_liquid }}
+    {%- elsif request.design_mode -%}
+      <p class="custom-liquid__empty">{{ 'sections.custom_liquid.empty' | t }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- if request.design_mode and s.custom_liquid == blank -%}
+  {% style %}
+    #Section-{{ section.id }} .custom-liquid__empty {
+      padding: 2rem 1.25rem;
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-muted);
+      text-align: center;
+      font-size: var(--text-sm);
+    }
+  {% endstyle %}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Custom Liquid",
+  "settings": [
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "Liquid code",
+      "info": "Add app snippets, embeds or other Liquid code to build advanced customizations."
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Width",
+      "options": [
+        { "value": "narrow", "label": "Narrow" },
+        { "value": "page", "label": "Page width" },
+        { "value": "full", "label": "Full width" }
+      ],
+      "default": "page"
+    },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "presets": [
+    {
+      "name": "Custom Liquid",
+      "settings": { "padding_top": 50, "padding_bottom": 50 }
+    }
+  ]
+}
+{% endschema %}

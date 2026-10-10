@@ -1,0 +1,172 @@
+{%- comment -%}
+  Menu drawer for tablets & phones (<990px): <vault-drawer id="MenuDrawer" data-placement="left">.
+  Big display-font top-level links (staggered via [data-drawer-item]); nested levels slide in as
+  panels driven by <menu-drawer> (assets/component-menu-drawer.js). Account, featured promo,
+  social icons and localization sit under the list.
+  Opened by the header burger and the mobile dock "Shop" button (which may target the
+  settings.mobile_dock_shop_menu panel via data-menu-target="MenuDrawer-Shop").
+  Params:
+    section        required — header section (settings)
+    menu           linklist for the main navigation
+    first_promo    optional — first mega_promo block (featured card)
+    promo_matched  string of ",block-id," entries already rendered in a desktop mega menu
+{%- endcomment -%}
+{%- liquid
+  assign shop_menu = settings.mobile_dock_shop_menu
+  assign has_shop_menu = false
+  if shop_menu != blank and shop_menu.links.size > 0 and shop_menu.handle != menu.handle
+    assign has_shop_menu = true
+  endif
+-%}
+<vault-drawer id="MenuDrawer" data-placement="left" class="menu-drawer-host">
+  <dialog class="drawer menu-drawer__dialog" aria-label="{{ 'accessibility.menu' | t }}">
+    <div class="drawer__overlay" data-drawer-close></div>
+    <div class="drawer__panel menu-drawer__panel">
+      <div class="menu-drawer__header">
+        <a
+          href="#"
+          class="header__icon burger burger--close"
+          data-drawer-close
+          data-drawer-focus
+          aria-label="{{ 'sections.header.close_menu' | t }}"
+        >
+          <span class="burger__box" aria-hidden="true">
+            <span class="burger__line"></span>
+            <span class="burger__line"></span>
+            <span class="burger__line"></span>
+          </span>
+        </a>
+        {%- render 'header-logo', class: 'menu-drawer__logo' -%}
+        <span class="menu-drawer__header-end" aria-hidden="true"></span>
+      </div>
+
+      <menu-drawer class="menu-drawer">
+        <div class="menu-drawer__viewport">
+          <div class="menu-drawer__level menu-drawer__level--root is-active" id="MenuDrawer-Root" data-menu-level>
+            {%- if menu.links.size > 0 -%}
+              <nav class="menu-drawer__nav" aria-label="{{ 'sections.header.navigation' | t }}">
+                <ul class="menu-drawer__list" role="list">
+                  {%- for link in menu.links -%}
+                    {%- assign link_index = forloop.index | prepend: '0' | slice: -2, 2 -%}
+                    <li class="menu-drawer__item" data-drawer-item>
+                      {%- if link.links.size > 0 -%}
+                        <button
+                          type="button"
+                          class="menu-drawer__link js-only"
+                          data-submenu-open
+                          aria-controls="MenuDrawer-L{{ forloop.index }}"
+                          aria-expanded="false"
+                        >
+                          <span class="menu-drawer__index mono" aria-hidden="true">{{ link_index }}</span>
+                          <span class="menu-drawer__label">{{ link.title | escape }}</span>
+                          {%- render 'icon', name: 'chevron-right', size: 22, class: 'menu-drawer__chevron' -%}
+                        </button>
+                        <a href="{{ link.url }}" class="menu-drawer__link no-js-only">
+                          <span class="menu-drawer__index mono" aria-hidden="true">{{ link_index }}</span>
+                          <span class="menu-drawer__label">{{ link.title | escape }}</span>
+                        </a>
+                      {%- else -%}
+                        <a
+                          href="{{ link.url }}"
+                          class="menu-drawer__link{% if link.active %} is-active{% endif %}"
+                          {% if link.current %}
+                            aria-current="page"
+                          {% endif %}
+                        >
+                          <span class="menu-drawer__index mono" aria-hidden="true">{{ link_index }}</span>
+                          <span class="menu-drawer__label">{{ link.title | escape }}</span>
+                          {%- render 'icon', name: 'arrow-up-right', size: 20, class: 'menu-drawer__chevron' -%}
+                        </a>
+                      {%- endif -%}
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </nav>
+            {%- endif -%}
+
+            <div class="menu-drawer__extras">
+              {%- if section.settings.drawer_show_promo and first_promo -%}
+                {%- liquid
+                  assign promo_attrs = true
+                  assign promo_token = ',' | append: first_promo.id | append: ','
+                  if promo_matched contains promo_token
+                    assign promo_attrs = false
+                  endif
+                -%}
+                <div class="menu-drawer__featured" data-drawer-item>
+                  <p class="menu-drawer__caption">{{ 'sections.header.featured' | t }}</p>
+                  {%- render 'header-promo',
+                    block: first_promo,
+                    index: 1,
+                    attrs: promo_attrs,
+                    layout: 'row',
+                    sizes: '104px',
+                    class: 'menu-drawer__promo'
+                  -%}
+                </div>
+              {%- endif -%}
+
+              {%- if shop.customer_accounts_enabled -%}
+                <a
+                  href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}"
+                  class="menu-drawer__account"
+                  data-drawer-item
+                >
+                  <span class="menu-drawer__account-icon">{% render 'icon', name: 'user', size: 20 %}</span>
+                  <span class="menu-drawer__account-text">
+                    {%- if customer -%}
+                      {{- 'sections.header.my_account' | t -}}
+                    {%- else -%}
+                      {{- 'sections.header.log_in' | t -}}
+                    {%- endif -%}
+                  </span>
+                  {%- render 'icon', name: 'arrow-right', size: 16 -%}
+                </a>
+              {%- endif -%}
+
+              {%- if section.settings.drawer_show_social -%}
+                <div class="menu-drawer__social" data-drawer-item>
+                  {%- render 'social-icons', class: 'social-icons--drawer' -%}
+                </div>
+              {%- endif -%}
+
+              {%- if section.settings.drawer_show_localization -%}
+                <div class="menu-drawer__localization" data-drawer-item>
+                  {%- render 'footer-localization', id_prefix: 'MenuDrawer', class: 'localization--drawer' -%}
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+
+          {%- for link in menu.links -%}
+            {%- if link.links.size > 0 -%}
+              {%- assign l1_id = 'MenuDrawer-L' | append: forloop.index -%}
+              {%- render 'menu-drawer-panel', link: link, panel_id: l1_id, child_prefix: l1_id, view_all_url: link.url -%}
+              {%- for child in link.links -%}
+                {%- if child.links.size > 0 -%}
+                  {%- assign l2_id = l1_id | append: '-' | append: forloop.index -%}
+                  {%- render 'menu-drawer-panel', link: child, panel_id: l2_id, view_all_url: child.url -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+          {%- endfor -%}
+
+          {%- if has_shop_menu -%}
+            {%- render 'menu-drawer-panel',
+              link: shop_menu,
+              panel_id: 'MenuDrawer-Shop',
+              child_prefix: 'MenuDrawer-Shop',
+              view_all_url: routes.collections_url
+            -%}
+            {%- for child in shop_menu.links -%}
+              {%- if child.links.size > 0 -%}
+                {%- assign shop_child_id = 'MenuDrawer-Shop-' | append: forloop.index -%}
+                {%- render 'menu-drawer-panel', link: child, panel_id: shop_child_id, view_all_url: child.url -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+      </menu-drawer>
+    </div>
+  </dialog>
+</vault-drawer>

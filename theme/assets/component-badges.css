@@ -1,0 +1,33 @@
+/* ==========================================================================
+   VAULT — component-badges.css
+   Badge rows rendered by snippets/card-badges.liquid in the 'product' and
+   'cart' contexts. (The 'card' context is positioned by component-card.css;
+   the badge look itself lives in base.css.)
+   ========================================================================== */
+
+/* Product page: one larger row, wraps on narrow screens */
+.card-badges--product {
+  gap: .45rem;
+  align-items: center;
+}
+.card-badges--product .badge {
+  height: 1.875rem;
+  padding: 0 .75rem;
+  font-size: var(--text-xs);
+}
+.card-badges--product .badge--grade { padding: 0; }
+.card-badges--product .badge--grade .badge__grader { padding: 0 .65rem; }
+.card-badges--product .badge--grade .badge__score { padding: 0 .7rem; font-size: var(--text-sm); }
+.card-badges--product .badge--rarity::before { width: 8px; height: 8px; }
+
+/* Cart: compact grade + rarity */
+.card-badges--cart { gap: .3rem; }
+.card-badges--cart .badge {
+  height: 1.375rem;
+  padding: 0 .45rem;
+  font-size: .625rem;
+}
+.card-badges--cart .badge--grade { padding: 0; }
+.card-badges--cart .badge--grade .badge__grader { padding: 0 .4rem; }
+.card-badges--cart .badge--grade .badge__score { padding: 0 .45rem; font-size: var(--text-2xs); }
+.card-badges--cart .badge--rarity::before { width: 6px; height: 6px; }

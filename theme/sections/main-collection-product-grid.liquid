@@ -1,0 +1,314 @@
+{%- comment -%}
+  Collection product grid: sticky glass toolbar, sidebar or drawer filters (AJAX via component-facets.js),
+  active filter chips, product grid with per-viewer density, load more / infinite / numbered pagination,
+  and an illustrated empty state. Everything is plain HTML forms and links first, enhanced with JS.
+{%- endcomment -%}
+{{ 'section-collection-grid.css' | asset_url | stylesheet_tag }}
+{{ 'component-facets.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sid = section.id
+  assign cols_desktop = section.settings.columns_desktop
+  assign cols_tablet = section.settings.columns_tablet
+  assign cols_mobile = section.settings.columns_mobile | plus: 0
+  assign filter_layout = section.settings.filter_layout
+  assign pagination_type = section.settings.pagination_type
+  assign card_ratio = section.settings.image_ratio
+  if card_ratio == 'default'
+    assign card_ratio = settings.card_media_ratio
+  endif
+-%}
+
+{%- paginate collection.products by section.settings.products_per_page -%}
+  {%- liquid
+    assign has_filters = false
+    if section.settings.enable_filtering and collection.filters.size > 0
+      assign has_filters = true
+    endif
+    assign enable_sorting = section.settings.enable_sorting
+
+    assign active_count = 0
+    for filter in collection.filters
+      if filter.type == 'price_range'
+        if filter.min_value.value != nil or filter.max_value.value != nil
+          assign active_count = active_count | plus: 1
+        endif
+      else
+        assign active_count = active_count | plus: filter.active_values.size
+      endif
+    endfor
+    unless has_filters
+      assign active_count = 0
+    endunless
+
+    assign clear_url = collection.url
+    if collection.sort_by != blank
+      assign clear_url = clear_url | append: '?sort_by=' | append: collection.sort_by
+    endif
+
+    assign sidebar = false
+    assign sidebar_px = 0
+    if has_filters and filter_layout == 'sidebar'
+      assign sidebar = true
+      assign sidebar_px = 300
+    endif
+
+    assign wide_from = settings.page_width | plus: 80
+    assign wide_px = settings.page_width | minus: sidebar_px | divided_by: cols_desktop
+    assign desk_offset = sidebar_px | plus: 96
+    capture card_sizes
+      echo '(min-width: ' | append: wide_from | append: 'px) ' | append: wide_px | append: 'px, '
+      echo '(min-width: 990px) calc((100vw - ' | append: desk_offset | append: 'px) / ' | append: cols_desktop | append: '), '
+      echo '(min-width: 750px) calc((100vw - 80px) / ' | append: cols_tablet | append: '), '
+      echo 'calc((100vw - 44px) / ' | append: cols_mobile | append: ')'
+    endcapture
+
+    assign page_size = collection.products.size
+    assign shown = paginate.current_offset | plus: page_size
+  -%}
+  <section
+    id="Section-{{ sid }}"
+    class="section section-collection-grid color-{{ section.settings.color_scheme }} section-bg"
+    style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+    data-section-id="{{ sid }}"
+  >
+    <vault-facets class="collection-grid" data-section-id="{{ sid }}" data-base-url="{{ collection.url }}">
+      <div class="page-width">
+        <h2 class="visually-hidden" id="ProductGridHeading-{{ sid }}">{{ 'collections.grid.label' | t }}</h2>
+
+        {%- render 'facets-toolbar',
+          results: collection,
+          section_id: sid,
+          count: collection.products_count,
+          action_url: collection.url,
+          enable_sorting: enable_sorting,
+          has_filters: has_filters,
+          filter_layout: filter_layout,
+          active_count: active_count,
+          show_density: section.settings.show_density,
+          cols_mobile: cols_mobile,
+          cols_tablet: cols_tablet,
+          cols_desktop: cols_desktop
+        -%}
+
+        <div class="collection-layout{% if sidebar %} collection-layout--sidebar{% endif %}">
+          {%- if has_filters -%}
+            <aside
+              class="facets-inline{% if sidebar == false %} facets-inline--drawer-layout{% endif %}"
+              aria-labelledby="FacetsHeading-{{ sid }}"
+            >
+              {%- render 'facets',
+                results: collection,
+                section_id: sid,
+                context: 'inline',
+                action_url: collection.url,
+                clear_url: clear_url,
+                active_count: active_count,
+                open_count: section.settings.filters_open,
+                show_more_limit: section.settings.show_more_limit
+              -%}
+            </aside>
+          {%- endif -%}
+
+          <div class="collection-main">
+            {%- if has_filters -%}
+              {%- render 'facets-active', results: collection, clear_url: clear_url, active_count: active_count -%}
+            {%- endif -%}
+
+            <div
+              class="collection-results"
+              id="ProductGridContainer-{{ sid }}"
+              data-facets-swap="results"
+              data-facets-results
+              aria-busy="false"
+            >
+              {%- if page_size > 0 -%}
+                {%- if paginate.previous and pagination_type != 'numbered' -%}
+                  <div class="collection-results__previous">
+                    <a href="{{ paginate.previous.url }}" class="btn btn--ghost btn--sm">
+                      {%- render 'icon', name: 'chevron-up', size: 16 -%}
+                      {{- 'collections.grid.previous' | t -}}
+                    </a>
+                  </div>
+                {%- endif -%}
+
+                {%- render 'facets-density-boot' -%}
+                <ul
+                  id="ProductGrid-{{ sid }}"
+                  class="grid product-grid"
+                  role="list"
+                  aria-labelledby="ProductGridHeading-{{ sid }}"
+                  data-product-grid
+                  data-density
+                  data-cols-desktop="{{ cols_desktop }}"
+                  data-append-target="products"
+                  style="--cols-mobile: {{ cols_mobile }}; --cols-tablet: {{ cols_tablet }}; --cols-desktop: {{ cols_desktop }};"
+                >
+                  {%- for product in collection.products -%}
+                    {%- liquid
+                      # Offset by the page so cards appended by "Load more" keep unique ids.
+                      assign card_index = paginate.current_offset | plus: forloop.index0
+                      assign card_lazy = true
+                      if card_index < 4
+                        assign card_lazy = false
+                      endif
+                    -%}
+                    <li class="product-grid__item">
+                      {%- render 'card-product',
+                        product: product,
+                        index: card_index,
+                        lazy: card_lazy,
+                        ratio: card_ratio,
+                        show_quick_add: section.settings.show_quick_add,
+                        sizes: card_sizes,
+                        section_id: sid
+                      -%}
+                    </li>
+                  {%- endfor -%}
+                </ul>
+
+                {%- if pagination_type == 'numbered' -%}
+                  {%- render 'pagination', paginate: paginate -%}
+                {%- else -%}
+                  {%- render 'facets-load-more', paginate: paginate, section_id: sid, mode: pagination_type, shown: shown -%}
+                {%- endif -%}
+
+              {%- elsif active_count > 0 -%}
+                {%- liquid
+                  assign empty_heading = 'collections.empty.filtered_heading_html' | t
+                  assign empty_text = 'collections.empty.filtered_text' | t
+                  assign empty_button = 'collections.empty.clear_filters' | t
+                -%}
+                {%- render 'facets-empty',
+                  heading: empty_heading,
+                  text: empty_text,
+                  button_label: empty_button,
+                  button_url: clear_url,
+                  button_ajax: true
+                -%}
+
+              {%- elsif request.design_mode -%}
+                <p class="collection-results__note">
+                  {%- render 'icon', name: 'info', size: 16 -%}
+                  {{- 'collections.empty.placeholder_note' | t -}}
+                </p>
+                <ul
+                  class="grid product-grid"
+                  role="list"
+                  data-density
+                  style="--cols-mobile: {{ cols_mobile }}; --cols-tablet: {{ cols_tablet }}; --cols-desktop: {{ cols_desktop }};"
+                >
+                  {%- render 'facets-placeholder-products', count: 8, uid: sid -%}
+                </ul>
+
+              {%- else -%}
+                {%- liquid
+                  assign empty_heading = 'collections.empty.heading_html' | t
+                  assign empty_text = 'collections.empty.text' | t
+                  assign empty_button = 'collections.empty.browse_all' | t
+                -%}
+                {%- render 'facets-empty',
+                  heading: empty_heading,
+                  text: empty_text,
+                  button_label: empty_button,
+                  button_url: routes.all_products_collection_url,
+                  icon: 'cards'
+                -%}
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {%- if has_filters or enable_sorting -%}
+        {%- render 'facets-drawer',
+          results: collection,
+          section_id: sid,
+          count: collection.products_count,
+          action_url: collection.url,
+          clear_url: clear_url,
+          has_filters: has_filters,
+          enable_sorting: enable_sorting,
+          active_count: active_count,
+          open_count: 1,
+          show_more_limit: section.settings.show_more_limit
+        -%}
+      {%- endif -%}
+
+      <p class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-facets-live></p>
+    </vault-facets>
+  </section>
+{%- endpaginate -%}
+
+<script src="{{ 'component-facets.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'section-collection-grid.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Product grid",
+  "class": "shopify-section--collection-grid",
+  "settings": [
+    { "type": "header", "content": "Grid" },
+    { "type": "range", "id": "products_per_page", "min": 8, "max": 48, "step": 4, "label": "Products per page", "default": 24 },
+    { "type": "range", "id": "columns_desktop", "min": 3, "max": 5, "step": 1, "label": "Columns on desktop", "default": 4 },
+    { "type": "range", "id": "columns_tablet", "min": 2, "max": 4, "step": 1, "label": "Columns on tablet", "default": 3 },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on phones",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    { "type": "checkbox", "id": "show_density", "label": "Let shoppers change the grid size", "info": "Phones 1–2, tablets 2–3, desktop 3–5 columns. Remembered per shopper.", "default": true },
+    {
+      "type": "select",
+      "id": "pagination_type",
+      "label": "Pagination",
+      "options": [
+        { "value": "load_more", "label": "Load more button" },
+        { "value": "infinite", "label": "Infinite scroll" },
+        { "value": "numbered", "label": "Numbered pages" }
+      ],
+      "default": "load_more"
+    },
+    { "type": "header", "content": "Product cards" },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image shape",
+      "options": [
+        { "value": "default", "label": "Theme default" },
+        { "value": "card", "label": "Trading card (63:88)" },
+        { "value": "portrait", "label": "Portrait (3:4)" },
+        { "value": "square", "label": "Square" },
+        { "value": "natural", "label": "Original image" }
+      ],
+      "default": "default"
+    },
+    { "type": "checkbox", "id": "show_quick_add", "label": "Quick add button", "default": true },
+    { "type": "header", "content": "Filtering & sorting" },
+    { "type": "checkbox", "id": "enable_filtering", "label": "Enable filtering", "info": "Customize filters in Search & Discovery.", "default": true },
+    {
+      "type": "select",
+      "id": "filter_layout",
+      "label": "Desktop filter layout",
+      "info": "Tablets and phones always use the filter drawer.",
+      "options": [
+        { "value": "sidebar", "label": "Sidebar" },
+        { "value": "drawer", "label": "Drawer" }
+      ],
+      "default": "sidebar"
+    },
+    { "type": "range", "id": "filters_open", "min": 0, "max": 8, "step": 1, "label": "Filter groups open in sidebar", "default": 3 },
+    { "type": "range", "id": "show_more_limit", "min": 4, "max": 12, "step": 1, "label": "Values before \"Show more\"", "default": 6 },
+    { "type": "checkbox", "id": "enable_sorting", "label": "Enable sorting", "default": true },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 20 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ]
+}
+{% endschema %}

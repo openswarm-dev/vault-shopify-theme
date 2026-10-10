@@ -1,0 +1,156 @@
+/* ==========================================================================
+   VAULT — Marquee (sections/marquee.liquid)
+   Styles: ribbon (caps on a band) · giant (display type, filled/outlined) · pills (chips).
+   The color scheme paints the band, not the section, so a rotated band reads as
+   a strip of tape across the page. --mq-clear adds the vertical room a rotated
+   full-width band needs so it never collides with neighbouring sections.
+   ========================================================================== */
+
+.section-marquee {
+  overflow: hidden;
+  padding-top: calc(var(--section-space) * var(--pt, 1) + var(--mq-clear, 0vw));
+  padding-bottom: calc(var(--section-space) * var(--pb, 1) + var(--mq-clear, 0vw));
+}
+@supports (overflow: clip) {
+  .section-marquee { overflow: visible; overflow-x: clip; }
+}
+
+.mq { position: relative; }
+
+.mq__band {
+  position: relative;
+  z-index: 1;
+  background: var(--color-bg-gradient, var(--color-bg));
+  color: var(--color-text);
+  border-block: 1px solid rgb(var(--color-text-rgb) / .14);
+  box-shadow: 0 22px 44px -26px rgb(0 0 0 / .75);
+}
+
+/* Rotated: bleed past both edges so the tilted band never shows a gap at the sides. */
+.mq--rotated .mq__band {
+  width: calc(100% + 12vw);
+  margin-inline: -6vw;
+  transform: rotate(var(--mq-rotate));
+}
+.mq--rotated .mq__band--cross {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 0;
+  margin: 0 0 0 -6vw;
+  transform: translateY(-50%) rotate(calc(var(--mq-rotate) * -1));
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-color: color-mix(in srgb, var(--color-on-accent) 14%, transparent);
+}
+.mq__band--cross .mq-sep { color: var(--color-bg); }
+
+/* Stacked second row inside a flat band. */
+.mq--double:not(.mq--rotated) .mq__marquee + .mq__marquee {
+  border-top: 1px solid rgb(var(--color-text-rgb) / .12);
+}
+
+/* ---------- Items ---------- */
+.mq__marquee { --marquee-gap: 1.5rem; }
+.mq-item {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: .55rem;
+  white-space: nowrap;
+}
+.mq-item__text { display: block; }
+.mq-sep {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  color: var(--color-accent);
+}
+.mq-sep__icon {
+  width: .85em;
+  height: .85em;
+}
+.mq-item--outline .mq-item__text {
+  color: transparent;
+  -webkit-text-stroke: 1.25px currentColor;
+}
+.mq-item--image { height: var(--mq-logo-h, 32px); }
+.mq-item__logo {
+  width: auto;
+  max-width: none;
+  height: 100%;
+  object-fit: contain;
+}
+.mq-item__logo--placeholder {
+  width: calc(var(--mq-logo-h, 32px) * 2.6);
+  border-radius: var(--radius-xs);
+  fill: currentColor;
+  opacity: .5;
+  background: transparent;
+}
+
+/* ---------- Ribbon ---------- */
+.mq--ribbon .mq__band { padding-block: clamp(.7rem, .5rem + .55vw, 1.05rem); }
+.mq--ribbon .mq__marquee {
+  --marquee-gap: clamp(1rem, .75rem + 1vw, 1.75rem);
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-stretch: var(--font-display-stretch);
+  font-size: clamp(.95rem, .78rem + .75vw, 1.5rem);
+  line-height: 1.15;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.mq--ribbon.mq--double:not(.mq--rotated) .mq__marquee + .mq__marquee { margin-top: clamp(.7rem, .5rem + .55vw, 1.05rem); padding-top: clamp(.7rem, .5rem + .55vw, 1.05rem); }
+
+/* ---------- Giant ---------- */
+.mq--giant .mq__band { padding-block: clamp(.9rem, .5rem + 1.6vw, 2rem); }
+.mq--giant .mq__marquee {
+  --marquee-gap: clamp(1rem, .5rem + 1.8vw, 2.5rem);
+  padding-block: .06em;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-stretch: var(--font-display-stretch);
+  font-size: calc(clamp(2.6rem, 1.4rem + 6vw, 8rem) * var(--heading-adjust, 1));
+  line-height: 1;
+  letter-spacing: -.02em;
+  text-transform: var(--font-display-case, uppercase);
+}
+.mq--giant .mq-item--outline .mq-item__text { -webkit-text-stroke-width: clamp(1px, .5px + .12vw, 2.25px); }
+.mq--giant .mq-sep__icon {
+  width: .55em;
+  height: .55em;
+  filter: drop-shadow(0 0 .2em rgb(var(--color-accent-rgb) / .55));
+}
+.mq--giant.mq--double:not(.mq--rotated) .mq__marquee + .mq__marquee { margin-top: .15em; padding-top: .15em; }
+
+/* ---------- Pills ---------- */
+.mq--pills .mq__band { padding-block: .85rem; }
+.mq--pills .mq__marquee { --marquee-gap: .65rem; }
+.mq--pills .mq-item--text {
+  min-height: 40px;
+  padding: .5rem 1rem;
+  border-radius: 99px;
+  border: 1px solid rgb(var(--color-text-rgb) / .18);
+  background: rgb(var(--color-text-rgb) / .06);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: .12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.mq--pills .mq-item__icon { color: var(--color-accent); }
+.mq--pills .mq-item--outline {
+  background: transparent;
+  border-color: rgb(var(--color-accent-rgb) / .7);
+}
+.mq--pills .mq-item--outline .mq-item__text {
+  color: inherit;
+  -webkit-text-stroke: 0;
+}
+.mq__band--cross .mq-item__icon { color: inherit; }
+.mq--pills.mq--double:not(.mq--rotated) .mq__marquee + .mq__marquee { margin-top: .85rem; padding-top: .85rem; }
+
+/* ---------- Static row (no JS / reduced motion): swipeable, starts at the gutter ---------- */
+html:not(.motion-ok) .mq .marquee__group { padding-inline: var(--gutter); }
+html:not(.motion-ok) .mq--rotated .marquee__group { padding-inline: calc(var(--gutter) + 6vw); }

@@ -1,0 +1,152 @@
+{%- comment -%}
+  One cart drawer line item.
+  Params:
+    item   required — line item
+    index  required — 1-based line number
+  The quantity input carries the line key; component-cart-drawer.js changes quantities with
+  Vault.cart.change({ id: key, quantity }) (keys stay valid when other lines are removed).
+  Without JS the inputs belong to #CartDrawerForm (updates[]) and remove links go to url_to_remove.
+{%- endcomment -%}
+{%- liquid
+  assign max_qty = ''
+  if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'deny' and item.variant.inventory_quantity > 0
+    assign max_qty = item.variant.inventory_quantity | at_least: item.quantity
+  endif
+  assign qty_step = item.variant.quantity_rule.increment | default: 1
+  assign placeholder_variant = index | modulo: 6 | plus: 1
+  assign compare_line = 0
+  if item.original_line_price > item.final_line_price
+    assign compare_line = item.original_line_price
+  elsif item.variant.compare_at_price > item.variant.price
+    assign compare_line = item.variant.compare_at_price | times: item.quantity
+  endif
+-%}
+<li
+  class="cart-item"
+  id="CartDrawer-Item-{{ index }}"
+  data-cart-line="{{ index }}"
+  data-key="{{ item.key }}"
+  data-drawer-item
+>
+  <div class="cart-item__inner">
+    <a href="{{ item.url }}" class="cart-item__media media media--card" tabindex="-1" aria-hidden="true">
+      {%- if item.image != blank -%}
+        {{
+          item.image
+          | image_url: width: 264
+          | image_tag:
+            loading: 'lazy',
+            widths: '88, 132, 176, 264',
+            sizes: '88px',
+            alt: '',
+            class: 'cart-item__img'
+        }}
+      {%- else -%}
+        {%- render 'placeholder-card', variant: placeholder_variant, uid: item.key -%}
+      {%- endif -%}
+    </a>
+
+    <div class="cart-item__info">
+      <div class="cart-item__top">
+        <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title | escape }}</a>
+        <div class="cart-item__price">
+          {%- if compare_line > 0 -%}
+            <s class="cart-item__compare">
+              <span class="visually-hidden">{{ 'products.product.price.regular' | t }}</span>
+              {{- compare_line | money -}}
+            </s>
+            <span class="visually-hidden">{{ 'products.product.price.sale' | t }}</span>
+          {%- endif -%}
+          <span class="cart-item__final{% if compare_line > 0 %} is-sale{% endif %}">{{ item.final_line_price | money }}</span>
+        </div>
+      </div>
+
+      {%- unless item.product.has_only_default_variant -%}
+        <p class="cart-item__variant">
+          {%- for option in item.options_with_values -%}
+            <span>{{ option.name | escape }}: {{ option.value | escape }}</span>
+          {%- endfor -%}
+        </p>
+      {%- endunless -%}
+
+      {%- if item.selling_plan_allocation -%}
+        <p class="cart-item__meta">{{ item.selling_plan_allocation.selling_plan.name | escape }}</p>
+      {%- endif -%}
+
+      {%- for property in item.properties -%}
+        {%- assign property_first = property.first | slice: 0 -%}
+        {%- if property.last != blank and property_first != '_' -%}
+          <p class="cart-item__meta">
+            {{- property.first | escape }}:
+            {% if property.last contains '/uploads/' -%}
+              <a href="{{ property.last }}" class="link link--muted">{{ property.last | split: '/' | last | escape }}</a>
+            {%- else -%}
+              {{- property.last | escape -}}
+            {%- endif -%}
+          </p>
+        {%- endif -%}
+      {%- endfor -%}
+
+      <div class="cart-item__badges">
+        {%- render 'card-badges', product: item.product, variant: item.variant, context: 'cart' -%}
+      </div>
+
+      {%- if item.quantity > 1 -%}
+        {%- assign unit_money = item.final_price | money -%}
+        <p class="cart-item__each">{{ 'sections.cart_drawer.each' | t: price: unit_money }}</p>
+      {%- endif -%}
+
+      {%- for allocation in item.line_level_discount_allocations -%}
+        <p class="cart-item__discount">
+          {%- render 'icon', name: 'tag', size: 13 -%}
+          <span>{{ allocation.discount_application.title | escape }} (−{{ allocation.amount | money }})</span>
+        </p>
+      {%- endfor -%}
+
+      <div class="cart-item__actions">
+        <quantity-input class="qty qty--sm cart-item__qty">
+          <button
+            type="button"
+            data-qty="minus"
+            aria-label="{{ 'accessibility.decrease_quantity' | t: product: item.product.title }}"
+          >
+            {%- render 'icon', name: 'minus', size: 14, stroke: 2 -%}
+          </button>
+          <input
+            type="number"
+            id="CartDrawer-Quantity-{{ index }}"
+            name="updates[]"
+            form="CartDrawerForm"
+            value="{{ item.quantity }}"
+            min="0"
+            step="{{ qty_step }}"
+            {% if max_qty != '' %}
+              max="{{ max_qty }}"
+            {% endif %}
+            inputmode="numeric"
+            aria-label="{{ 'products.product.quantity' | t }}"
+            data-cart-qty
+            data-line-qty="{{ item.quantity }}"
+          >
+          <button
+            type="button"
+            data-qty="plus"
+            aria-label="{{ 'accessibility.increase_quantity' | t: product: item.product.title }}"
+          >
+            {%- render 'icon', name: 'plus', size: 14, stroke: 2 -%}
+          </button>
+        </quantity-input>
+
+        <a
+          href="{{ item.url_to_remove }}"
+          class="cart-item__remove"
+          data-cart-remove
+          aria-label="{{ 'sections.cart_drawer.remove_named' | t: title: item.product.title }}"
+        >
+          {%- render 'icon', name: 'trash', size: 18 -%}
+        </a>
+      </div>
+      <p class="cart-item__error" data-cart-line-error hidden></p>
+    </div>
+  </div>
+</li>

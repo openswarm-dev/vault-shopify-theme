@@ -1,0 +1,86 @@
+/* ==========================================================================
+   VAULT — section-featured-product.css
+   Home-page spotlight: display-case gallery + glass info panel.
+   Phones: stacked. Tablet ≥ 750: two columns (gallery ~half). Desktop ≥ 990: 55 / 45.
+   ========================================================================== */
+
+.featured-product { overflow: clip; }
+.featured-product > .page-width { position: relative; }
+.fp__backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(70% 60% at 30% 55%, #000 10%, transparent 75%);
+  mask-image: radial-gradient(70% 60% at 30% 55%, #000 10%, transparent 75%);
+  opacity: .9;
+}
+
+.fp__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+.fp__media, .fp__info { min-width: 0; }
+
+.pg--featured {
+  --pg-stage-h: min(56vh, 112vw);
+}
+@supports (height: 1svh) {
+  .pg--featured { --pg-stage-h: min(56svh, 112vw); }
+}
+
+.fp__panel {
+  position: relative;
+  padding: clamp(1.25rem, 1rem + 1.6vw, 2.5rem);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgb(var(--color-text-rgb) / .08);
+  background: rgb(var(--color-surface-rgb) / .55);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: var(--shadow-lg);
+}
+/* A thin crimson edge-light along the top of the panel */
+.fp__panel::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--color-accent-rgb) / .9), transparent);
+  pointer-events: none;
+}
+.fp__blocks { --pdp-gap: 1.1rem; }
+.fp__details { margin-top: 1.4rem; }
+.pdp-title--featured { font-size: var(--h3); }
+
+@media (min-width: 750px) {
+  .fp__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+  .fp__layout--media-right .fp__media { order: 2; }
+  .pg--featured {
+    --pg-pad: 28px;
+    --pg-stage-h: min(60vh, 500px);
+  }
+  @supports (height: 1svh) {
+    .pg--featured { --pg-stage-h: min(60svh, 500px); }
+  }
+}
+
+@media (min-width: 990px) {
+  .fp__layout {
+    grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
+    gap: clamp(2rem, 5vw, 5rem);
+  }
+  .fp__layout--media-right { grid-template-columns: minmax(0, 9fr) minmax(0, 11fr); }
+  .pg--featured {
+    --pg-pad: 40px;
+    --pg-stage-h: clamp(440px, 72vh, 680px);
+  }
+  @supports (height: 1svh) {
+    .pg--featured { --pg-stage-h: clamp(440px, 72svh, 680px); }
+  }
+}

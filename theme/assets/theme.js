@@ -90,18 +90,18 @@
   };
   Vault.parseHTML = (text) => new DOMParser().parseFromString(text, 'text/html');
 
-  Vault.fetchSection = async (sectionId, url = window.location.href) => {
+  Vault.fetchSection = async (sectionId, url = window.location.href, { signal } = {}) => {
     const u = new URL(url, window.location.origin);
     u.searchParams.set('section_id', sectionId);
-    const res = await fetch(u.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const res = await fetch(u.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' }, signal });
     if (!res.ok) throw new Error(`Section "${sectionId}" failed to load (${res.status})`);
     return Vault.parseHTML(await res.text());
   };
 
-  Vault.fetchSections = async (ids, url = window.location.href) => {
+  Vault.fetchSections = async (ids, url = window.location.href, { signal } = {}) => {
     const u = new URL(url, window.location.origin);
     u.searchParams.set('sections', ids.join(','));
-    const res = await fetch(u.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const res = await fetch(u.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' }, signal });
     if (!res.ok) throw new Error(`Sections failed to load (${res.status})`);
     return res.json();
   };
@@ -256,7 +256,10 @@
       el.classList.add('is-revealed');
       return;
     }
-    M.inView(el, () => {
+    // Slides inside horizontal scrollers are clipped sideways, so watch the scroller instead —
+    // every slide reveals when the row enters the viewport (off-screen ones just finish quietly).
+    const target = el.closest('[data-carousel-track], .carousel__track, .scroll-x, .marquee__track') || el;
+    M.inView(target, () => {
       revealQueue.add(el);
       if (!revealScheduled) {
         revealScheduled = true;
@@ -367,8 +370,10 @@
     const speed = parseFloat(el.dataset.parallax) || 0.15;
     const target = el.closest('[data-parallax-root]') || el.parentElement || el;
     const dist = window.innerHeight * speed * (Vault.isMobile() ? 0.5 : 1) * k;
-    M.scroll(M.animate(el, { y: [-dist, dist] }, { ease: 'linear' }), { target, offset: ['start end', 'end start'] });
+    const cancel = M.scroll(M.animate(el, { y: [-dist, dist] }, { ease: 'linear' }), { target, offset: ['start end', 'end start'] });
+    if (typeof cancel === 'function') parallaxCancels.set(el, cancel);
   };
+  const parallaxCancels = new Map();
 
   /* ------------------------------------------------------------------ *
    * Magnetic — [data-magnetic="0.35"] (desktop pointer only)
@@ -977,7 +982,7 @@
       this.ro.observe(this);
       if (this.hasAttribute('data-pause-hover')) {
         this.addEventListener('pointerenter', () => { this.paused = true; });
-        this.addEventListener('pointerleave', () => { this.paused = false; });
+        this.addEventListener('pointerleave', () => { if (!this.pinned) this.paused = false; });
       }
       this.stopInView = M.inView(this, () => {
         this.running = true;
@@ -995,6 +1000,10 @@
       this.stopInView?.();
       cancelAnimationFrame(this.raf);
     }
+
+    /** Public API: smoothly stop / resume the ticker (also used by hover-pause). */
+    pause() { this.paused = true; this.pinned = true; }
+    play() { this.paused = false; this.pinned = false; }
 
     fill() {
       $$('.marquee__group[data-clone]', this.track).forEach((c) => c.remove());
@@ -1253,6 +1262,8 @@
 
   const setupDock = () => {
     html.classList.toggle('has-dock', !!$('[data-dock]'));
+    // Set when the header overlays the first section (transparent home header), so heroes can pad for it.
+    html.classList.toggle('has-header-overlay', !!$('[data-overlay][data-sticky], .header--overlay'));
   };
 
   const setupScrollProgress = () => {
@@ -1347,6 +1358,11 @@
     document.addEventListener('shopify:section:load', (e) => {
       Vault.init(e.target);
       setupDock();
+    });
+    document.addEventListener('shopify:section:unload', (e) => {
+      parallaxCancels.forEach((cancel, el) => {
+        if (e.target.contains(el)) { cancel(); parallaxCancels.delete(el); }
+      });
     });
 
     Vault.ready = true;

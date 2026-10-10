@@ -1,0 +1,86 @@
+{%- comment -%}
+  Cart drawer — rendered by layout/theme.liquid when settings.cart_type == 'drawer'.
+  <vault-drawer id="CartDrawer" data-placement="right"> (full width on phones, 460px otherwise).
+  Swappable regions ([data-cart-swap="cart-drawer"][data-cart-swap-key]) come from
+  snippets/cart-drawer-region.liquid, shared with sections/cart-drawer.liquid so
+  Vault.applySections refreshes them after every cart change.
+  The order note lives OUTSIDE the swapped regions so typing is never interrupted.
+  JS: assets/component-cart-drawer.js (<cart-drawer-items>).
+{%- endcomment -%}
+{{ 'component-cart-drawer.css' | asset_url | stylesheet_tag }}
+
+<vault-drawer id="CartDrawer" data-placement="right" class="cart-drawer">
+  <dialog class="drawer cart-drawer__dialog" aria-labelledby="CartDrawerTitle">
+    <div class="drawer__overlay" data-drawer-close></div>
+    <div class="drawer__panel cart-drawer__panel">
+      <cart-drawer-items class="cart-drawer__inner">
+        <div class="drawer__header cart-drawer__header">
+          {%- render 'cart-drawer-region', key: 'header' -%}
+          <button
+            type="button"
+            class="cart-drawer__close"
+            data-drawer-close
+            aria-label="{{ 'accessibility.close' | t }}"
+          >
+            {%- render 'icon', name: 'close', size: 20 -%}
+          </button>
+        </div>
+
+        {%- render 'cart-drawer-region', key: 'progress' -%}
+
+        <div class="drawer__body cart-drawer__body">
+          {%- render 'cart-drawer-region', key: 'items' -%}
+
+          {%- if settings.cart_show_note -%}
+            <details
+              class="accordion cart-note"
+              data-accordion
+              data-cart-note
+              {% if cart.item_count == 0 %}
+                hidden
+              {% endif %}
+            >
+              <summary>
+                <span class="cart-note__summary">
+                  {%- render 'icon', name: 'chat', size: 18 -%}
+                  <span>{{ 'cart.general.note' | t }}</span>
+                </span>
+                <span class="accordion__icon" aria-hidden="true">{% render 'icon', name: 'plus', size: 14, stroke: 2 %}</span>
+              </summary>
+              <div class="accordion__content">
+                <div class="accordion__inner">
+                  <label class="visually-hidden" for="CartDrawerNote">{{ 'cart.general.note' | t }}</label>
+                  <textarea
+                    id="CartDrawerNote"
+                    class="input cart-note__input"
+                    name="note"
+                    form="CartDrawerForm"
+                    rows="3"
+                    maxlength="500"
+                    placeholder="{{ 'sections.cart_drawer.note_placeholder' | t }}"
+                    data-cart-note-input
+                  >{{ cart.note }}</textarea>
+                  <p
+                    class="cart-note__status"
+                    data-cart-note-status
+                    data-saving="{{ 'sections.cart_drawer.note_saving' | t }}"
+                    data-saved="{{ 'sections.cart_drawer.note_saved' | t }}"
+                    aria-live="polite"
+                  ></p>
+                </div>
+              </div>
+            </details>
+          {%- endif -%}
+
+          {%- render 'cart-drawer-region', key: 'upsell' -%}
+        </div>
+
+        {%- render 'cart-drawer-region', key: 'footer' -%}
+        <p class="visually-hidden" role="status" aria-live="polite" data-cart-live></p>
+      </cart-drawer-items>
+    </div>
+  </dialog>
+</vault-drawer>
+<form id="CartDrawerForm" action="{{ routes.cart_url }}" method="post" hidden></form>
+
+<script src="{{ 'component-cart-drawer.js' | asset_url }}" defer="defer"></script>

@@ -1,0 +1,402 @@
+{%- comment -%}
+  Featured collection — "Trending pulls".
+  One block → a single grid/carousel. Two or more → animated tabs (role=tablist), panels rendered
+  server-side; without JS every panel is shown stacked with its own title.
+  No collection chosen → sample cards (card-product demo mode) so the section looks finished.
+{%- endcomment -%}
+{{ 'section-featured-collection.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign layout = section.settings.layout
+  assign limit = section.settings.products_to_show
+  assign cols_d = section.settings.columns_desktop
+  assign cols_t = section.settings.columns_tablet
+  assign cols_m = section.settings.columns_mobile | plus: 0
+  assign show_view_all = section.settings.show_view_all
+  assign heading_id = 'Heading-' | append: section.id
+
+  assign panel_count = section.blocks.size
+  assign use_tabs = false
+  if panel_count > 1
+    assign use_tabs = true
+  endif
+  if panel_count == 0
+    assign panel_count = 1
+  endif
+  assign demo_count = limit | at_most: 8
+
+  # Header link: explicit URL, else the first chosen collection, else all products.
+  assign link_url = section.settings.link_url
+  if link_url == blank
+    for block in section.blocks
+      if block.settings.collection != blank
+        assign link_url = block.settings.collection.url
+        break
+      endif
+    endfor
+  endif
+  if link_url == blank
+    assign link_url = routes.all_products_collection_url
+  endif
+
+  # Carousel cards per view (a peek of the next card on phones and tablets)
+  if cols_m == 1
+    assign pv_m = 1.2
+  else
+    assign pv_m = 1.6
+  endif
+  assign pv_t = cols_t | minus: 0.4
+
+  # Image sizes (approximate rendered card widths)
+  assign page_px = settings.page_width | plus: 80
+  assign col_px = settings.page_width | divided_by: cols_d
+  if layout == 'carousel'
+    assign card_sizes = '(min-width: ' | append: page_px | append: 'px) ' | append: col_px | append: 'px, (min-width: 990px) calc((100vw - 80px) / ' | append: cols_d | append: '), (min-width: 750px) calc((100vw - 64px) / ' | append: pv_t | append: '), calc((100vw - 32px) / ' | append: pv_m | append: ')'
+    assign slide_class = ' carousel__slide'
+  else
+    assign card_sizes = '(min-width: ' | append: page_px | append: 'px) ' | append: col_px | append: 'px, (min-width: 990px) calc((100vw - 80px) / ' | append: cols_d | append: '), (min-width: 750px) calc((100vw - 64px) / ' | append: cols_t | append: '), calc((100vw - 44px) / ' | append: cols_m | append: ')'
+    assign slide_class = ''
+  endif
+
+  assign tabs_html = ''
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-featured-collection color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if section.settings.heading != blank %}
+    aria-labelledby="{{ heading_id }}"
+  {% else %}
+    aria-label="{{ 'sections.featured_collection.products' | t }}"
+  {% endif %}
+>
+  <featured-collection
+    class="page-width fc fc--{{ layout }} fc--align-{{ section.settings.header_align }}{% if use_tabs %} fc--tabs{% endif %}"
+    {% if section.settings.link_url == blank %}
+      data-link-auto
+    {% endif %}
+  >
+    {%- render 'section-header',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      text: section.settings.text,
+      link_label: section.settings.link_label,
+      link_url: link_url,
+      align: section.settings.header_align,
+      id: heading_id
+    -%}
+
+    {%- capture panels_html -%}
+      {%- for i in (1..panel_count) -%}
+        {%- liquid
+          assign i0 = forloop.index0
+          assign blk = section.blocks[i0]
+          assign fc = blk.settings.collection
+          assign panel_uid = section.id | append: '-' | append: i0
+          assign panel_id = 'Panel-' | append: panel_uid
+          assign tab_id = 'Tab-' | append: panel_uid
+
+          assign panel_label = blk.settings.label
+          if panel_label == blank
+            assign panel_label = fc.title
+          endif
+          if panel_label == blank
+            if use_tabs
+              assign panel_label = 'sections.featured_collection.tab_fallback' | t: number: i
+            else
+              assign panel_label = 'sections.featured_collection.products' | t
+            endif
+          endif
+
+          assign panel_url = fc.url | default: routes.all_products_collection_url
+          assign end_title = fc.title | default: ''
+          if end_title == blank
+            assign end_title = 'sections.featured_collection.all_products' | t
+          endif
+
+          assign has_products = false
+          assign item_total = demo_count
+          if fc != blank and fc.products_count > 0
+            assign has_products = true
+            assign item_total = fc.products_count | at_most: limit
+          endif
+
+          # Only the first panel uses scroll reveals; hidden panels animate in when their tab opens.
+          assign panel_reveal = false
+          if forloop.first
+            assign panel_reveal = true
+          endif
+          assign demo_offset = i0 | times: 4
+
+          # Grid: the "view all" card only shows where it fills the last row; otherwise a button below.
+          assign end_hide = ''
+          assign cta_show = ''
+          if layout == 'grid' and show_view_all
+            assign rem_m = item_total | modulo: cols_m
+            assign rem_t = item_total | modulo: cols_t
+            assign rem_d = item_total | modulo: cols_d
+            if rem_m == 0
+              assign end_hide = end_hide | append: ' fc__item--hide-m'
+              assign cta_show = cta_show | append: ' fc__cta--show-m'
+            endif
+            if rem_t == 0
+              assign end_hide = end_hide | append: ' fc__item--hide-t'
+              assign cta_show = cta_show | append: ' fc__cta--show-t'
+            endif
+            if rem_d == 0
+              assign end_hide = end_hide | append: ' fc__item--hide-d'
+              assign cta_show = cta_show | append: ' fc__cta--show-d'
+            endif
+          endif
+        -%}
+
+        {%- if use_tabs -%}
+          {%- capture tab_html -%}
+            <button
+              type="button"
+              class="fc-tab"
+              role="tab"
+              id="{{ tab_id }}"
+              aria-controls="{{ panel_id }}"
+              aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+              tabindex="{% if forloop.first %}0{% else %}-1{% endif %}"
+              data-fc-tab
+            >
+              <span class="fc-tab__label">{{ panel_label | escape }}</span>
+              {%- if has_products -%}
+                <span class="fc-tab__count mono" aria-hidden="true">{{ fc.products_count }}</span>
+              {%- endif -%}
+            </button>
+          {%- endcapture -%}
+          {%- assign tabs_html = tabs_html | append: tab_html -%}
+        {%- endif -%}
+
+        {%- capture items_html -%}
+          {%- if has_products -%}
+            {%- for card_product in fc.products limit: limit -%}
+              <div class="fc__item{{ slide_class }}">
+                {%- render 'card-product',
+                  product: card_product,
+                  index: forloop.index0,
+                  sizes: card_sizes,
+                  section_id: panel_uid,
+                  show_quick_add: section.settings.show_quick_add,
+                  reveal: panel_reveal
+                -%}
+              </div>
+            {%- endfor -%}
+          {%- else -%}
+            {%- for n in (1..demo_count) -%}
+              {%- assign demo_n = n | plus: demo_offset -%}
+              <div class="fc__item{{ slide_class }}">
+                {%- render 'card-product',
+                  demo: demo_n,
+                  index: forloop.index0,
+                  section_id: panel_uid,
+                  show_quick_add: section.settings.show_quick_add,
+                  reveal: panel_reveal
+                -%}
+              </div>
+            {%- endfor -%}
+          {%- endif -%}
+
+          {%- if show_view_all -%}
+            <div class="fc__item fc__item--end{{ slide_class }}{{ end_hide }}">
+              <a
+                href="{{ panel_url }}"
+                class="fc-end"
+                data-spotlight
+                {% if panel_reveal %}
+                  data-reveal="card"
+                {% endif %}
+              >
+                <span class="fc-end__ghosts" aria-hidden="true">
+                  <span class="fc-end__ghost"></span>
+                  <span class="fc-end__ghost"></span>
+                  <span class="fc-end__ghost"></span>
+                </span>
+                <span class="fc-end__body">
+                  <span class="fc-end__kicker">{{ 'general.actions.view_all' | t }}</span>
+                  <span class="fc-end__title">{{ end_title | escape }}</span>
+                  {%- if has_products -%}
+                    <span class="fc-end__count mono">
+                      {{- 'sections.featured_collection.item_count' | t: count: fc.products_count -}}
+                    </span>
+                  {%- endif -%}
+                </span>
+                <span class="fc-end__arrow" aria-hidden="true">
+                  {%- render 'icon', name: 'arrow-right', size: 22, stroke: 2 -%}
+                </span>
+              </a>
+            </div>
+          {%- endif -%}
+        {%- endcapture -%}
+
+        <div
+          class="fc__panel"
+          id="{{ panel_id }}"
+          {% if use_tabs %}
+            role="tabpanel"
+            aria-labelledby="{{ tab_id }}"
+            {% unless forloop.first %}
+              hidden
+            {% endunless %}
+          {% endif %}
+          data-fc-panel
+          data-url="{{ panel_url }}"
+          {{ blk.shopify_attributes }}
+        >
+          {%- if use_tabs -%}
+            <h3 class="fc__panel-title h5">{{ panel_label | escape }}</h3>
+          {%- endif -%}
+
+          {%- if layout == 'carousel' -%}
+            <vault-carousel
+              class="fc__carousel carousel--bleed"
+              style="--per-view-mobile: {{ pv_m }}; --per-view-tablet: {{ pv_t }}; --per-view-desktop: {{ cols_d }};"
+            >
+              <div
+                class="carousel__track"
+                data-carousel-track
+                tabindex="0"
+                role="region"
+                aria-label="{{ panel_label | escape }}"
+              >
+                {{ items_html }}
+              </div>
+              <div class="carousel__controls">
+                <button type="button" class="carousel__btn" data-carousel-prev aria-label="{{ 'accessibility.previous_slide' | t }}">
+                  {%- render 'icon', name: 'arrow-left', size: 18 -%}
+                </button>
+                <div class="carousel__progress"><span data-carousel-progress></span></div>
+                <button type="button" class="carousel__btn" data-carousel-next aria-label="{{ 'accessibility.next_slide' | t }}">
+                  {%- render 'icon', name: 'arrow-right', size: 18 -%}
+                </button>
+              </div>
+            </vault-carousel>
+          {%- else -%}
+            <div
+              class="grid fc__grid"
+              style="--cols-mobile: {{ cols_m }}; --cols-tablet: {{ cols_t }}; --cols-desktop: {{ cols_d }};"
+            >
+              {{ items_html }}
+            </div>
+            {%- if cta_show != blank -%}
+              <div class="fc__cta{{ cta_show }}">
+                <a href="{{ panel_url }}" class="btn btn--secondary">
+                  {{- 'general.actions.view_all' | t -}}
+                  {%- render 'icon', name: 'arrow-right', size: 16 -%}
+                </a>
+              </div>
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    {%- endcapture -%}
+
+    {%- if use_tabs -%}
+      <div class="fc__tabs" data-fc-scroller>
+        <div class="fc-tabs" role="tablist" aria-label="{{ 'sections.featured_collection.tabs_label' | t }}" data-fc-tablist>
+          <span class="fc-tabs__indicator" aria-hidden="true" data-fc-indicator></span>
+          {{ tabs_html }}
+        </div>
+      </div>
+    {%- endif -%}
+
+    <div class="fc__panels" data-fc-panels>
+      {{ panels_html }}
+    </div>
+  </featured-collection>
+</section>
+
+{%- if use_tabs -%}
+  <script src="{{ 'section-featured-collection.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Featured collection",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Fresh from the vault" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "info": "Wrap words in italics to highlight them in red.", "default": "Trending <em>pulls</em>" },
+    { "type": "inline_richtext", "id": "text", "label": "Text", "default": "Hand-picked singles, gem-mint slabs and sealed heat — restocked daily." },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "View all" },
+    { "type": "url", "id": "link_url", "label": "Link", "info": "Defaults to the first collection." },
+    {
+      "type": "select",
+      "id": "header_align",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "left"
+    },
+    { "type": "header", "content": "Products" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "grid", "label": "Grid" },
+        { "value": "carousel", "label": "Carousel" }
+      ],
+      "default": "grid"
+    },
+    { "type": "range", "id": "products_to_show", "min": 2, "max": 24, "step": 1, "label": "Products per collection", "default": 8 },
+    { "type": "range", "id": "columns_desktop", "min": 3, "max": 6, "step": 1, "label": "Columns on desktop", "default": 4 },
+    { "type": "range", "id": "columns_tablet", "min": 2, "max": 4, "step": 1, "label": "Columns on tablet", "default": 3 },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick add", "default": true },
+    { "type": "checkbox", "id": "show_view_all", "label": "Show \"View all\" card", "default": true },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "text", "id": "label", "label": "Tab label", "info": "Shown when the section has two or more collections. Defaults to the collection title." }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Trending pulls",
+      "blocks": [
+        { "type": "collection", "settings": { "label": "New arrivals" } },
+        { "type": "collection", "settings": { "label": "Graded slabs" } },
+        { "type": "collection", "settings": { "label": "Sealed" } }
+      ]
+    },
+    {
+      "name": "Product carousel",
+      "settings": {
+        "eyebrow": "Just graded",
+        "heading": "Fresh <em>slabs</em>",
+        "text": "Back from PSA, BGS and CGC this week. Every cert verified before it ships.",
+        "layout": "carousel",
+        "columns_desktop": 4
+      },
+      "blocks": [
+        { "type": "collection" }
+      ]
+    }
+  ]
+}
+{% endschema %}

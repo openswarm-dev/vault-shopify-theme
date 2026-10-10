@@ -1,0 +1,326 @@
+{%- comment -%}
+  Collection banner: breadcrumb, oversized split-reveal title, product count, description
+  (clamped with "Read more" on phones), quick-link pills (blocks) and media in one of three styles:
+    split       — a fanned hand of cards on the right (collection image front and centre, the
+                  collection's own product photos behind it; placeholder art when empty)
+    background  — full-bleed image (or a wall of the collection's cards) under a dark overlay
+    minimal     — type only, on the grid + red glow backdrop
+{%- endcomment -%}
+{{ 'section-collection-banner.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sid = section.id
+  assign banner_style = section.settings.style
+  assign show_media = section.settings.show_image
+  if banner_style == 'minimal'
+    assign show_media = false
+  endif
+  assign align = section.settings.content_alignment
+  if banner_style == 'split' and show_media
+    assign align = 'left'
+  endif
+
+  assign banner_image = collection.image | default: section.settings.fallback_image
+
+  assign title_size = collection.title | size
+  assign title_mod = ''
+  if title_size > 34
+    assign title_mod = ' collection-banner__title--xlong'
+  elsif title_size > 20
+    assign title_mod = ' collection-banner__title--long'
+  endif
+
+  assign product_total = collection.all_products_count | default: 0
+-%}
+
+<section
+  id="Section-{{ sid }}"
+  class="section section-collection-banner color-{{ section.settings.color_scheme }} section-bg collection-banner--{{ banner_style }} collection-banner--align-{{ align }}{% if show_media %} collection-banner--media{% endif %}"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }}; --overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
+  data-section-id="{{ sid }}"
+>
+  <collection-banner class="collection-banner" data-parallax-root>
+    <div class="collection-banner__backdrop" aria-hidden="true">
+      <div class="collection-banner__grid bg-grid"></div>
+      <div class="collection-banner__glow"></div>
+      {%- if banner_style == 'minimal' -%}
+        <span class="collection-banner__ghost text-outline" data-parallax="0.06">{{ collection.title | escape }}</span>
+      {%- endif -%}
+    </div>
+
+    {%- if banner_style == 'background' and show_media -%}
+      <div class="collection-banner__bg" aria-hidden="true">
+        <div class="collection-banner__bg-media" data-parallax="0.08">
+          {%- if banner_image != blank -%}
+            {{
+              banner_image
+              | image_url: width: 2400
+              | image_tag:
+                loading: 'eager',
+                fetchpriority: 'high',
+                widths: '480, 750, 1000, 1400, 1800, 2400',
+                sizes: '100vw',
+                alt: '',
+                class: 'collection-banner__bg-img'
+            }}
+          {%- else -%}
+            <div class="collection-banner__wall">
+              {%- for product in collection.products limit: 5 -%}
+                <div class="collection-banner__wall-card collection-banner__wall-card--{{ forloop.index }}">
+                  {%- if product.featured_image != blank -%}
+                    {{
+                      product.featured_image
+                      | image_url: width: 600
+                      | image_tag: loading: 'eager', widths: '200, 300, 400, 600', sizes: '(min-width: 990px) 20vw, 34vw', alt: ''
+                    }}
+                  {%- else -%}
+                    {%- assign wall_uid = sid | append: '-wall' | append: forloop.index -%}
+                    {%- render 'placeholder-card', variant: forloop.index, uid: wall_uid -%}
+                  {%- endif -%}
+                </div>
+              {%- endfor -%}
+              {%- assign wall_from = collection.products.size | at_most: 5 | plus: 1 -%}
+              {%- if wall_from <= 5 -%}
+                {%- for i in (wall_from..5) -%}
+                  {%- assign wall_uid = sid | append: '-wall' | append: i -%}
+                  <div class="collection-banner__wall-card collection-banner__wall-card--{{ i }}">
+                    {%- render 'placeholder-card', variant: i, uid: wall_uid -%}
+                  </div>
+                {%- endfor -%}
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </div>
+        <div class="collection-banner__overlay"></div>
+      </div>
+    {%- endif -%}
+
+    <div class="page-width collection-banner__inner">
+      <div class="collection-banner__content">
+        <div class="collection-banner__meta">
+          {%- if section.settings.show_breadcrumbs -%}
+            <nav class="collection-banner__breadcrumbs" aria-label="{{ 'collections.banner.breadcrumb' | t }}">
+              <ol class="list-reset" role="list">
+                <li><a href="{{ routes.root_url }}">{{ 'collections.banner.home' | t }}</a></li>
+                <li><a href="{{ routes.collections_url }}">{{ 'collections.banner.collections' | t }}</a></li>
+                <li><span aria-current="page">{{ collection.title | escape }}</span></li>
+              </ol>
+            </nav>
+          {%- endif -%}
+          {%- if section.settings.show_count -%}
+            <p class="collection-banner__count">
+              <span class="collection-banner__dot" aria-hidden="true"></span>
+              <strong class="tabular" data-count-to="{{ product_total }}">{{ product_total }}</strong>
+              {{ 'collections.banner.product_label' | t: count: product_total }}
+            </p>
+          {%- endif -%}
+        </div>
+
+        <h1 class="collection-banner__title{{ title_mod }}" data-split>{{ collection.title | escape }}</h1>
+
+        {%- if section.settings.show_description and collection.description != blank -%}
+          <div class="collection-banner__desc" data-banner-desc>
+            <div class="rte collection-banner__rte" id="CollectionDescription-{{ sid }}" data-desc-body>
+              {{- collection.description -}}
+            </div>
+            <button
+              type="button"
+              class="collection-banner__more link link--accent"
+              aria-expanded="false"
+              aria-controls="CollectionDescription-{{ sid }}"
+              data-desc-toggle
+              data-label-more="{{ 'collections.banner.read_more' | t | escape }}"
+              data-label-less="{{ 'collections.banner.read_less' | t | escape }}"
+              hidden
+            >
+              <span data-desc-label>{{ 'collections.banner.read_more' | t }}</span>
+              {%- render 'icon', name: 'chevron-down', size: 14 -%}
+            </button>
+          </div>
+        {%- endif -%}
+
+        {%- if section.blocks.size > 0 -%}
+          <nav class="collection-banner__links" aria-label="{{ 'collections.banner.quick_links' | t }}">
+            <ul class="collection-banner__pills list-reset" role="list">
+              {%- for block in section.blocks -%}
+                {%- liquid
+                  assign pill_url = block.settings.link | default: routes.collections_url
+                  assign pill_current = false
+                  if block.settings.link == request.path
+                    assign pill_current = true
+                  endif
+                -%}
+                <li class="collection-banner__pill-item" {{ block.shopify_attributes }}>
+                  <a
+                    href="{{ pill_url }}"
+                    class="pill collection-banner__pill{% if block.settings.highlight %} collection-banner__pill--hot{% endif %}"
+                    {% if pill_current %}
+                      aria-current="page"
+                    {% endif %}
+                  >
+                    {%- if block.settings.highlight -%}<span class="collection-banner__pill-dot" aria-hidden="true"></span>{%- endif -%}
+                    {{- block.settings.label | escape -}}
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </nav>
+        {%- endif -%}
+      </div>
+
+      {%- if banner_style == 'split' and show_media -%}
+        {%- liquid
+          assign p1 = nil
+          assign p2 = nil
+          assign p3 = nil
+          for product in collection.products limit: 3
+            case forloop.index
+              when 1
+                assign p1 = product.featured_image
+              when 2
+                assign p2 = product.featured_image
+              else
+                assign p3 = product.featured_image
+            endcase
+          endfor
+          # Card-shaped (portrait) collection art leads the fan; wide banner art becomes an angled
+          # backplate behind the collection's own product photos instead of being cropped.
+          assign fan_plate = nil
+          assign fan_front = p1
+          assign fan_left = p2
+          assign fan_right = p3
+          if banner_image != blank
+            if banner_image.aspect_ratio < 0.9
+              assign fan_front = banner_image
+              assign fan_left = p1
+              assign fan_right = p2
+            else
+              assign fan_plate = banner_image
+            endif
+          endif
+          assign fan_sizes = '(min-width: 990px) 220px, (min-width: 750px) 130px, 60px'
+        -%}
+        <div class="collection-banner__media" data-parallax="0.05" aria-hidden="true">
+          <div class="banner-fan{% if fan_plate != blank %} banner-fan--plate{% endif %}" data-banner-fan>
+            <div class="banner-fan__halo"></div>
+            {%- if fan_plate != blank -%}
+              <div class="banner-fan__plate" data-fan-plate>
+                {{
+                  fan_plate
+                  | image_url: width: 1200
+                  | image_tag:
+                    loading: 'eager',
+                    widths: '240, 480, 720, 960, 1200',
+                    sizes: '(min-width: 990px) 440px, (min-width: 750px) 260px, 110px',
+                    alt: ''
+                }}
+              </div>
+            {%- endif -%}
+
+            <div class="banner-fan__card banner-fan__card--left" data-fan-card="left">
+              <div class="banner-fan__face">
+                {%- if fan_left != blank -%}
+                  {{ fan_left | image_url: width: 480 | image_tag: loading: 'eager', widths: '120, 240, 360, 480', sizes: fan_sizes, alt: '' }}
+                {%- else -%}
+                  {%- assign fan_uid = sid | append: '-fan-l' -%}
+                  {%- render 'placeholder-card', variant: 2, uid: fan_uid -%}
+                {%- endif -%}
+              </div>
+            </div>
+
+            <div class="banner-fan__card banner-fan__card--right" data-fan-card="right">
+              <div class="banner-fan__face">
+                {%- if fan_right != blank -%}
+                  {{ fan_right | image_url: width: 480 | image_tag: loading: 'eager', widths: '120, 240, 360, 480', sizes: fan_sizes, alt: '' }}
+                {%- else -%}
+                  {%- assign fan_uid = sid | append: '-fan-r' -%}
+                  {%- render 'placeholder-card', variant: 3, uid: fan_uid -%}
+                {%- endif -%}
+              </div>
+            </div>
+
+            <div class="banner-fan__card banner-fan__card--front" data-fan-card="front">
+              <holo-card class="banner-fan__holo" data-foil="rainbow" data-max-tilt="10">
+                <div class="holo banner-fan__face">
+                  {%- if fan_front != blank -%}
+                    {{
+                      fan_front
+                      | image_url: width: 640
+                      | image_tag:
+                        loading: 'eager',
+                        fetchpriority: 'high',
+                        widths: '160, 320, 480, 640',
+                        sizes: fan_sizes,
+                        alt: ''
+                    }}
+                  {%- else -%}
+                    {%- assign fan_uid = sid | append: '-fan-f' -%}
+                    {%- render 'placeholder-card', variant: 1, uid: fan_uid -%}
+                  {%- endif -%}
+                  <span class="holo__shine"></span>
+                  <span class="holo__glare"></span>
+                </div>
+              </holo-card>
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  </collection-banner>
+</section>
+
+<script src="{{ 'section-collection-banner.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Collection banner",
+  "class": "shopify-section--collection-banner",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "options": [
+        { "value": "split", "label": "Split with card fan" },
+        { "value": "background", "label": "Full-bleed background" },
+        { "value": "minimal", "label": "Minimal" }
+      ],
+      "default": "split"
+    },
+    { "type": "checkbox", "id": "show_image", "label": "Show collection image", "info": "Split style fans the collection image in front of the collection's own product photos.", "default": true },
+    { "type": "image_picker", "id": "fallback_image", "label": "Fallback image", "info": "Used when a collection has no image of its own." },
+    { "type": "range", "id": "overlay_opacity", "min": 20, "max": 90, "step": 5, "unit": "%", "label": "Background overlay", "default": 60 },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Text alignment",
+      "info": "Applies to the background and minimal styles.",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "left"
+    },
+    { "type": "header", "content": "Content" },
+    { "type": "checkbox", "id": "show_breadcrumbs", "label": "Show breadcrumbs", "default": true },
+    { "type": "checkbox", "id": "show_count", "label": "Show product count", "default": true },
+    { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": true },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 60 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 40 }
+  ],
+  "blocks": [
+    {
+      "type": "link",
+      "name": "Quick link",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Graded slabs" },
+        { "type": "url", "id": "link", "label": "Link", "default": "/collections/all" },
+        { "type": "checkbox", "id": "highlight", "label": "Highlight with a red dot", "default": false }
+      ]
+    }
+  ]
+}
+{% endschema %}

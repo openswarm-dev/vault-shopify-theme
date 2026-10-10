@@ -1,0 +1,189 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sid = section.id
+  assign new_has_errors = false
+-%}
+
+{%- capture new_address_form -%}
+  {%- form 'customer_address', customer.new_address, class: 'address-form' -%}
+    {%- if form.errors -%}
+      {%- assign new_has_errors = true -%}
+    {%- endif -%}
+    {% render 'customer-form-errors', form: form %}
+    {% render 'customer-address-fields', form: form, suffix: 'new', is_default: false %}
+    <div class="address-form__actions">
+      <button type="submit" class="btn btn--primary">
+        {%- render 'icon', name: 'plus', size: 16 -%}
+        <span>{{ 'customer.addresses.add' | t }}</span>
+      </button>
+      <button type="button" class="btn btn--ghost" data-details-close>{{ 'customer.addresses.cancel' | t }}</button>
+    </div>
+  {%- endform -%}
+{%- endcapture -%}
+
+<section
+  id="Section-{{ sid }}"
+  class="section customer customer--addresses color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ sid }}"
+>
+  <div class="customer__backdrop customer__backdrop--soft" aria-hidden="true"></div>
+
+  <div class="page-width">
+    <a href="{{ routes.account_url }}" class="link link--muted account-back">
+      {%- render 'icon', name: 'arrow-left', size: 16 -%}
+      {{- 'customer.account.return' | t -}}
+    </a>
+
+    <header class="account-head">
+      <div class="account-head__text">
+        <p class="eyebrow" data-reveal="fade">{{ 'customer.addresses.eyebrow' | t }}</p>
+        <h1 class="h1 account-head__title" data-split>{{ 'customer.addresses.title_html' | t }}</h1>
+        <p class="account-head__meta" data-reveal="fade">{{ 'customer.addresses.subtext' | t }}</p>
+      </div>
+    </header>
+
+    <details class="accordion address-new" data-accordion{% if new_has_errors %} open{% endif %}>
+      <summary class="address-new__summary">
+        <span class="address-new__label">
+          <span class="address-new__icon" aria-hidden="true">{% render 'icon', name: 'plus', size: 18 %}</span>
+          {{- 'customer.addresses.add_new' | t -}}
+        </span>
+        <span class="accordion__icon" aria-hidden="true">{% render 'icon', name: 'plus', size: 14 %}</span>
+      </summary>
+      <div class="accordion__content">
+        <div class="accordion__inner address-new__inner">
+          {{ new_address_form }}
+        </div>
+      </div>
+    </details>
+
+    {%- paginate customer.addresses by 12 -%}
+      {%- if customer.addresses.size > 0 -%}
+        <ul class="address-grid" role="list">
+          {%- for address in customer.addresses -%}
+            {%- liquid
+              assign is_default = false
+              if address.id == customer.default_address.id
+                assign is_default = true
+              endif
+              assign edit_has_errors = false
+            -%}
+            {%- capture edit_form -%}
+              {%- form 'customer_address', address, class: 'address-form' -%}
+                {%- if form.errors -%}
+                  {%- assign edit_has_errors = true -%}
+                {%- endif -%}
+                {% render 'customer-form-errors', form: form %}
+                {% render 'customer-address-fields', form: form, suffix: address.id, is_default: is_default %}
+                <div class="address-form__actions">
+                  <button type="submit" class="btn btn--primary">
+                    {%- render 'icon', name: 'check', size: 16 -%}
+                    <span>{{ 'customer.addresses.update' | t }}</span>
+                  </button>
+                  <button type="button" class="btn btn--ghost" data-details-close>{{ 'customer.addresses.cancel' | t }}</button>
+                </div>
+              {%- endform -%}
+            {%- endcapture -%}
+
+            <li class="address-card{% if is_default %} is-default{% endif %}" data-reveal>
+              <div class="address-card__head">
+                <div class="address-card__title">
+                  <h2 class="address-card__name">
+                    {{- address.first_name | escape }} {{ address.last_name | escape -}}
+                  </h2>
+                  {%- if is_default -%}
+                    <span class="badge badge--accent">{{ 'customer.addresses.default' | t }}</span>
+                  {%- endif -%}
+                </div>
+                <form
+                  method="post"
+                  action="{{ address.url }}"
+                  class="address-card__delete"
+                  data-address-delete
+                  data-confirm="{{ 'customer.addresses.delete_confirm' | t | escape }}"
+                >
+                  <input type="hidden" name="_method" value="delete">
+                  <button type="submit" class="btn btn--ghost btn--sm address-card__delete-btn">
+                    {%- render 'icon', name: 'trash', size: 16 -%}
+                    <span class="address-card__delete-label">{{ 'customer.addresses.delete' | t }}</span>
+                    <span class="visually-hidden">{{ address.address1 | escape }}</span>
+                  </button>
+                </form>
+              </div>
+
+              <address class="address-card__address">{{ address | format_address }}</address>
+
+              <details class="accordion address-edit" data-accordion{% if edit_has_errors %} open{% endif %}>
+                <summary class="address-edit__summary">
+                  <span class="address-edit__label">
+                    {%- render 'icon', name: 'sliders', size: 16 -%}
+                    {{- 'customer.addresses.edit' | t -}}
+                    <span class="visually-hidden">{{ address.address1 | escape }}</span>
+                  </span>
+                  <span class="accordion__icon" aria-hidden="true">{% render 'icon', name: 'plus', size: 14 %}</span>
+                </summary>
+                <div class="accordion__content">
+                  <div class="accordion__inner address-edit__inner">
+                    {{ edit_form }}
+                  </div>
+                </div>
+              </details>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        {%- if paginate.pages > 1 -%}
+          <div class="account-pagination">
+            {% render 'pagination', paginate: paginate %}
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        <div class="account-empty" data-reveal>
+          {% render 'customer-fan', uid: sid %}
+          <h2 class="h4">{{ 'customer.addresses.none_title' | t }}</h2>
+          <p class="text-muted">{{ 'customer.addresses.none_text' | t }}</p>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+<script src="{{ 'shopify_common.js' | shopify_asset_url }}" defer="defer"></script>
+<script src="{{ 'customer.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Addresses",
+  "class": "shopify-section--main-addresses",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 100
+    }
+  ]
+}
+{% endschema %}

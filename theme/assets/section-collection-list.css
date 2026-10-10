@@ -1,0 +1,72 @@
+/* ==========================================================================
+   VAULT — section-collection-list.css  ("Shop by game")
+   Layouts
+     grid      mobile 1–2 cols · tablet 3 · desktop setting
+     bento     mobile/tablet: 2 cols, hero tile spans two rows, last tile closes the gap
+               desktop: hero 2×2 (or 2×1 when it can't be flanked), last tile spans the
+               remaining columns. Row height follows the column width (container units).
+     carousel  <vault-carousel> (core)
+   ========================================================================== */
+
+.cl__wrap { container-type: inline-size; }
+
+.cl__grid {
+  --cols: var(--cols-m, 2);
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+}
+.cl__item { min-width: 0; }
+
+/* ---------- Grid ---------- */
+@media (min-width: 750px) {
+  .cl__grid--grid { --cols: 3; }
+}
+@media (min-width: 990px) {
+  .cl__grid--grid { --cols: var(--cols-d, 3); }
+}
+
+/* ---------- Bento ---------- */
+.cl__grid--bento {
+  --cols: 2;
+  --row-ratio: 1;
+  grid-auto-rows: minmax(180px, auto);
+}
+@supports (width: 1cqi) {
+  .cl__grid--bento {
+    grid-auto-rows: calc((100cqi - (var(--cols) - 1) * var(--grid-gap)) / var(--cols) * var(--row-ratio));
+  }
+}
+.cl__grid--bento .collection-card {
+  aspect-ratio: auto;
+  height: 100%;
+}
+.cl__grid--bento > .cl__item--hero {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.cl__grid--bento > .cl__item--last { grid-column: span var(--last-span-m, 1); }
+.cl__grid--bento > .cl__item--hero.cl__item--last { grid-column: 1 / -1; }
+
+@media (min-width: 750px) {
+  .cl__grid--bento { --row-ratio: .5; }
+}
+@media (min-width: 990px) {
+  .cl__grid--bento {
+    --cols: var(--cols-d, 3);
+    --row-ratio: var(--bento-ratio-d, .6);
+  }
+  .cl__grid--bento > .cl__item--hero { grid-row: span var(--hero-rows-d, 2); }
+  .cl__grid--bento > .cl__item--last { grid-column: span var(--last-span-d, 1); }
+  .cl__grid--bento > .cl__item--hero.cl__item--last { grid-column: 1 / -1; }
+}
+
+/* Very small tiles (320px phones): the whole tile is the link, so the arrow chip can go. */
+@container collection-card (max-width: 180px) {
+  .section-collection-list .collection-card__arrow { display: none; }
+}
+
+/* ---------- Carousel (touch users swipe; arrows from tablet up) ---------- */
+@media (max-width: 749px) {
+  .cl__carousel .carousel__btn { display: none; }
+}

@@ -1,0 +1,403 @@
+{%- comment -%}
+  Product media gallery: swipeable display-case stage (one <vault-carousel> track at every breakpoint),
+  holographic featured card with a 3D flip to media[1], thumbnails (vertical on desktop, row on tablet,
+  dots on phones), and a full-screen zoom lightbox (<vault-drawer> + <product-zoom>).
+  Behaviour lives in assets/component-product-gallery.js (<product-gallery>, <product-zoom>).
+
+  Usage:
+    {% render 'product-gallery',
+      product: product,              # blank → polished demo (placeholder slab art, flip still works)
+      variant: current_variant,      # its featured media is shown first
+      section_id: section.id,
+      context: 'main',               # main | featured
+      foil: 'intense',               # foil of the featured card (subtle | rainbow | intense | none)
+      enable_flip: true,
+      enable_zoom: true,
+      show_thumbs: true,
+      eager: true,                   # first image eager + fetchpriority high (PDP only)
+      sizes: '…'                     # optional sizes override for the stage images
+    %}
+{%- endcomment -%}
+{%- liquid
+  assign gid = section_id
+  assign g_context = context | default: 'main'
+  assign g_foil = foil | default: 'intense'
+  assign g_sizes = sizes | default: '(min-width: 990px) min(600px, 36vw), (min-width: 750px) 60vw, 82vw'
+  assign g_widths = '360, 540, 720, 900, 1080, 1280, 1600'
+
+  assign is_demo = false
+  if product == blank
+    assign is_demo = true
+  endif
+
+  assign media_count = 0
+  assign image_count = 0
+  assign initial_index = 0
+  assign has_flip = false
+  assign back_media_id = ''
+
+  if is_demo
+    assign media_count = 2
+    if enable_flip
+      assign has_flip = true
+    endif
+  else
+    assign media_count = product.media.size
+    assign image_count = product.media | where: 'media_type', 'image' | size
+    if media_count > 1 and enable_flip
+      assign first_media = product.media[0]
+      assign back_media = product.media[1]
+      # Only flip between images of the same shape (front/back of one card or slab).
+      assign ar_front = first_media.preview_image.aspect_ratio | default: 1
+      assign ar_back = back_media.preview_image.aspect_ratio | default: 1
+      assign ar_diff = ar_front | minus: ar_back | abs
+      if first_media.media_type == 'image' and back_media.media_type == 'image' and ar_diff < 0.08
+        assign has_flip = true
+        assign back_media_id = back_media.id
+      endif
+    endif
+    if variant.featured_media != blank
+      for media in product.media
+        if media.id == variant.featured_media.id
+          assign initial_index = forloop.index0
+          break
+        endif
+      endfor
+    endif
+  endif
+
+  assign zoom_on = false
+  if enable_zoom and image_count > 0
+    assign zoom_on = true
+  endif
+
+  assign thumbs_on = false
+  if show_thumbs and media_count > 1 and is_demo == false
+    assign thumbs_on = true
+  endif
+-%}
+{{ 'component-product-gallery.css' | asset_url | stylesheet_tag }}
+<product-gallery
+  class="pg pg--{{ g_context }}{% if thumbs_on %} pg--has-thumbs{% endif %}{% if media_count < 2 %} pg--single{% endif %}{% if has_flip or zoom_on %} pg--has-tools{% endif %}{% if media_count > 6 %} pg--many{% endif %}"
+  data-initial-index="{{ initial_index }}"
+  {% if zoom_on %}data-zoom-id="ProductZoom-{{ gid }}"{% endif %}
+  {% if back_media_id != blank %}data-back-media-id="{{ back_media_id }}"{% endif %}
+>
+  <div class="pg__layout">
+    {%- if thumbs_on -%}
+      <div class="pg__thumbs" data-thumbs>
+        {%- for media in product.media -%}
+          <button
+            type="button"
+            class="pg__thumb"
+            data-thumb="{{ forloop.index0 }}"
+            aria-controls="Slide-{{ gid }}-{{ forloop.index0 }}"
+            aria-label="{{ 'products.pdp.gallery.show_media' | t: index: forloop.index }}"
+            aria-current="{% if forloop.index0 == initial_index %}true{% else %}false{% endif %}"
+          >
+            {%- if media.preview_image != blank -%}
+              {{
+                media.preview_image
+                | image_url: width: 200
+                | image_tag: loading: 'lazy', widths: '100, 200', sizes: '(min-width: 990px) 72px, 64px', alt: '', class: 'pg__thumb-img'
+              }}
+            {%- endif -%}
+            {%- case media.media_type -%}
+              {%- when 'video', 'external_video' -%}
+                <span class="pg__thumb-badge">{% render 'icon', name: 'play', size: 12, stroke: 2 %}</span>
+              {%- when 'model' -%}
+                <span class="pg__thumb-badge">{% render 'icon', name: 'box', size: 12, stroke: 2 %}</span>
+            {%- endcase -%}
+          </button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    <div class="pg__main">
+      <vault-carousel class="pg__carousel" style="--per-view-mobile: 1; --per-view-tablet: 1; --per-view-desktop: 1;">
+        <div class="pg__viewport">
+          <div
+            class="carousel__track pg__track"
+            data-carousel-track
+            tabindex="0"
+            role="region"
+            aria-label="{{ 'products.pdp.gallery.label' | t }}"
+          >
+            {%- if is_demo -%}
+              {%- comment -%} Demo: a gem-mint slab (flips to the slab back) + a raw holo single. {%- endcomment -%}
+              <div class="pg__slide" id="Slide-{{ gid }}-0" data-media-slide data-media-id="demo-0" data-media-type="image" role="group" aria-roledescription="{{ 'products.pdp.gallery.slide_role' | t }}" aria-label="{{ 'products.pdp.gallery.slide' | t: index: 1, count: 2 }}">
+                <div class="pg__item" style="--ar: 0.644;">
+                  <span class="pg__glow" aria-hidden="true"></span>
+                  <holo-card class="pg__holo" data-foil="{{ g_foil }}" data-max-tilt="10">
+                    <div class="pg__flip"{% if has_flip %} data-flip{% endif %}>
+                      <div class="pg__face pg__face--front">
+                        <div class="holo">
+                          <div class="media pg__media pg__media--art" data-vt-media="pdp" data-fly-source>
+                            {%- assign demo_label = 'sections.featured_product.demo.title' | t -%}
+                            {% render 'placeholder-card', variant: 1, uid: gid, graded: true, label: demo_label %}
+                          </div>
+                          <span class="holo__shine" aria-hidden="true"></span>
+                          <span class="holo__glare" aria-hidden="true"></span>
+                        </div>
+                      </div>
+                      {%- if has_flip -%}
+                        <div class="pg__face pg__face--back" aria-hidden="true">
+                          <div class="holo">
+                            <div class="media pg__media pg__media--art">
+                              {% render 'product-card-back', uid: gid, graded: true %}
+                            </div>
+                            <span class="holo__shine"></span>
+                            <span class="holo__glare"></span>
+                          </div>
+                        </div>
+                      {%- endif -%}
+                    </div>
+                  </holo-card>
+                </div>
+              </div>
+              <div class="pg__slide" id="Slide-{{ gid }}-1" data-media-slide data-media-id="demo-1" data-media-type="image" role="group" aria-roledescription="{{ 'products.pdp.gallery.slide_role' | t }}" aria-label="{{ 'products.pdp.gallery.slide' | t: index: 2, count: 2 }}">
+                <div class="pg__item" style="--ar: 0.716;">
+                  <holo-card class="pg__holo" data-foil="rainbow" data-max-tilt="8">
+                    <div class="pg__flip">
+                      <div class="pg__face pg__face--front">
+                        <div class="holo">
+                          <div class="media pg__media pg__media--art">
+                            {% render 'placeholder-card', variant: 3, uid: gid %}
+                          </div>
+                          <span class="holo__shine" aria-hidden="true"></span>
+                          <span class="holo__glare" aria-hidden="true"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </holo-card>
+                </div>
+              </div>
+
+            {%- elsif media_count == 0 -%}
+              <div class="pg__slide" id="Slide-{{ gid }}-0" data-media-slide data-media-id="placeholder" data-media-type="image" role="group" aria-roledescription="{{ 'products.pdp.gallery.slide_role' | t }}" aria-label="{{ 'products.pdp.gallery.slide' | t: index: 1, count: 1 }}">
+                <div class="pg__item" style="--ar: 0.644;">
+                  <span class="pg__glow" aria-hidden="true"></span>
+                  <holo-card class="pg__holo" data-foil="{{ g_foil }}" data-max-tilt="10">
+                    <div class="pg__flip">
+                      <div class="pg__face pg__face--front">
+                        <div class="holo">
+                          <div class="media pg__media pg__media--art" data-vt-media="pdp" data-fly-source>
+                            {% render 'placeholder-card', variant: 1, uid: gid, graded: true, label: product.title %}
+                          </div>
+                          <span class="holo__shine" aria-hidden="true"></span>
+                          <span class="holo__glare" aria-hidden="true"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </holo-card>
+                </div>
+              </div>
+
+            {%- else -%}
+              {%- for media in product.media -%}
+                {%- liquid
+                  assign idx = forloop.index0
+                  assign ar = media.preview_image.aspect_ratio | default: 0.716
+                  assign media_alt = media.alt | default: product.title
+                  assign is_front = forloop.first
+                -%}
+                <div
+                  class="pg__slide"
+                  id="Slide-{{ gid }}-{{ idx }}"
+                  data-media-slide
+                  data-media-id="{{ media.id }}"
+                  data-media-type="{{ media.media_type }}"
+                  role="group"
+                  aria-roledescription="{{ 'products.pdp.gallery.slide_role' | t }}"
+                  aria-label="{{ 'products.pdp.gallery.slide' | t: index: forloop.index, count: media_count }}"
+                >
+                  <div class="pg__item" style="--ar: {{ ar }};">
+                    {%- if media.media_type == 'image' -%}
+                      {%- if is_front -%}<span class="pg__glow" aria-hidden="true"></span>{%- endif -%}
+                      <holo-card
+                        class="pg__holo"
+                        data-foil="{% if is_front %}{{ g_foil }}{% else %}subtle{% endif %}"
+                        data-max-tilt="{% if is_front %}10{% else %}7{% endif %}"
+                      >
+                        <div class="pg__flip"{% if is_front and has_flip %} data-flip{% endif %}>
+                          <div class="pg__face pg__face--front">
+                            <div class="holo">
+                              <div class="media pg__media"{% if is_front %} data-vt-media="pdp" data-fly-source{% endif %}>
+                                {%- if is_front and eager -%}
+                                  {{
+                                    media
+                                    | image_url: width: 1600
+                                    | image_tag:
+                                      widths: g_widths,
+                                      sizes: g_sizes,
+                                      alt: media_alt,
+                                      loading: 'eager',
+                                      fetchpriority: 'high',
+                                      class: 'pg__img'
+                                  }}
+                                {%- else -%}
+                                  {{
+                                    media
+                                    | image_url: width: 1600
+                                    | image_tag:
+                                      widths: g_widths,
+                                      sizes: g_sizes,
+                                      alt: media_alt,
+                                      loading: 'lazy',
+                                      class: 'pg__img'
+                                  }}
+                                {%- endif -%}
+                              </div>
+                              <span class="holo__shine" aria-hidden="true"></span>
+                              <span class="holo__glare" aria-hidden="true"></span>
+                            </div>
+                          </div>
+                          {%- if is_front and has_flip -%}
+                            <div class="pg__face pg__face--back" aria-hidden="true">
+                              <div class="holo">
+                                <div class="media pg__media">
+                                  {{
+                                    back_media
+                                    | image_url: width: 1600
+                                    | image_tag: widths: g_widths, sizes: g_sizes, alt: '', loading: 'lazy', class: 'pg__img'
+                                  }}
+                                </div>
+                                <span class="holo__shine"></span>
+                                <span class="holo__glare"></span>
+                              </div>
+                            </div>
+                          {%- endif -%}
+                        </div>
+                        {%- if zoom_on -%}
+                          <button
+                            type="button"
+                            class="pg__zoom-hit"
+                            data-zoom-open="{{ media.id }}"
+                            aria-haspopup="dialog"
+                            aria-controls="ProductZoom-{{ gid }}"
+                            aria-label="{{ 'products.pdp.gallery.open_zoom' | t }}: {{ media_alt | escape }}"
+                          ></button>
+                        {%- endif -%}
+                      </holo-card>
+                    {%- else -%}
+                      <div class="media pg__media pg__media--{{ media.media_type }}">
+                        {%- case media.media_type -%}
+                          {%- when 'external_video' -%}
+                            {%- if media.host == 'youtube' -%}
+                              {{ media | external_video_url: enablejsapi: 1, rel: 0, playsinline: 1 | external_video_tag: loading: 'lazy', title: media_alt }}
+                            {%- else -%}
+                              {{ media | external_video_url: api: 1 | external_video_tag: loading: 'lazy', title: media_alt }}
+                            {%- endif -%}
+                          {%- when 'video' -%}
+                            {{ media | video_tag: image_size: '1200x', controls: true, playsinline: true, preload: 'none' }}
+                          {%- else -%}
+                            {{ media | media_tag: image_size: '1200x' }}
+                        {%- endcase -%}
+                      </div>
+                    {%- endif -%}
+                  </div>
+                </div>
+              {%- endfor -%}
+            {%- endif -%}
+          </div>
+
+          {%- if media_count > 1 -%}
+            <button type="button" class="pg__nav pg__nav--prev" data-carousel-prev aria-label="{{ 'products.pdp.gallery.previous' | t }}">
+              {%- render 'icon', name: 'chevron-left', size: 20 -%}
+            </button>
+            <button type="button" class="pg__nav pg__nav--next" data-carousel-next aria-label="{{ 'products.pdp.gallery.next' | t }}">
+              {%- render 'icon', name: 'chevron-right', size: 20 -%}
+            </button>
+          {%- endif -%}
+        </div>
+
+        {%- comment -%}
+          Control row: under the stage on phones (counter · dots · tools); overlaid on the stage from 750px.
+        {%- endcomment -%}
+        {%- if media_count > 1 -%}
+          <p class="pg__counter mono" aria-hidden="true">
+            <span data-counter>{{ initial_index | plus: 1 }}</span><span class="pg__counter-sep">/</span>{{ media_count }}
+          </p>
+          <div class="carousel__dots pg__dots" data-carousel-dots></div>
+        {%- endif -%}
+
+        {%- if has_flip or zoom_on -%}
+          <div class="pg__tools">
+            {%- if has_flip -%}
+              <button type="button" class="pg__tool" data-flip-toggle aria-pressed="false" aria-label="{{ 'products.pdp.gallery.flip_label' | t }}">
+                {%- render 'icon', name: 'flip', size: 16, stroke: 2 -%}
+                <span class="pg__tool-text" aria-hidden="true">{{ 'products.pdp.gallery.flip' | t }}</span>
+              </button>
+            {%- endif -%}
+            {%- if zoom_on -%}
+              <button
+                type="button"
+                class="pg__tool pg__tool--icon"
+                data-zoom-current
+                aria-haspopup="dialog"
+                aria-controls="ProductZoom-{{ gid }}"
+                aria-label="{{ 'products.pdp.gallery.open_zoom' | t }}"
+              >
+                {%- render 'icon', name: 'zoom', size: 18 -%}
+              </button>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </vault-carousel>
+    </div>
+  </div>
+</product-gallery>
+
+{%- if zoom_on -%}
+  <vault-drawer id="ProductZoom-{{ gid }}" class="pz-drawer" data-placement="center" style="--modal-width: 1200px;">
+    <dialog class="drawer pz-dialog" aria-label="{{ 'products.pdp.gallery.zoom_title' | t }}">
+      <div class="drawer__overlay pz-overlay" data-drawer-close></div>
+      <div class="drawer__panel pz-panel">
+        <product-zoom class="pz" data-count="{{ image_count }}">
+          <div class="pz__bar">
+            <p class="pz__count mono" aria-live="polite">
+              <span data-zoom-counter>1</span><span class="pz__count-sep">/</span>{{ image_count }}
+            </p>
+            <p class="pz__hint">
+              <span class="pz__hint--touch">{{ 'products.pdp.gallery.zoom_hint_touch' | t }}</span>
+              <span class="pz__hint--pointer">{{ 'products.pdp.gallery.zoom_hint_pointer' | t }}</span>
+            </p>
+            <button type="button" class="pz__close" data-drawer-close data-drawer-focus aria-label="{{ 'accessibility.close' | t }}">
+              {%- render 'icon', name: 'close', size: 20 -%}
+            </button>
+          </div>
+          <div class="pz__track" data-zoom-track>
+            {%- for media in product.media -%}
+              {%- if media.media_type == 'image' -%}
+                {%- assign zoom_alt = media.alt | default: product.title -%}
+                <figure class="pz__slide" data-zoom-slide data-media-id="{{ media.id }}">
+                  <button type="button" class="pz__frame" data-zoom-frame aria-label="{{ 'products.pdp.gallery.zoom_in' | t }}: {{ zoom_alt | escape }}">
+                    {{
+                      media
+                      | image_url: width: 2000
+                      | image_tag:
+                        widths: '800, 1200, 1600, 2000',
+                        sizes: '(min-width: 1232px) 1200px, 100vw',
+                        alt: zoom_alt,
+                        loading: 'lazy',
+                        draggable: 'false',
+                        class: 'pz__img'
+                    }}
+                  </button>
+                </figure>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+          {%- if image_count > 1 -%}
+            <button type="button" class="pz__nav pz__nav--prev" data-zoom-prev aria-label="{{ 'products.pdp.gallery.previous' | t }}">
+              {%- render 'icon', name: 'chevron-left', size: 22 -%}
+            </button>
+            <button type="button" class="pz__nav pz__nav--next" data-zoom-next aria-label="{{ 'products.pdp.gallery.next' | t }}">
+              {%- render 'icon', name: 'chevron-right', size: 22 -%}
+            </button>
+          {%- endif -%}
+        </product-zoom>
+      </div>
+    </dialog>
+  </vault-drawer>
+{%- endif -%}

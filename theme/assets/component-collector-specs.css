@@ -1,0 +1,67 @@
+/* ==========================================================================
+   VAULT — component-collector-specs.css
+   Collector spec grid (snippets/collector-specs.liquid): label / value rows with hairlines.
+   2 columns by default; 3 when an ancestor .cs-container is at least 600px wide.
+   ========================================================================== */
+
+.cs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.25rem;
+  margin: 0;
+}
+.cs__row {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  min-width: 0;
+  padding: .8rem 0;
+  border-top: 1px solid var(--color-border);
+}
+.cs__label {
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.cs__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem .6rem;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+.cs__value.mono, .cs__value .mono { font-weight: 500; letter-spacing: .01em; }
+.cs__tier { max-width: 100%; white-space: normal; height: auto; min-height: 1.6rem; line-height: 1.2; }
+.cs__verify {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border-bottom: 1px solid rgb(var(--color-accent-rgb) / .4);
+  transition: border-color var(--dur), color var(--dur);
+}
+@media (pointer: coarse) {
+  .cs__verify { min-height: 44px; border-bottom: 0; text-decoration: underline; text-underline-offset: .25em; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .cs__verify:hover { border-color: var(--color-accent); }
+}
+
+/* Wide containers (e.g. the tablet-portrait PDP info column) get three columns. */
+.cs-container { container-type: inline-size; }
+@container (min-width: 600px) {
+  .cs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

@@ -1,0 +1,1227 @@
+{
+  "sections": {
+    "signature-hero": {
+      "type": "hero-pack",
+      "settings": {
+        "eyebrow": "New drop live",
+        "heading": "Pull something <em>legendary</em>",
+        "subheading": "Graded slabs, sealed boosters and chase singles. Authenticated, sleeved and shipped insured from the vault.",
+        "button_label_1": "Shop the drop",
+        "button_link_1": "/collections/all",
+        "button_label_2": "Browse graded",
+        "button_link_2": "/collections",
+        "stat_1_number": "25",
+        "stat_1_suffix": "K+",
+        "stat_1_label": "Cards sold",
+        "stat_2_number": "4.9",
+        "stat_2_suffix": "/5",
+        "stat_2_label": "Collector rating",
+        "stat_3_number": "100",
+        "stat_3_suffix": "%",
+        "stat_3_label": "Authenticated",
+        "layout": "fan",
+        "overlay_opacity": 60,
+        "show_floor": true,
+        "show_particles": true,
+        "full_height": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 0,
+        "padding_bottom": 0
+      },
+      "blocks": {
+        "hero-card-1": {
+          "type": "card",
+          "settings": {
+            "label": "Alt art",
+            "foil": "subtle",
+            "graded": false
+          }
+        },
+        "hero-card-2": {
+          "type": "card",
+          "settings": {
+            "label": "Secret rare",
+            "foil": "rainbow",
+            "graded": false
+          }
+        },
+        "hero-card-3": {
+          "type": "card",
+          "settings": {
+            "label": "PSA 10 Gem mint",
+            "foil": "intense",
+            "graded": true
+          }
+        },
+        "hero-card-4": {
+          "type": "card",
+          "settings": {
+            "label": "1st edition",
+            "foil": "rainbow",
+            "graded": false
+          }
+        },
+        "hero-card-5": {
+          "type": "card",
+          "settings": {
+            "label": "Full art",
+            "foil": "subtle",
+            "graded": false
+          }
+        }
+      },
+      "block_order": [
+        "hero-card-1",
+        "hero-card-2",
+        "hero-card-3",
+        "hero-card-4",
+        "hero-card-5"
+      ]
+    },
+    "trust_bar": {
+      "type": "multicolumn",
+      "settings": {
+        "heading_align": "left",
+        "style": "minimal",
+        "text_align": "left",
+        "columns_desktop": 4,
+        "columns_tablet": "2",
+        "columns_mobile": "2",
+        "color_scheme": "scheme-1",
+        "padding_top": 40,
+        "padding_bottom": 40
+      },
+      "blocks": {
+        "trust_authentic": {
+          "type": "column",
+          "settings": {
+            "icon": "verified",
+            "title": "100% authentic",
+            "text": "<p>Every card inspected</p>"
+          }
+        },
+        "trust_packing": {
+          "type": "column",
+          "settings": {
+            "icon": "shield",
+            "title": "Shipped like a slab",
+            "text": "<p>Penny sleeve + top-loader + bubble mailer</p>"
+          }
+        },
+        "trust_shipping": {
+          "type": "column",
+          "settings": {
+            "icon": "truck",
+            "title": "Insured, tracked shipping",
+            "text": "<p>Covered from our vault to your door</p>"
+          }
+        },
+        "trust_returns": {
+          "type": "column",
+          "settings": {
+            "icon": "return",
+            "title": "14-day returns",
+            "text": "<p>Hassle-free, no restocking fees</p>"
+          }
+        }
+      },
+      "block_order": [
+        "trust_authentic",
+        "trust_packing",
+        "trust_shipping",
+        "trust_returns"
+      ]
+    },
+    "signature-marquee": {
+      "type": "marquee",
+      "settings": {
+        "style": "ribbon",
+        "speed": 45,
+        "direction": "left",
+        "scroll_velocity": true,
+        "flip_on_scroll": false,
+        "second_row": false,
+        "rotation": -2,
+        "pause_on_hover": true,
+        "edge_fade": false,
+        "color_scheme": "scheme-4",
+        "padding_top": 20,
+        "padding_bottom": 20
+      },
+      "blocks": {
+        "marquee-psa": {
+          "type": "text",
+          "settings": {
+            "text": "PSA 10 Gem Mint",
+            "icon": "sparkle",
+            "outline": false
+          }
+        },
+        "marquee-sealed": {
+          "type": "text",
+          "settings": {
+            "text": "Sealed boosters",
+            "icon": "sparkle",
+            "outline": false
+          }
+        },
+        "marquee-vintage": {
+          "type": "text",
+          "settings": {
+            "text": "Vintage holos",
+            "icon": "sparkle",
+            "outline": false
+          }
+        },
+        "marquee-japanese": {
+          "type": "text",
+          "settings": {
+            "text": "Japanese exclusives",
+            "icon": "sparkle",
+            "outline": false
+          }
+        },
+        "marquee-alt": {
+          "type": "text",
+          "settings": {
+            "text": "Alt arts",
+            "icon": "sparkle",
+            "outline": false
+          }
+        },
+        "marquee-rookies": {
+          "type": "text",
+          "settings": {
+            "text": "Sports rookies",
+            "icon": "sparkle",
+            "outline": false
+          }
+        }
+      },
+      "block_order": [
+        "marquee-psa",
+        "marquee-sealed",
+        "marquee-vintage",
+        "marquee-japanese",
+        "marquee-alt",
+        "marquee-rookies"
+      ]
+    },
+    "content_a_stats": {
+      "type": "stats-counter",
+      "settings": {
+        "eyebrow": "By the numbers",
+        "heading": "Trusted by collectors <em>worldwide</em>",
+        "text": "<p>Every order is hand-checked, sleeved and insured before it leaves the vault. Here's what that adds up to.</p>",
+        "alignment": "center",
+        "show_glow": true,
+        "show_grid": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 80,
+        "padding_bottom": 80
+      },
+      "blocks": {
+        "stat_shipped": {
+          "type": "stat",
+          "settings": {
+            "number": "48",
+            "decimals": 0,
+            "suffix": "K+",
+            "label": "Cards shipped",
+            "description": "Sleeved, top-loaded and insured",
+            "icon": "cards"
+          }
+        },
+        "stat_feedback": {
+          "type": "stat",
+          "settings": {
+            "number": "99.8",
+            "decimals": 1,
+            "suffix": "%",
+            "label": "Positive feedback",
+            "description": "Across 2,300+ verified reviews",
+            "icon": "star"
+          }
+        },
+        "stat_slabs": {
+          "type": "stat",
+          "settings": {
+            "number": "12",
+            "decimals": 0,
+            "suffix": "K+",
+            "label": "Graded slabs sold",
+            "description": "PSA, BGS, CGC and SGC",
+            "icon": "award"
+          }
+        },
+        "stat_dispatch": {
+          "type": "stat",
+          "settings": {
+            "number": "24",
+            "decimals": 0,
+            "suffix": "h",
+            "label": "Average dispatch",
+            "description": "Order by 2pm for same-day",
+            "icon": "truck"
+          }
+        }
+      },
+      "block_order": [
+        "stat_shipped",
+        "stat_feedback",
+        "stat_slabs",
+        "stat_dispatch"
+      ]
+    },
+    "commerce-shop-by-game": {
+      "type": "collection-list",
+      "settings": {
+        "eyebrow": "Shop by game",
+        "heading": "Every game. <em>One vault.</em>",
+        "text": "From vintage holos to this week's chase cards — singles, graded slabs and sealed product, sorted by game.",
+        "link_label": "All collections",
+        "link_url": "/collections",
+        "header_align": "left",
+        "layout": "bento",
+        "columns_desktop": 3,
+        "columns_mobile": "2",
+        "tile_size": "md",
+        "show_count": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "game-pokemon": {
+          "type": "collection",
+          "settings": {
+            "title": "Pokémon",
+            "caption": "Vintage holos to modern chase cards"
+          }
+        },
+        "game-magic": {
+          "type": "collection",
+          "settings": {
+            "title": "Magic: The Gathering",
+            "caption": "Reserved List to Commander staples"
+          }
+        },
+        "game-yugioh": {
+          "type": "collection",
+          "settings": {
+            "title": "Yu-Gi-Oh!",
+            "caption": "Ghost rares and 1st Editions"
+          }
+        },
+        "game-one-piece": {
+          "type": "collection",
+          "settings": {
+            "title": "One Piece",
+            "caption": "Manga rares and alt arts"
+          }
+        },
+        "game-lorcana": {
+          "type": "collection",
+          "settings": {
+            "title": "Lorcana",
+            "caption": "Enchanted and cold-foil singles"
+          }
+        },
+        "game-sports": {
+          "type": "collection",
+          "settings": {
+            "title": "Sports Cards",
+            "caption": "Rookies, autos and numbered parallels"
+          }
+        }
+      },
+      "block_order": [
+        "game-pokemon",
+        "game-magic",
+        "game-yugioh",
+        "game-one-piece",
+        "game-lorcana",
+        "game-sports"
+      ]
+    },
+    "featured_product_spotlight": {
+      "type": "featured-product",
+      "settings": {
+        "product": "base-set-holo-dragon-psa-10",
+        "eyebrow": "Vault spotlight",
+        "heading": "This week's <em>grail</em>",
+        "text": "Gem-mint, freshly slabbed and photographed in-house. One copy, one new owner.",
+        "header_align": "left",
+        "media_position": "left",
+        "gallery_foil": "intense",
+        "enable_flip": true,
+        "enable_zoom": true,
+        "show_details_link": true,
+        "show_glow": true,
+        "show_grid": true,
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "game_line": {
+          "type": "game_line",
+          "settings": {
+            "show_game": true,
+            "show_set": true,
+            "show_number": true,
+            "vendor_fallback": true
+          }
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "badges": {
+          "type": "badges",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {
+            "show_tax_note": false
+          }
+        },
+        "inventory": {
+          "type": "inventory",
+          "settings": {
+            "in_stock_note": "Ships in 24h",
+            "low_stock_note": "Once it's gone, it's gone",
+            "show_meter": true
+          }
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {
+            "picker_type": "pills"
+          }
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_dynamic_checkout": false
+          }
+        },
+        "collector_specs": {
+          "type": "collector_specs",
+          "settings": {
+            "heading": "Card details"
+          }
+        }
+      },
+      "block_order": [
+        "game_line",
+        "title",
+        "badges",
+        "price",
+        "inventory",
+        "variant_picker",
+        "buy_buttons",
+        "collector_specs"
+      ]
+    },
+    "signature-pulls": {
+      "type": "card-flip-reveal",
+      "settings": {
+        "eyebrow": "Today's pulls",
+        "heading": "Fresh from the <em>vault</em>",
+        "text": "Chase-tier pulls land here first. Every morning the team cracks, checks and lists the night's best hits.",
+        "link_label": "View all pulls",
+        "link_url": "/collections/all",
+        "reveal_mode": "auto",
+        "stagger": 150,
+        "columns_desktop": 6,
+        "mobile_layout": "grid",
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "pull-1": {
+          "type": "card",
+          "settings": {
+            "title": "Ember Drake · 1st edition holo",
+            "price": "$420",
+            "rarity": "Holo rare",
+            "chase": false
+          }
+        },
+        "pull-2": {
+          "type": "card",
+          "settings": {
+            "title": "Void Reaper · Alt art",
+            "price": "$185",
+            "rarity": "Alt art",
+            "chase": false
+          }
+        },
+        "pull-3": {
+          "type": "card",
+          "settings": {
+            "title": "Crimson Titan · Gold secret",
+            "price": "$1,250",
+            "rarity": "Secret rare",
+            "chase": true
+          }
+        },
+        "pull-4": {
+          "type": "card",
+          "settings": {
+            "title": "Tide Sovereign · Full art",
+            "price": "$96",
+            "rarity": "Full art",
+            "chase": false
+          }
+        },
+        "pull-5": {
+          "type": "card",
+          "settings": {
+            "title": "Astral Oracle · Event promo",
+            "price": "$64",
+            "rarity": "Promo",
+            "chase": false
+          }
+        },
+        "pull-6": {
+          "type": "card",
+          "settings": {
+            "title": "Inferno Kirin · Japanese ultra",
+            "price": "$138",
+            "rarity": "Ultra rare",
+            "chase": false
+          }
+        }
+      },
+      "block_order": [
+        "pull-1",
+        "pull-2",
+        "pull-3",
+        "pull-4",
+        "pull-5",
+        "pull-6"
+      ]
+    },
+    "content_a_drop": {
+      "type": "drop-countdown",
+      "settings": {
+        "eyebrow": "Next drop",
+        "heading": "The <em>Vault</em> opens Friday",
+        "heading_size": "h1",
+        "text": "<p>Fresh alt-art singles, PSA 10 slabs and sealed booster boxes land at the same time. Set a reminder — chase cards rarely last the hour.</p>",
+        "drop_date": "2026-11-20 18:00",
+        "utc_offset": "-05:00",
+        "show_seconds": true,
+        "force_live": false,
+        "show_notify": true,
+        "notify_text": "One email the moment it opens. No spam, ever.",
+        "preview_label": "Preview the lineup",
+        "live_heading": "The <em>Vault</em> is open",
+        "live_text": "<p>The drop is live. Limited quantities, first come first served — chase cards are capped at one per customer.</p>",
+        "button_label": "Shop the drop",
+        "button_link": "/collections/all",
+        "layout": "visual_right",
+        "show_stack": true,
+        "stack_label": "Sealed until drop",
+        "overlay_opacity": 65,
+        "show_grid": true,
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {},
+      "block_order": []
+    },
+    "commerce-trending-pulls": {
+      "type": "featured-collection",
+      "settings": {
+        "eyebrow": "Fresh from the vault",
+        "heading": "Trending <em>pulls</em>",
+        "text": "Hand-picked singles, gem-mint slabs and sealed heat — restocked daily.",
+        "link_label": "View all",
+        "header_align": "left",
+        "layout": "grid",
+        "products_to_show": 8,
+        "columns_desktop": 4,
+        "columns_tablet": 3,
+        "columns_mobile": "2",
+        "show_quick_add": true,
+        "show_view_all": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "tab-new-arrivals": {
+          "type": "collection",
+          "settings": {
+            "collection": "new-arrivals",
+            "label": "New arrivals"
+          }
+        },
+        "tab-graded-slabs": {
+          "type": "collection",
+          "settings": {
+            "collection": "graded-slabs",
+            "label": "Graded slabs"
+          }
+        },
+        "tab-sealed": {
+          "type": "collection",
+          "settings": {
+            "collection": "sealed",
+            "label": "Sealed"
+          }
+        }
+      },
+      "block_order": [
+        "tab-new-arrivals",
+        "tab-graded-slabs",
+        "tab-sealed"
+      ]
+    },
+    "vault_story": {
+      "type": "image-with-text",
+      "settings": {
+        "image_style": "card",
+        "foil": "rainbow",
+        "image_ratio": "portrait",
+        "image_width": "50",
+        "layout": "image_first",
+        "vertical_align": "center",
+        "parallax": true,
+        "eyebrow": "Our story",
+        "heading": "From our vault <em>to yours</em>",
+        "heading_size": "h2",
+        "text": "<p>We started trading binders across a kitchen table. Today every card that leaves the vault is still hand-checked, photographed front and back, and packed like it is going into our own collection.</p>",
+        "button_label_1": "Shop the vault",
+        "button_link_1": "/collections/all",
+        "button_label_2": "Browse sets",
+        "button_link_2": "/collections",
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "story_inspected": {
+          "type": "feature",
+          "settings": {
+            "icon": "verified",
+            "title": "Hand-inspected under loupe and UV"
+          }
+        },
+        "story_photos": {
+          "type": "feature",
+          "settings": {
+            "icon": "camera",
+            "title": "Real photos of the exact card you get"
+          }
+        },
+        "story_certs": {
+          "type": "feature",
+          "settings": {
+            "icon": "award",
+            "title": "Every slab verified against its cert"
+          }
+        },
+        "story_dispatch": {
+          "type": "feature",
+          "settings": {
+            "icon": "truck",
+            "title": "Packed and dispatched within one business day"
+          }
+        }
+      },
+      "block_order": [
+        "story_inspected",
+        "story_photos",
+        "story_certs",
+        "story_dispatch"
+      ]
+    },
+    "signature-showcase": {
+      "type": "holo-showcase",
+      "settings": {
+        "eyebrow": "Inspect the foil",
+        "heading": "Every <em>foil</em>, every flaw, on camera",
+        "text": "Turn it over, tilt it into the light. Every listing shows the card exactly as it will land in your hands.",
+        "shape": "slab",
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "showcase-light": {
+          "type": "feature",
+          "settings": {
+            "icon": "camera",
+            "title": "Shot under raking light",
+            "text": "Every holo is photographed at several angles, so you see the real foil and not a stock scan."
+          }
+        },
+        "showcase-zoom": {
+          "type": "feature",
+          "settings": {
+            "icon": "zoom",
+            "title": "Corners, edges, centering",
+            "text": "We zoom in on the four things graders care about and show each one up close."
+          }
+        },
+        "showcase-back": {
+          "type": "feature",
+          "settings": {
+            "icon": "flip",
+            "title": "Both sides, always",
+            "text": "The back tells the truth. Whitening, scratches and print lines are all in the gallery."
+          }
+        },
+        "showcase-sealed": {
+          "type": "feature",
+          "settings": {
+            "icon": "shield",
+            "title": "Sealed in the vault",
+            "text": "Penny sleeve, top loader, team bag and a tamper-evident seal before it ships insured."
+          }
+        }
+      },
+      "block_order": [
+        "showcase-light",
+        "showcase-zoom",
+        "showcase-back",
+        "showcase-sealed"
+      ]
+    },
+    "content_a_grades": {
+      "type": "grade-scale",
+      "settings": {
+        "eyebrow": "Grading 101",
+        "heading": "Know your <em>grade</em>",
+        "text": "<p>Every slab tells a story. Step through the scale to see exactly what separates a Gem Mint 10 from a well-loved 1.</p>",
+        "link_label": "Shop graded slabs",
+        "link_url": "/collections/all",
+        "grader": "PSA",
+        "card_variant": 1,
+        "show_wear": true,
+        "note": "Descriptions follow PSA's published standards. BGS, CGC, SGC and TAG use similar 1–10 scales with half-point grades in between.",
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "grade_10": {
+          "type": "tier",
+          "settings": {
+            "score": "10",
+            "label": "Gem Mint",
+            "abbr": "GEM MT",
+            "description": "A virtually perfect card: four sharp corners, sharp focus, full original gloss and no staining. Centering around 55/45 or better on the front.",
+            "color": "#e11d2e"
+          }
+        },
+        "grade_9": {
+          "type": "tier",
+          "settings": {
+            "score": "9",
+            "label": "Mint",
+            "abbr": "MINT",
+            "description": "A superb card with just one minor flaw — a tiny wax stain on the back, a small print spot or slightly off-white borders. Centering about 60/40 or better.",
+            "color": "#f2545b"
+          }
+        },
+        "grade_8": {
+          "type": "tier",
+          "settings": {
+            "score": "8",
+            "label": "Near Mint–Mint",
+            "abbr": "NM-MT",
+            "description": "Looks Mint at a glance. Allows a very slight fray on one or two corners, a minor print imperfection or slightly off-white borders. Centering about 65/35.",
+            "color": "#f97316"
+          }
+        },
+        "grade_7": {
+          "type": "tier",
+          "settings": {
+            "score": "7",
+            "label": "Near Mint",
+            "abbr": "NM",
+            "description": "Slight surface wear visible on close inspection and light fraying on some corners. Most of the original gloss remains. Centering about 70/30.",
+            "color": "#f59e0b"
+          }
+        },
+        "grade_6": {
+          "type": "tier",
+          "settings": {
+            "score": "6",
+            "label": "Excellent–Mint",
+            "abbr": "EX-MT",
+            "description": "Visible surface wear or a print defect, light scratches, slight edge notching and some loss of gloss. Corners may show fraying. Centering about 80/20.",
+            "color": "#d4d4d8"
+          }
+        },
+        "grade_5": {
+          "type": "tier",
+          "settings": {
+            "score": "5",
+            "label": "Excellent",
+            "abbr": "EX",
+            "description": "Very minor corner rounding becomes evident, with surface wear, light scratches and some chipping along the edges. Centering about 85/15.",
+            "color": "#b8b8c0"
+          }
+        },
+        "grade_4": {
+          "type": "tier",
+          "settings": {
+            "score": "4",
+            "label": "Very Good–Excellent",
+            "abbr": "VG-EX",
+            "description": "Slightly rounded corners, noticeable surface wear and scuffing, and some loss of gloss. A light crease may be visible. Centering about 85/15.",
+            "color": "#9d9da6"
+          }
+        },
+        "grade_3": {
+          "type": "tier",
+          "settings": {
+            "score": "3",
+            "label": "Very Good",
+            "abbr": "VG",
+            "description": "Rounded corners, obvious surface wear and possible light creasing. Most of the original gloss is gone and borders may be yellowed. Centering about 90/10.",
+            "color": "#83838d"
+          }
+        },
+        "grade_2": {
+          "type": "tier",
+          "settings": {
+            "score": "2",
+            "label": "Good",
+            "abbr": "GOOD",
+            "description": "Heavy corner wear, scratching, surface staining and several creases, with significant gloss loss — but the card is still fully intact.",
+            "color": "#6a6a74"
+          }
+        },
+        "grade_1": {
+          "type": "tier",
+          "settings": {
+            "score": "1",
+            "label": "Poor",
+            "abbr": "PR",
+            "description": "Extreme wear: heavy creases, scuffing, missing pieces or major defects that affect the card's structure. Still identifiable — and often still treasured.",
+            "color": "#55555e"
+          }
+        }
+      },
+      "block_order": [
+        "grade_10",
+        "grade_9",
+        "grade_8",
+        "grade_7",
+        "grade_6",
+        "grade_5",
+        "grade_4",
+        "grade_3",
+        "grade_2",
+        "grade_1"
+      ]
+    },
+    "commerce-fresh-slabs": {
+      "type": "featured-collection",
+      "settings": {
+        "eyebrow": "Just graded",
+        "heading": "Fresh <em>graded slabs</em>",
+        "text": "Back from PSA, BGS and CGC this week. Every cert is verified before it ships.",
+        "link_label": "Shop all slabs",
+        "header_align": "left",
+        "layout": "carousel",
+        "products_to_show": 12,
+        "columns_desktop": 4,
+        "columns_tablet": 3,
+        "columns_mobile": "2",
+        "show_quick_add": true,
+        "show_view_all": true,
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "slabs-collection": {
+          "type": "collection",
+          "settings": {
+            "collection": "graded-slabs"
+          }
+        }
+      },
+      "block_order": [
+        "slabs-collection"
+      ]
+    },
+    "grader_logos": {
+      "type": "logo-list",
+      "settings": {
+        "heading": "Graded by the best · Official products from",
+        "heading_style": "label",
+        "display": "marquee",
+        "logo_height": 40,
+        "greyscale": true,
+        "speed": 40,
+        "direction": "left",
+        "columns_desktop": 5,
+        "color_scheme": "scheme-1",
+        "padding_top": 60,
+        "padding_bottom": 60
+      },
+      "blocks": {
+        "logo_psa": {
+          "type": "logo",
+          "settings": {
+            "name": "PSA"
+          }
+        },
+        "logo_bgs": {
+          "type": "logo",
+          "settings": {
+            "name": "BGS"
+          }
+        },
+        "logo_cgc": {
+          "type": "logo",
+          "settings": {
+            "name": "CGC"
+          }
+        },
+        "logo_sgc": {
+          "type": "logo",
+          "settings": {
+            "name": "SGC"
+          }
+        },
+        "logo_tag": {
+          "type": "logo",
+          "settings": {
+            "name": "TAG"
+          }
+        },
+        "logo_pokemon": {
+          "type": "logo",
+          "settings": {
+            "name": "Pokémon TCG"
+          }
+        },
+        "logo_magic": {
+          "type": "logo",
+          "settings": {
+            "name": "Magic"
+          }
+        },
+        "logo_yugioh": {
+          "type": "logo",
+          "settings": {
+            "name": "Yu-Gi-Oh!"
+          }
+        },
+        "logo_onepiece": {
+          "type": "logo",
+          "settings": {
+            "name": "One Piece"
+          }
+        },
+        "logo_lorcana": {
+          "type": "logo",
+          "settings": {
+            "name": "Lorcana"
+          }
+        }
+      },
+      "block_order": [
+        "logo_psa",
+        "logo_bgs",
+        "logo_cgc",
+        "logo_sgc",
+        "logo_tag",
+        "logo_pokemon",
+        "logo_magic",
+        "logo_yugioh",
+        "logo_onepiece",
+        "logo_lorcana"
+      ]
+    },
+    "content_a_reviews": {
+      "type": "testimonials",
+      "settings": {
+        "eyebrow": "Collector reviews",
+        "heading": "Loved by <em>collectors</em>",
+        "link_label": "Read all reviews",
+        "show_aggregate": true,
+        "rating_value": "4.9",
+        "rating_count": "2,300+",
+        "layout": "marquee",
+        "speed": 35,
+        "show_product": true,
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "review_slab": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Slab arrived flawless",
+            "quote": "Ordered a PSA 10 and it showed up double-boxed, in a team bag, with corner protectors on the slab. Not a scratch on the case. This is how graded cards should ship.",
+            "name": "Marcus T.",
+            "location": "Austin, TX",
+            "verified": true
+          }
+        },
+        "review_grading": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Grading you can trust",
+            "quote": "Every raw single I bought was exactly as listed. The Near Mint cards were genuinely Near Mint — sharp corners, clean surfaces, no surprises under the loupe.",
+            "name": "Priya S.",
+            "location": "@priyapulls",
+            "verified": true
+          }
+        },
+        "review_shipping": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Fast, insured, perfect",
+            "quote": "Ordered Sunday night, tracking was live Monday morning and the box was on my porch Wednesday. Insured, signed for, and the booster box shrink was perfect.",
+            "name": "Daniel R.",
+            "location": "Leeds, UK",
+            "verified": true
+          }
+        },
+        "review_toploaders": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Top-loaders for everything",
+            "quote": "Every card came in a penny sleeve and a top-loader, then a team bag, sandwiched between cardboard. Even the bulk commons. The care that goes into packing is unreal.",
+            "name": "Sofia M.",
+            "location": "Toronto, ON",
+            "verified": true
+          }
+        },
+        "review_tradein": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Painless trade-in",
+            "quote": "Traded part of my Lorcana binder for store credit. The offer was fair, the bonus credit was real and the prepaid insured label made it completely painless.",
+            "name": "Jordan K.",
+            "location": "@lorcanajordan",
+            "verified": true
+          }
+        },
+        "review_drop": {
+          "type": "review",
+          "settings": {
+            "rating": 4,
+            "title": "Drop day done right",
+            "quote": "Grabbed a Japanese alt-art on drop day before it hit the secondary market. Support answered my centering questions within the hour. Only wish the drop lasted longer.",
+            "name": "Kenji A.",
+            "location": "San Diego, CA",
+            "verified": true
+          }
+        }
+      },
+      "block_order": [
+        "review_slab",
+        "review_grading",
+        "review_shipping",
+        "review_toploaders",
+        "review_tradein",
+        "review_drop"
+      ]
+    },
+    "content_a_sell": {
+      "type": "cta-banner",
+      "settings": {
+        "eyebrow": "Sell or trade",
+        "heading": "Sell or trade your <em>collection</em>",
+        "text": "<p>From a single chase card to a full binder — get a cash offer within 24 hours, or take store credit with a bonus. Graded, raw and sealed all welcome.</p>",
+        "button_label_1": "Get an instant offer",
+        "button_link_1": "/pages/contact",
+        "button_label_2": "Shop the vault",
+        "button_link_2": "/collections/all",
+        "layout": "visual_right",
+        "full_width": false,
+        "color_scheme": "scheme-4",
+        "outer_color_scheme": "scheme-1",
+        "padding_top": 80,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "point_offers": {
+          "type": "point",
+          "settings": {
+            "icon": "bolt",
+            "text": "Instant offers on graded slabs"
+          }
+        },
+        "point_credit": {
+          "type": "point",
+          "settings": {
+            "icon": "return",
+            "text": "Trade-in credit <strong>+10%</strong>"
+          }
+        },
+        "point_shipping": {
+          "type": "point",
+          "settings": {
+            "icon": "truck",
+            "text": "Free insured shipping label"
+          }
+        }
+      },
+      "block_order": [
+        "point_offers",
+        "point_credit",
+        "point_shipping"
+      ]
+    },
+    "collector_faq": {
+      "type": "faq",
+      "settings": {
+        "eyebrow": "Help centre",
+        "heading": "Collector questions, <em>answered</em>",
+        "text": "Authenticity, grading, shipping and everything in between. If it is not here, ask a real collector on our team.",
+        "single_open": true,
+        "open_first": true,
+        "show_numbers": true,
+        "enable_schema": true,
+        "show_contact": true,
+        "contact_heading": "Still got questions?",
+        "contact_text": "Our team are collectors too. Ask about a card, a grade or a trade and get a real answer from a human.",
+        "contact_button_label": "Contact us",
+        "contact_note": "Average reply time: under 2 hours",
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "faq_authentic": {
+          "type": "question",
+          "settings": {
+            "question": "Are your cards guaranteed authentic?",
+            "answer": "<p>Yes. Every single and slab is inspected by hand under magnification and UV light before it is listed, and graded slabs are checked against the grader's cert database. If anything we sell is ever proven inauthentic, you get a full refund with no time limit.</p>"
+          }
+        },
+        "faq_condition": {
+          "type": "question",
+          "settings": {
+            "question": "How do you describe raw card condition?",
+            "answer": "<p>We use the standard scale: Near Mint, Lightly Played, Moderately Played, Heavily Played and Damaged. Centering, corners, edges and surface are checked individually, and higher-value singles are photographed front and back so the card you see is the card you get.</p>"
+          }
+        },
+        "faq_shipping": {
+          "type": "question",
+          "settings": {
+            "question": "How are orders packed and protected?",
+            "answer": "<p>Singles ship in a penny sleeve and top-loader, sealed in a team bag inside a rigid bubble mailer. Slabs and sealed product ship boxed with edge protection. Every order is tracked, and higher-value orders are fully insured until they reach your door.</p>"
+          }
+        },
+        "faq_returns": {
+          "type": "question",
+          "settings": {
+            "question": "Can I return a graded card?",
+            "answer": "<p>Yes, within 14 days of delivery as long as the slab is unaltered. We record the cert number of every slab we ship and match it on return. Sealed product must be unopened with the factory wrap intact.</p>"
+          }
+        },
+        "faq_buying": {
+          "type": "question",
+          "settings": {
+            "question": "Do you buy collections?",
+            "answer": "<p>We do. Send us a list or photos of your singles, binders, slabs or sealed product and we will come back with a cash or store credit offer within 48 hours. Store credit offers are 20% higher.</p>"
+          }
+        },
+        "faq_preorders": {
+          "type": "question",
+          "settings": {
+            "question": "How do pre-orders work?",
+            "answer": "<p>Pre-orders are charged when you order and ship as soon as stock lands, usually ahead of release day. Your price is locked in, and if a distributor shorts our allocation you are refunded in full automatically.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_authentic",
+        "faq_condition",
+        "faq_shipping",
+        "faq_returns",
+        "faq_buying",
+        "faq_preorders"
+      ]
+    },
+    "drop_newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "eyebrow": "The Vault list",
+        "heading": "Get first dibs on <em>drops</em>",
+        "heading_size": "h1",
+        "text": "<p>New sets, restocks and graded pickups hit the list 24 hours before the store. No spam, just cards.</p>",
+        "button_label": "Join the list",
+        "privacy_text": "One or two emails a week. Unsubscribe anytime.",
+        "animated_border": true,
+        "show_cards": true,
+        "overlay_opacity": 60,
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "perk_early": {
+          "type": "perk",
+          "settings": {
+            "icon": "bolt",
+            "text": "24h early access"
+          }
+        },
+        "perk_restock": {
+          "type": "perk",
+          "settings": {
+            "icon": "flame",
+            "text": "Restock alerts"
+          }
+        },
+        "perk_giveaways": {
+          "type": "perk",
+          "settings": {
+            "icon": "gift",
+            "text": "Subscriber giveaways"
+          }
+        }
+      },
+      "block_order": [
+        "perk_early",
+        "perk_restock",
+        "perk_giveaways"
+      ]
+    }
+  },
+  "order": [
+    "signature-hero",
+    "trust_bar",
+    "signature-marquee",
+    "content_a_stats",
+    "commerce-shop-by-game",
+    "featured_product_spotlight",
+    "signature-pulls",
+    "content_a_drop",
+    "commerce-trending-pulls",
+    "vault_story",
+    "signature-showcase",
+    "content_a_grades",
+    "commerce-fresh-slabs",
+    "grader_logos",
+    "content_a_reviews",
+    "content_a_sell",
+    "collector_faq",
+    "drop_newsletter"
+  ]
+}

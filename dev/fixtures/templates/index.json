@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "hero": { "type": "hero-pack", "__preset": 0 },
+    "marquee": { "type": "marquee", "__preset": 0 },
+    "featured": { "type": "featured-collection", "__preset": 0, "settings": { "collection": "graded-slabs" } },
+    "collections": { "type": "collection-list", "__preset": 0 },
+    "showcase": { "type": "holo-showcase", "__preset": 0 },
+    "flip": { "type": "card-flip-reveal", "__preset": 0 },
+    "stats": { "type": "stats-counter", "__preset": 0 },
+    "grades": { "type": "grade-scale", "__preset": 0 },
+    "drop": { "type": "drop-countdown", "__preset": 0 },
+    "testimonials": { "type": "testimonials", "__preset": 0 },
+    "faq": { "type": "faq", "__preset": 0 },
+    "newsletter": { "type": "newsletter", "__preset": 0 }
+  },
+  "order": ["hero", "marquee", "featured", "collections", "showcase", "flip", "stats", "grades", "drop", "testimonials", "faq", "newsletter"]
+}

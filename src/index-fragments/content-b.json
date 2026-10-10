@@ -1,0 +1,228 @@
+{
+  "sections": {
+    "trust_bar": {
+      "order_hint": 15,
+      "type": "multicolumn",
+      "settings": {
+        "heading_align": "left",
+        "style": "minimal",
+        "text_align": "left",
+        "columns_desktop": 4,
+        "columns_tablet": "2",
+        "columns_mobile": "2",
+        "color_scheme": "scheme-1",
+        "padding_top": 40,
+        "padding_bottom": 40
+      },
+      "blocks": {
+        "trust_authentic": {
+          "type": "column",
+          "settings": {
+            "icon": "verified",
+            "title": "100% authentic",
+            "text": "<p>Every card inspected</p>"
+          }
+        },
+        "trust_packing": {
+          "type": "column",
+          "settings": {
+            "icon": "shield",
+            "title": "Shipped like a slab",
+            "text": "<p>Penny sleeve + top-loader + bubble mailer</p>"
+          }
+        },
+        "trust_shipping": {
+          "type": "column",
+          "settings": {
+            "icon": "truck",
+            "title": "Insured, tracked shipping",
+            "text": "<p>Covered from our vault to your door</p>"
+          }
+        },
+        "trust_returns": {
+          "type": "column",
+          "settings": {
+            "icon": "return",
+            "title": "14-day returns",
+            "text": "<p>Hassle-free, no restocking fees</p>"
+          }
+        }
+      },
+      "block_order": ["trust_authentic", "trust_packing", "trust_shipping", "trust_returns"]
+    },
+    "vault_story": {
+      "order_hint": 55,
+      "type": "image-with-text",
+      "settings": {
+        "image_style": "card",
+        "foil": "rainbow",
+        "image_ratio": "portrait",
+        "image_width": "50",
+        "layout": "image_first",
+        "vertical_align": "center",
+        "parallax": true,
+        "eyebrow": "Our story",
+        "heading": "From our vault <em>to yours</em>",
+        "heading_size": "h2",
+        "text": "<p>We started trading binders across a kitchen table. Today every card that leaves the vault is still hand-checked, photographed front and back, and packed like it is going into our own collection.</p>",
+        "button_label_1": "Shop the vault",
+        "button_link_1": "/collections/all",
+        "button_label_2": "Browse sets",
+        "button_link_2": "/collections",
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "story_inspected": {
+          "type": "feature",
+          "settings": { "icon": "verified", "title": "Hand-inspected under loupe and UV" }
+        },
+        "story_photos": {
+          "type": "feature",
+          "settings": { "icon": "camera", "title": "Real photos of the exact card you get" }
+        },
+        "story_certs": {
+          "type": "feature",
+          "settings": { "icon": "award", "title": "Every slab verified against its cert" }
+        },
+        "story_dispatch": {
+          "type": "feature",
+          "settings": { "icon": "truck", "title": "Packed and dispatched within one business day" }
+        }
+      },
+      "block_order": ["story_inspected", "story_photos", "story_certs", "story_dispatch"]
+    },
+    "grader_logos": {
+      "order_hint": 75,
+      "type": "logo-list",
+      "settings": {
+        "heading": "Graded by the best · Official products from",
+        "heading_style": "label",
+        "display": "marquee",
+        "logo_height": 40,
+        "greyscale": true,
+        "speed": 40,
+        "direction": "left",
+        "columns_desktop": 5,
+        "color_scheme": "scheme-1",
+        "padding_top": 60,
+        "padding_bottom": 60
+      },
+      "blocks": {
+        "logo_psa": { "type": "logo", "settings": { "name": "PSA" } },
+        "logo_bgs": { "type": "logo", "settings": { "name": "BGS" } },
+        "logo_cgc": { "type": "logo", "settings": { "name": "CGC" } },
+        "logo_sgc": { "type": "logo", "settings": { "name": "SGC" } },
+        "logo_tag": { "type": "logo", "settings": { "name": "TAG" } },
+        "logo_pokemon": { "type": "logo", "settings": { "name": "Pokémon TCG" } },
+        "logo_magic": { "type": "logo", "settings": { "name": "Magic" } },
+        "logo_yugioh": { "type": "logo", "settings": { "name": "Yu-Gi-Oh!" } },
+        "logo_onepiece": { "type": "logo", "settings": { "name": "One Piece" } },
+        "logo_lorcana": { "type": "logo", "settings": { "name": "Lorcana" } }
+      },
+      "block_order": [
+        "logo_psa",
+        "logo_bgs",
+        "logo_cgc",
+        "logo_sgc",
+        "logo_tag",
+        "logo_pokemon",
+        "logo_magic",
+        "logo_yugioh",
+        "logo_onepiece",
+        "logo_lorcana"
+      ]
+    },
+    "collector_faq": {
+      "order_hint": 90,
+      "type": "faq",
+      "settings": {
+        "eyebrow": "Help centre",
+        "heading": "Collector questions, <em>answered</em>",
+        "text": "Authenticity, grading, shipping and everything in between. If it is not here, ask a real collector on our team.",
+        "single_open": true,
+        "open_first": true,
+        "show_numbers": true,
+        "enable_schema": true,
+        "show_contact": true,
+        "contact_heading": "Still got questions?",
+        "contact_text": "Our team are collectors too. Ask about a card, a grade or a trade and get a real answer from a human.",
+        "contact_button_label": "Contact us",
+        "contact_note": "Average reply time: under 2 hours",
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "faq_authentic": {
+          "type": "question",
+          "settings": {
+            "question": "Are your cards guaranteed authentic?",
+            "answer": "<p>Yes. Every single and slab is inspected by hand under magnification and UV light before it is listed, and graded slabs are checked against the grader's cert database. If anything we sell is ever proven inauthentic, you get a full refund with no time limit.</p>"
+          }
+        },
+        "faq_condition": {
+          "type": "question",
+          "settings": {
+            "question": "How do you describe raw card condition?",
+            "answer": "<p>We use the standard scale: Near Mint, Lightly Played, Moderately Played, Heavily Played and Damaged. Centering, corners, edges and surface are checked individually, and higher-value singles are photographed front and back so the card you see is the card you get.</p>"
+          }
+        },
+        "faq_shipping": {
+          "type": "question",
+          "settings": {
+            "question": "How are orders packed and protected?",
+            "answer": "<p>Singles ship in a penny sleeve and top-loader, sealed in a team bag inside a rigid bubble mailer. Slabs and sealed product ship boxed with edge protection. Every order is tracked, and higher-value orders are fully insured until they reach your door.</p>"
+          }
+        },
+        "faq_returns": {
+          "type": "question",
+          "settings": {
+            "question": "Can I return a graded card?",
+            "answer": "<p>Yes, within 14 days of delivery as long as the slab is unaltered. We record the cert number of every slab we ship and match it on return. Sealed product must be unopened with the factory wrap intact.</p>"
+          }
+        },
+        "faq_buying": {
+          "type": "question",
+          "settings": {
+            "question": "Do you buy collections?",
+            "answer": "<p>We do. Send us a list or photos of your singles, binders, slabs or sealed product and we will come back with a cash or store credit offer within 48 hours. Store credit offers are 20% higher.</p>"
+          }
+        },
+        "faq_preorders": {
+          "type": "question",
+          "settings": {
+            "question": "How do pre-orders work?",
+            "answer": "<p>Pre-orders are charged when you order and ship as soon as stock lands, usually ahead of release day. Your price is locked in, and if a distributor shorts our allocation you are refunded in full automatically.</p>"
+          }
+        }
+      },
+      "block_order": ["faq_authentic", "faq_condition", "faq_shipping", "faq_returns", "faq_buying", "faq_preorders"]
+    },
+    "drop_newsletter": {
+      "order_hint": 95,
+      "type": "newsletter",
+      "settings": {
+        "eyebrow": "The Vault list",
+        "heading": "Get first dibs on <em>drops</em>",
+        "heading_size": "h1",
+        "text": "<p>New sets, restocks and graded pickups hit the list 24 hours before the store. No spam, just cards.</p>",
+        "button_label": "Join the list",
+        "privacy_text": "One or two emails a week. Unsubscribe anytime.",
+        "animated_border": true,
+        "show_cards": true,
+        "overlay_opacity": 60,
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "perk_early": { "type": "perk", "settings": { "icon": "bolt", "text": "24h early access" } },
+        "perk_restock": { "type": "perk", "settings": { "icon": "flame", "text": "Restock alerts" } },
+        "perk_giveaways": { "type": "perk", "settings": { "icon": "gift", "text": "Subscriber giveaways" } }
+      },
+      "block_order": ["perk_early", "perk_restock", "perk_giveaways"]
+    }
+  }
+}

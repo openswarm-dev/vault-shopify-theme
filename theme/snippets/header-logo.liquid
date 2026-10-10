@@ -1,0 +1,33 @@
+{%- comment -%}
+  Store logo: settings.logo sized by --logo-width / --logo-width-mobile, otherwise the shop name
+  in the display font with a pulsing red dot.
+  Usage: {% render 'header-logo', class: 'header__logo', eager: true %}
+  Params:
+    class  optional — extra classes on the link
+    eager  optional — true for the visible header logo (default false → lazy)
+{%- endcomment -%}
+<a href="{{ routes.root_url }}" class="logo{% if class %} {{ class }}{% endif %}">
+  {%- if settings.logo != blank -%}
+    {%- liquid
+      assign logo_alt = settings.logo.alt | default: shop.name | escape
+      assign logo_sizes = '(min-width: 750px) ' | append: settings.logo_width | append: 'px, ' | append: settings.logo_width_mobile | append: 'px'
+      assign logo_loading = 'lazy'
+      if eager
+        assign logo_loading = 'eager'
+      endif
+    -%}
+    {{
+      settings.logo
+      | image_url: width: 600
+      | image_tag:
+        class: 'logo__img',
+        widths: '100, 150, 200, 260, 300, 400, 600',
+        sizes: logo_sizes,
+        alt: logo_alt,
+        loading: logo_loading
+    }}
+  {%- else -%}
+    <span class="logo__text">{{ shop.name | escape }}</span>
+    <span class="logo__dot" aria-hidden="true"></span>
+  {%- endif -%}
+</a>

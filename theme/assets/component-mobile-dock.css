@@ -1,0 +1,118 @@
+/* ==========================================================================
+   VAULT — component-mobile-dock.css
+   App-style bottom navigation on phones (<750px): 64px + safe area, glass,
+   icon + tiny label, red pill that springs between items (<mobile-dock>).
+   Core adds html.has-dock and pads <body> by --dock-height.
+   ========================================================================== */
+
+mobile-dock.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-dock);
+  display: block;
+  height: calc(64px + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  background: rgb(var(--color-bg-rgb) / .8);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  backdrop-filter: blur(20px) saturate(170%);
+  border-top: 1px solid rgb(var(--color-text-rgb) / .09);
+  box-shadow: 0 -18px 40px -24px rgb(0 0 0 / .9);
+}
+mobile-dock.dock::before {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--color-accent-rgb) / .7), transparent);
+  pointer-events: none;
+}
+@media (min-width: 750px) {
+  mobile-dock.dock { display: none; }
+}
+
+.dock__nav { position: relative; height: 64px; max-width: 560px; margin-inline: auto; }
+.dock__list {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--dock-items, 5), minmax(0, 1fr));
+  height: 100%;
+  margin: 0;
+  padding: 0 .25rem;
+  list-style: none;
+}
+.dock__cell { display: flex; min-width: 0; }
+.dock__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 44px;
+  height: 100%;
+  color: var(--color-muted);
+  -webkit-tap-highlight-color: transparent;
+  transition: color .25s var(--ease-out);
+}
+.dock__icon {
+  order: 1;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 30px;
+  border-radius: 999px;
+  transition: transform .3s var(--ease-back), background-color .25s, box-shadow .25s;
+}
+.dock__label {
+  order: 2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .04em;
+}
+.dock__item:active .dock__icon { transform: scale(.88); }
+.dock__item:focus-visible { outline-offset: -4px; border-radius: var(--radius-md); }
+
+/* Current item: static highlight (no Motion) … */
+.dock__item[aria-current],
+.dock__item.is-active { color: var(--color-text); }
+.dock__item[aria-current] .dock__icon {
+  background: rgb(var(--color-accent-rgb) / .18);
+  box-shadow: inset 0 0 0 1px rgb(var(--color-accent-rgb) / .45);
+}
+/* … replaced by the springing pill when <mobile-dock> is enhanced. */
+mobile-dock.is-enhanced .dock__item[aria-current] .dock__icon { background: none; box-shadow: none; }
+.dock__item.is-active .dock__icon .icon { color: var(--color-text); }
+
+.dock__pill {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  z-index: 0;
+  width: 54px;
+  height: 30px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgb(var(--color-accent-rgb) / .34), rgb(var(--color-accent-rgb) / .16));
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--color-accent-rgb) / .6),
+    0 8px 22px -6px rgb(var(--color-accent-rgb) / .85);
+  opacity: 0;
+  pointer-events: none;
+}
+mobile-dock:not(.is-enhanced) .dock__pill { display: none; }
+
+/* Cart bubble position inside the dock icon */
+.dock__icon .cart-bubble { top: -5px; right: 4px; box-shadow: 0 0 0 2px var(--color-bg), 0 4px 12px -2px rgb(var(--color-accent-rgb) / .85); }

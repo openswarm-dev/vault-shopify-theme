@@ -1,0 +1,149 @@
+{{ 'section-rich-text.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign s = section.settings
+  assign heading_id = 'RichTextHeading-' | append: section.id
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-rich-text rich-text rich-text--{{ s.alignment }} rich-text--fx-{{ s.background_effect }}{% if s.background_word != blank %} rich-text--has-word{% endif %} color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}aria-labelledby="{{ heading_id }}"{% endif %}
+>
+  {%- if s.background_effect != 'none' -%}
+    <div class="rich-text__fx" aria-hidden="true"></div>
+  {%- endif -%}
+
+  {%- if s.background_word != blank -%}
+    <rich-text-word class="rich-text__word" aria-hidden="true">
+      <span class="rich-text__word-inner">{{ s.background_word | escape }}</span>
+    </rich-text-word>
+  {%- endif -%}
+
+  <div class="page-width{% if s.width == 'narrow' %} page-width--narrow{% endif %}">
+    <div class="rich-text__inner">
+      {%- if s.eyebrow != blank -%}
+        <p class="eyebrow" data-reveal="fade">{{ s.eyebrow | escape }}</p>
+      {%- endif -%}
+      {%- if s.heading != blank -%}
+        <h2 id="{{ heading_id }}" class="rich-text__heading {{ s.heading_size }}" data-split>{{ s.heading }}</h2>
+      {%- endif -%}
+      {%- if s.text != blank -%}
+        <div class="rich-text__text rte" data-reveal>{{ s.text }}</div>
+      {%- endif -%}
+      {%- if s.button_label_1 != blank or s.button_label_2 != blank -%}
+        <div class="rich-text__buttons" data-reveal>
+          {%- if s.button_label_1 != blank -%}
+            <a
+              {% if s.button_link_1 != blank %}href="{{ s.button_link_1 }}"{% else %}role="link" aria-disabled="true"{% endif %}
+              class="btn btn--primary btn--lg"
+              data-magnetic="0.25"
+            >
+              <span>{{ s.button_label_1 | escape }}</span>
+              {%- render 'icon', name: 'arrow-right', size: 18 -%}
+            </a>
+          {%- endif -%}
+          {%- if s.button_label_2 != blank -%}
+            <a
+              {% if s.button_link_2 != blank %}href="{{ s.button_link_2 }}"{% else %}role="link" aria-disabled="true"{% endif %}
+              class="btn btn--secondary btn--lg"
+            >
+              <span>{{ s.button_label_2 | escape }}</span>
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{%- if s.background_word != blank -%}
+  <script src="{{ 'section-rich-text.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Rich text",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Since day one" },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Italicize words to highlight them in the accent color.",
+      "default": "Every card has a story. We make sure yours <em>starts right</em>"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        { "value": "h0", "label": "Extra large" },
+        { "value": "h1", "label": "Large" },
+        { "value": "h2", "label": "Medium" },
+        { "value": "h3", "label": "Small" }
+      ],
+      "default": "h1"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>From a single bulk rare to a gem mint grail, everything in the vault is sourced from trusted collectors, checked by hand and stored sleeved, top-loaded and away from the light until it ships to you.</p>"
+    },
+    { "type": "text", "id": "button_label_1", "label": "First button label", "default": "Shop new arrivals" },
+    { "type": "url", "id": "button_link_1", "label": "First button link", "default": "/collections/all" },
+    { "type": "text", "id": "button_label_2", "label": "Second button label" },
+    { "type": "url", "id": "button_link_2", "label": "Second button link" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Content width",
+      "options": [
+        { "value": "narrow", "label": "Narrow" },
+        { "value": "normal", "label": "Normal" }
+      ],
+      "default": "narrow"
+    },
+    { "type": "header", "content": "Background" },
+    {
+      "type": "text",
+      "id": "background_word",
+      "label": "Giant background word",
+      "info": "A huge faded word that drifts behind the text as you scroll. Short words work best.",
+      "default": "Vault"
+    },
+    {
+      "type": "select",
+      "id": "background_effect",
+      "label": "Background effect",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "glow", "label": "Red glow" },
+        { "value": "grid", "label": "Grid" },
+        { "value": "both", "label": "Glow and grid" }
+      ],
+      "default": "glow"
+    },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "presets": [
+    { "name": "Rich text" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,20 @@
+{%- comment -%} Dev fixture: deliberately broken things so the harness can prove it reports them. {%- endcomment -%}
+<div class="page-width" style="padding:24px 16px" data-dev-fixture>
+  <h2 class="h3">Dev error fixtures</h2>
+  <p>Unknown filter: {{ 'abc' | totally_unknown_filter }}</p>
+  <p>Missing snippet: {% render 'this-snippet-does-not-exist' %}</p>
+  <p>Bad form type: {% form 'not_a_form_type' %}x{% endform %}</p>
+  <p>Missing translation: {{ 'dev.fixture.missing_key' | t }}</p>
+  <p>parentloop: {% for a in (1..2) %}{% for b in (1..2) %}{{ forloop.parentloop.index }}.{{ b }} {% endfor %}{% endfor %}</p>
+  <p>Paginate: {% paginate collections.all.products by 5 %}{{ paginate.pages }} pages, {{ collections.all.products.size }} on this page, next={{ paginate.next.url }}{% endpaginate %}</p>
+  <p>Money: {{ 123456 | money }} · {{ 1000 | money_without_trailing_zeros }} · {{ 1999 | money_with_currency }} · {{ 1999 | money_without_currency }}</p>
+  <p>Colors: {{ settings.color_schemes['scheme-1'].settings.accent }} / rgb {{ settings.color_schemes['scheme-1'].settings.accent.rgb }} / {{ '#e11d2e' | color_modify: 'alpha', 0.5 }} / {{ '#e11d2e' | color_mix: '#000000', 50 }} / {{ '#e11d2e' | color_brightness }}</p>
+  <p>Dates: {{ 'now' | date: '%Y' }} · {{ '2024-03-05T10:00:00Z' | date: format: 'abbreviated_date' }} · {{ '2024-03-05T10:00:00Z' | time_tag: '%b %d' }}</p>
+  <p>JSON: {{ all_products['base-set-holo-dragon-psa-10'] | json | size }} chars</p>
+  <p>Image: {{ all_products['base-set-holo-dragon-psa-10'].featured_image | image_url: width: 200 | image_tag: loading: 'lazy', class: 'dev-img', widths: '100,200' }}</p>
+  <p>Metafield: {{ all_products['base-set-holo-dragon-psa-10'].metafields.custom.grade.value }} / tags: {{ all_products['tidecaller-leviathan-alt-art-bgs-9-5'].tags | join: ', ' }}</p>
+  {%- form 'contact', id: 'DevContact', class: 'dev-form', data-dev: 'yes' -%}<span>posted={{ form.posted_successfully? }}</span>{%- endform -%}
+</div>
+{% schema %}
+{ "name": "Dev broken", "settings": [] }
+{% endschema %}

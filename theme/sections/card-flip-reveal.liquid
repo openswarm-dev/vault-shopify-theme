@@ -1,0 +1,466 @@
+{{ 'section-card-flip-reveal.css' | asset_url | stylesheet_tag }}
+{%- comment -%}
+  Card flip reveal — "Today's pulls".
+  A row of face-down cards that flip one after another when scrolled into view (or on tap/click),
+  revealing holo fronts, titles and prices. Chase cards get a red glow burst.
+  No JS / reduced motion: fronts are shown and nothing flips.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign card_blocks = section.blocks | where: 'type', 'card'
+  assign card_count = card_blocks.size
+  assign cols = s.columns_desktop | at_most: card_count | at_least: 3
+  assign carousel = false
+  if s.mobile_layout == 'carousel'
+    assign carousel = true
+  endif
+  assign click_mode = false
+  if s.reveal_mode == 'click'
+    assign click_mode = true
+  endif
+  assign heading_id = 'CardFlipHeading-' | append: section.id
+  assign variants = '1,2,5,4,6,3' | split: ','
+  if carousel
+    assign card_sizes = '(min-width: 990px) calc(100vw / ' | append: cols | append: '), (min-width: 750px) 31vw, 58vw'
+  else
+    assign card_sizes = '(min-width: 990px) calc(100vw / ' | append: cols | append: '), (min-width: 750px) 31vw, 46vw'
+  endif
+  assign list_label = s.heading | strip_html | escape
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-card-flip-reveal color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}aria-labelledby="{{ heading_id }}"{% endif %}
+>
+  <card-flip-reveal
+    class="cfr cfr--{{ s.reveal_mode }}"
+    data-mode="{{ s.reveal_mode }}"
+    data-stagger="{{ s.stagger | divided_by: 1000.0 }}"
+  >
+    <div class="cfr__glow" aria-hidden="true"></div>
+    <div class="page-width">
+      <div class="cfr__head">
+        {% render 'section-header',
+          eyebrow: s.eyebrow,
+          heading: s.heading,
+          text: s.text,
+          align: 'left',
+          size: 'h2',
+          tag: 'h2',
+          id: heading_id
+        %}
+        {%- if click_mode or s.link_label != blank -%}
+          <div class="cfr__actions" data-reveal="fade">
+            {%- if click_mode -%}
+              <button type="button" class="btn btn--secondary btn--sm cfr__reveal-all" data-cfr-reveal-all hidden>
+                {% render 'icon', name: 'sparkle', size: 16 %}
+                <span>{{ 'sections.card_flip_reveal.reveal_all' | t }}</span>
+              </button>
+            {%- endif -%}
+            {%- if s.link_label != blank -%}
+              <a class="link link--accent cfr__link" href="{{ s.link_url | default: routes.all_products_collection_url }}">
+                {{- s.link_label | escape -}}
+                {% render 'icon', name: 'arrow-right', size: 16 %}
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- capture cards_markup -%}
+        {%- for block in card_blocks -%}
+          {%- liquid
+            assign b = block.settings
+            assign card_product = b.product
+            assign card_image = b.image | default: card_product.featured_media.preview_image
+            assign item_title = b.title
+            if card_product != blank and item_title == blank
+              assign item_title = card_product.title
+            endif
+            assign item_url = b.link
+            if card_product != blank
+              assign item_url = card_product.url
+            endif
+            assign link_tag = 'div'
+            if item_url != blank
+              assign link_tag = 'a'
+            endif
+            assign foil = 'rainbow'
+            if b.chase
+              assign foil = 'intense'
+            endif
+            assign variant = variants[forloop.index0] | default: forloop.index | plus: 0
+            assign uid = section.id | append: '-cfr-' | append: forloop.index
+            assign card_alt = card_image.alt | default: item_title | escape
+
+            # Rarity text → badge tier (same vocabulary as the product badges).
+            assign rarity = b.rarity | downcase
+            assign tier = 'common'
+            if rarity contains 'secret' or rarity contains 'alt art' or rarity contains 'gold' or rarity contains 'hyper' or rarity contains 'special'
+              assign tier = 'secret'
+            elsif rarity contains 'ultra' or rarity contains 'full art' or rarity contains 'mythic' or rarity contains 'vmax' or rarity contains 'vstar'
+              assign tier = 'ultra'
+            elsif rarity contains 'holo' or rarity contains 'foil' or rarity contains 'reverse'
+              assign tier = 'holo'
+            elsif rarity contains 'promo'
+              assign tier = 'promo'
+            elsif rarity contains 'uncommon'
+              assign tier = 'uncommon'
+            elsif rarity contains 'rare'
+              assign tier = 'rare'
+            endif
+          -%}
+          <li
+            class="cfr-item{% if b.chase %} cfr-item--chase{% endif %}{% if carousel %} carousel__slide{% endif %}"
+            style="--i: {{ forloop.index0 }};"
+            data-cfr-item
+            {% if b.chase %}
+              data-chase
+            {% endif %}
+            {{ block.shopify_attributes }}
+          >
+            <div class="cfr-card" data-cfr-card>
+              <div class="cfr-card__lift" data-cfr-lift>
+                <span class="cfr-card__shadow" data-cfr-shadow aria-hidden="true"></span>
+                {%- if b.chase -%}
+                  <span class="cfr-card__burst" data-cfr-burst aria-hidden="true"></span>
+                {%- endif -%}
+                <div class="cfr-card__rotator" data-cfr-rotator>
+                  <div class="cfr-card__face cfr-card__face--front">
+                    {%- comment -%}
+                      The image link duplicates the title link below, so it is hidden from
+                      keyboard and screen readers; the title link is the accessible one.
+                    {%- endcomment -%}
+                    <{{ link_tag }}
+                      class="cfr-card__link"
+                      {% if item_url != blank %}
+                        href="{{ item_url }}" tabindex="-1" aria-hidden="true"
+                      {% endif %}
+                    >
+                      <holo-card class="cfr-card__holo" data-foil="{{ foil }}" data-max-tilt="10">
+                        <div class="holo">
+                          <div class="cfr-card__media">
+                            {%- if card_image != blank -%}
+                              {{
+                                card_image
+                                | image_url: width: 720
+                                | image_tag:
+                                  widths: '180, 240, 320, 420, 540, 720',
+                                  sizes: card_sizes,
+                                  loading: 'lazy',
+                                  class: 'cfr-card__img',
+                                  alt: card_alt
+                              }}
+                            {%- else -%}
+                              {% render 'placeholder-card', variant: variant, uid: uid %}
+                            {%- endif -%}
+                          </div>
+                          <span class="holo__shine"></span>
+                          <span class="holo__glare"></span>
+                        </div>
+                      </holo-card>
+                    </{{ link_tag }}>
+
+                    <div class="cfr-card__badges">
+                      {%- if card_product != blank -%}
+                        {% render 'card-badges', product: card_product, context: 'card' %}
+                      {%- elsif b.rarity != blank -%}
+                        <span class="badge badge--rarity" data-tier="{{ tier }}">{{ b.rarity | escape }}</span>
+                      {%- endif -%}
+                    </div>
+                  </div>
+
+                  <div class="cfr-card__face cfr-card__face--back" aria-hidden="true">
+                    <div class="cfr-back">
+                      <span class="cfr-back__pattern"></span>
+                      <span class="cfr-back__shimmer"></span>
+                      <svg class="cfr-back__emblem" viewBox="0 0 64 64" focusable="false">
+                        <circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" stroke-width="1.25" opacity=".5"/>
+                        <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="1.4 4.88" opacity=".5"/>
+                        <path d="M24.5 29v-4.5a7.5 7.5 0 0 1 15 0V29" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                        <rect class="cfr-back__lock" x="19" y="28.5" width="26" height="19" rx="4"/>
+                        <circle cx="32" cy="36" r="2.6" fill="currentColor"/>
+                        <path d="M32 37.5v4.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                      </svg>
+                      <span class="cfr-back__brand">{{ shop.name | escape }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="cfr-card__toggle"
+                data-cfr-toggle
+                aria-pressed="true"
+                aria-label="{{ 'sections.card_flip_reveal.reveal' | t: number: forloop.index }}"
+                hidden
+              >
+                {% render 'icon', name: 'flip', size: 18 %}
+              </button>
+            </div>
+
+            <div class="cfr-item__meta">
+              <div class="cfr-item__info" data-cfr-info>
+                {%- if b.chase -%}
+                  <span class="cfr-item__chase">{{ 'sections.card_flip_reveal.chase' | t }}</span>
+                {%- endif -%}
+                {%- if item_url != blank -%}
+                  <h3 class="cfr-item__title"><a class="cfr-item__link" href="{{ item_url }}">{{ item_title | escape }}</a></h3>
+                {%- else -%}
+                  <h3 class="cfr-item__title">{{ item_title | escape }}</h3>
+                {%- endif -%}
+                {%- if card_product != blank -%}
+                  {% render 'price', product: card_product, size: 'sm' %}
+                {%- elsif b.price != blank -%}
+                  <p class="cfr-item__price">{{ b.price | escape }}</p>
+                {%- endif -%}
+              </div>
+              <p class="cfr-item__hint" aria-hidden="true">
+                {% render 'icon', name: 'flip', size: 14 %}
+                <span class="cfr-item__hint-touch">{{ 'sections.card_flip_reveal.tap_to_reveal' | t }}</span>
+                <span class="cfr-item__hint-mouse">{{ 'sections.card_flip_reveal.click_to_reveal' | t }}</span>
+              </p>
+            </div>
+          </li>
+        {%- endfor -%}
+      {%- endcapture -%}
+
+      {%- if carousel -%}
+        <vault-carousel
+          class="cfr__carousel carousel--bleed"
+          style="--per-view-mobile: 1.65; --per-view-tablet: 3; --per-view-desktop: {{ cols }};"
+        >
+          <ul class="carousel__track cfr__list" data-carousel-track data-cfr-list role="list" tabindex="0" aria-label="{{ list_label }}">
+            {{ cards_markup }}
+          </ul>
+          <div class="carousel__controls cfr__controls">
+            <button type="button" class="carousel__btn" data-carousel-prev aria-label="{{ 'accessibility.previous_slide' | t }}">
+              {% render 'icon', name: 'arrow-left', size: 18 %}
+            </button>
+            <div class="carousel__progress"><span data-carousel-progress></span></div>
+            <button type="button" class="carousel__btn" data-carousel-next aria-label="{{ 'accessibility.next_slide' | t }}">
+              {% render 'icon', name: 'arrow-right', size: 18 %}
+            </button>
+          </div>
+        </vault-carousel>
+      {%- else -%}
+        <ul
+          class="grid cfr__list cfr__grid"
+          style="--cols-mobile: 2; --cols-tablet: 3; --cols-desktop: {{ cols }};"
+          data-cfr-list
+          role="list"
+        >
+          {{ cards_markup }}
+        </ul>
+      {%- endif -%}
+    </div>
+  </card-flip-reveal>
+</section>
+
+<script src="{{ 'section-card-flip-reveal.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Card flip reveal",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Today's pulls"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Italicise words to highlight them in red.",
+      "default": "Fresh from the <em>vault</em>"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "Chase-tier pulls land here first. Every morning the team cracks, checks and lists the night's best hits."
+    },
+    {
+      "type": "text",
+      "id": "link_label",
+      "label": "Link label",
+      "default": "View all pulls"
+    },
+    {
+      "type": "url",
+      "id": "link_url",
+      "label": "Link",
+      "default": "/collections/all"
+    },
+    {
+      "type": "header",
+      "content": "Reveal"
+    },
+    {
+      "type": "select",
+      "id": "reveal_mode",
+      "label": "Reveal",
+      "options": [
+        { "value": "auto", "label": "Flip when scrolled into view" },
+        { "value": "click", "label": "Tap or click to reveal" }
+      ],
+      "default": "auto",
+      "info": "Visitors who prefer reduced motion always see the fronts."
+    },
+    {
+      "type": "range",
+      "id": "stagger",
+      "min": 50,
+      "max": 500,
+      "step": 25,
+      "unit": "ms",
+      "label": "Delay between flips",
+      "default": 150
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 4,
+      "max": 6,
+      "step": 1,
+      "label": "Columns on desktop",
+      "default": 6
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "Phone layout",
+      "options": [
+        { "value": "grid", "label": "Two-column grid" },
+        { "value": "carousel", "label": "Swipe carousel" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 100
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Card",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product",
+          "info": "Fills in the image, title, price, badges and link."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image",
+          "info": "Overrides the product image."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Crimson Titan · Gold secret"
+        },
+        {
+          "type": "text",
+          "id": "price",
+          "label": "Price text",
+          "info": "Used when no product is selected.",
+          "default": "$1,250"
+        },
+        {
+          "type": "text",
+          "id": "rarity",
+          "label": "Rarity",
+          "info": "Used when no product is selected, e.g. Secret rare, Alt art, Holo rare.",
+          "default": "Secret rare"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link",
+          "info": "Used when no product is selected."
+        },
+        {
+          "type": "checkbox",
+          "id": "chase",
+          "label": "Chase card",
+          "info": "Intense foil and a red glow burst when it flips.",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Card flip reveal",
+      "blocks": [
+        {
+          "type": "card",
+          "settings": { "title": "Ember Drake · 1st edition holo", "price": "$420", "rarity": "Holo rare", "chase": false }
+        },
+        {
+          "type": "card",
+          "settings": { "title": "Void Reaper · Alt art", "price": "$185", "rarity": "Alt art", "chase": false }
+        },
+        {
+          "type": "card",
+          "settings": { "title": "Crimson Titan · Gold secret", "price": "$1,250", "rarity": "Secret rare", "chase": true }
+        },
+        {
+          "type": "card",
+          "settings": { "title": "Tide Sovereign · Full art", "price": "$96", "rarity": "Full art", "chase": false }
+        },
+        {
+          "type": "card",
+          "settings": { "title": "Astral Oracle · Event promo", "price": "$64", "rarity": "Promo", "chase": false }
+        },
+        {
+          "type": "card",
+          "settings": { "title": "Inferno Kirin · Japanese ultra", "price": "$138", "rarity": "Ultra rare", "chase": false }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,118 @@
+{
+  "collections": {
+    "banner": {
+      "breadcrumb": "Breadcrumb",
+      "home": "Home",
+      "collections": "Collections",
+      "product_label": {
+        "one": "item",
+        "other": "items"
+      },
+      "read_more": "Read more",
+      "read_less": "Show less",
+      "quick_links": "Shop this collection by"
+    },
+    "toolbar": {
+      "label": "Product tools",
+      "results_html": {
+        "one": "<strong>{{ count }}</strong> result",
+        "other": "<strong>{{ count }}</strong> results"
+      },
+      "sort_by": "Sort by",
+      "filter_and_sort": "Filter & sort",
+      "sort": "Sort",
+      "active_filters": {
+        "one": "{{ count }} filter applied",
+        "other": "{{ count }} filters applied"
+      },
+      "density": "Grid layout",
+      "columns": {
+        "one": "{{ count }} column",
+        "other": "{{ count }} columns"
+      }
+    },
+    "facets": {
+      "heading": "Filters",
+      "show_more": "Show {{ count }} more",
+      "show_less": "Show less",
+      "product_count": {
+        "one": "{{ count }} product",
+        "other": "{{ count }} products"
+      },
+      "price_from": "From",
+      "price_to": "To",
+      "price_min_label": "Minimum price",
+      "price_max_label": "Maximum price",
+      "max_price": "The highest price is {{ price }}",
+      "price_range_chip": "{{ min }} – {{ max }}",
+      "price_min_chip": "Over {{ price }}",
+      "price_max_chip": "Under {{ price }}",
+      "active_label": "Active filters",
+      "remove_filter": "Remove filter {{ filter }}",
+      "clear": "Clear",
+      "show_results": {
+        "one": "Show {{ count }} result",
+        "other": "Show {{ count }} results"
+      },
+      "selected": {
+        "one": "{{ count }} selected",
+        "other": "{{ count }} selected"
+      }
+    },
+    "grid": {
+      "label": "Products",
+      "all_loaded": "That's the whole binder",
+      "previous": "Show earlier items",
+      "load_error": "Couldn't load more items. Please try again."
+    },
+    "empty": {
+      "filtered_heading_html": "No cards match those <em>filters</em>",
+      "filtered_text": "Try removing a filter or two. Fresh stock lands in the vault every week.",
+      "clear_filters": "Clear filters",
+      "heading_html": "This binder is <em>empty</em>",
+      "text": "Nothing has been slotted into this collection yet. Check back after the next drop.",
+      "browse_all": "Browse all cards",
+      "placeholder_note": "Sample cards shown. Add products to this collection to replace them."
+    },
+    "placeholder": {
+      "product_names": "Ember Drake ex|Void Reaper Secret Rare|Inferno Kirin Alt Art|Tide Sovereign Holo|Crimson Titan Promo|Astral Oracle Full Art|Booster Box Display|Elite Trainer Box",
+      "collection_names": "Pokémon|Magic: The Gathering|Yu-Gi-Oh!|One Piece|Disney Lorcana|Sports cards|Graded slabs|Sealed product",
+      "sample": "Sample"
+    },
+    "list": {
+      "count": {
+        "one": "{{ count }} collection",
+        "other": "{{ count }} collections"
+      },
+      "empty": "Sample collections shown. Collections you create will appear here."
+    }
+  },
+  "templates": {
+    "search": {
+      "title": "Search",
+      "input_label": "Search the store",
+      "placeholder": "Search cards, sets, slabs…",
+      "submit": "Search",
+      "clear": "Clear search",
+      "results_for": {
+        "one": "{{ count }} result for",
+        "other": "{{ count }} results for"
+      },
+      "no_results_for": "No results for",
+      "empty_text": "Check the spelling, try a set name or card number, or explore one of these instead.",
+      "start_text": "Type a card name, set, grader or product. We'll search every binder in the vault.",
+      "popular": "Popular searches",
+      "type_label": "Result type",
+      "types": {
+        "all": "All",
+        "products": "Products",
+        "articles": "Articles",
+        "pages": "Pages"
+      },
+      "group_products": "Products",
+      "group_articles": "From the journal",
+      "group_pages": "Pages",
+      "page_cta": "View page"
+    }
+  }
+}

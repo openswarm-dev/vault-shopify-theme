@@ -66,6 +66,7 @@
   --z-fx: 110;
 
   --header-height: 64px;
+  --header-offset: var(--header-height);
   --dock-height: 0px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -81,6 +82,8 @@
   :root { --grid-gap: var(--grid-gap-desktop, 20px); --header-height: 80px; }
 }
 html.has-dock { --dock-height: calc(64px + var(--safe-bottom)); }
+/* Visible sticky-header height: 0 while the header is hidden on scroll (html.header-hidden, set by the header). */
+html.header-hidden { --header-offset: 0px; }
 @media (min-width: 750px) {
   html.has-dock { --dock-height: 0px; }
 }
@@ -121,7 +124,7 @@ input, button, textarea, select { font: inherit; color: inherit; }
 button { background: none; border: 0; padding: 0; cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
-ul[role="list"], ol[role="list"], .list-reset { list-style: none; padding: 0; }
+:where(ul[role="list"], ol[role="list"]), .list-reset { list-style: none; padding: 0; }
 table { border-collapse: collapse; width: 100%; }
 hr { border: 0; border-top: 1px solid var(--color-border); }
 [hidden] { display: none !important; }
@@ -130,7 +133,6 @@ hr { border: 0; border-top: 1px solid var(--color-border); }
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 3px;
-  border-radius: var(--radius-xs);
 }
 @supports (scrollbar-color: auto) {
   html { scrollbar-color: rgb(var(--color-text-rgb) / .22) var(--color-bg); scrollbar-width: thin; }
@@ -275,6 +277,9 @@ h6, .h6 { font-family: var(--font-body); font-size: var(--text-sm); font-weight:
 .section-header--center .section-header__text { justify-items: center; margin-inline: auto; }
 .section-header--center .section-header__text > .eyebrow { justify-self: center; }
 .section-header__actions { display: flex; gap: var(--space-3); align-items: center; }
+@media (pointer: coarse) {
+  .section-header__actions .link { min-height: 44px; }
+}
 
 .grid {
   display: grid;
@@ -1072,7 +1077,7 @@ html:not(.can-hover) .fx-cursor-glow, html:not(.motion-ok) .fx-cursor-glow { dis
   pointer-events: none;
   opacity: 0;
   transition: opacity .4s var(--ease-out);
-  background: radial-gradient(420px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgb(var(--color-accent-rgb) / .2), transparent 45%);
+  background: radial-gradient(420px circle at var(--spot-x, 50%) var(--spot-y, 50%), var(--spot-color, rgb(var(--color-accent-rgb) / .2)), transparent 45%);
 }
 @media (hover: hover) and (pointer: fine) {
   [data-spotlight]:hover::after { opacity: 1; }

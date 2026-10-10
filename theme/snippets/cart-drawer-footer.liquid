@@ -1,0 +1,55 @@
+{%- comment -%}
+  Cart drawer footer: discounts, subtotal, taxes note, checkout (submits #CartDrawerForm with
+  name="checkout"), view cart link, secure checkout line and payment icons.
+{%- endcomment -%}
+{%- if cart.item_count > 0 -%}
+  <div class="drawer__footer cart-drawer__footer">
+    {%- if cart.cart_level_discount_applications.size > 0 -%}
+      <ul class="cart-drawer__discounts" role="list" aria-label="{{ 'sections.cart_drawer.discounts' | t }}">
+        {%- for discount in cart.cart_level_discount_applications -%}
+          <li>
+            {%- render 'icon', name: 'tag', size: 14 -%}
+            <span class="cart-drawer__discount-title">{{ discount.title | escape }}</span>
+            <span class="cart-drawer__discount-amount">−{{ discount.total_allocated_amount | money }}</span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    <div class="cart-drawer__subtotal">
+      <span class="cart-drawer__subtotal-label">{{ 'cart.general.subtotal' | t }}</span>
+      <span class="cart-drawer__subtotal-value tabular">{{ cart.total_price | money_with_currency }}</span>
+    </div>
+    <p class="cart-drawer__taxes">{{ 'cart.general.taxes_and_shipping' | t }}</p>
+
+    <div class="cart-drawer__ctas">
+      <button
+        type="submit"
+        name="checkout"
+        form="CartDrawerForm"
+        class="btn btn--primary btn--lg btn--block cart-drawer__checkout"
+      >
+        {%- render 'icon', name: 'lock', size: 16 -%}
+        <span>{{ 'cart.general.checkout' | t }}</span>
+      </button>
+    </div>
+
+    <div class="cart-drawer__secure">
+      <p class="cart-drawer__secure-text">
+        {%- render 'icon', name: 'shield', size: 14 -%}
+        <span>{{ 'sections.cart_drawer.secure_checkout' | t }}</span>
+      </p>
+      <a href="{{ routes.cart_url }}" class="cart-drawer__view link link--muted">
+        {{- 'sections.cart_drawer.view_cart' | t -}}
+        {%- render 'icon', name: 'arrow-right', size: 14 -%}
+      </a>
+    </div>
+    {%- if shop.enabled_payment_types.size > 0 -%}
+      <ul class="payment-icons cart-drawer__payments" role="list" aria-label="{{ 'sections.cart_drawer.payment_methods' | t }}">
+        {%- for type in shop.enabled_payment_types -%}
+          <li class="payment-icons__item">{{ type | payment_type_svg_tag: class: 'payment-icon' }}</li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+{%- endif -%}

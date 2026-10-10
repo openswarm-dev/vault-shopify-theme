@@ -1,0 +1,30 @@
+{%- comment -%}
+  Sort select used by the toolbar and the filter drawer (collection + search).
+  Usage: {% render 'facets-sort', results: collection, id: 'FacetsSort-toolbar-' | append: section.id, form_id: 'FacetsForm-inline-…' %}
+  Params:
+    results  (required) collection or search object (sort_options, sort_by, default_sort_by)
+    id       (required) unique id for the select
+    form_id  (optional) id of a form elsewhere on the page this select belongs to (HTML form attribute)
+    class    (optional) extra wrapper classes
+{%- endcomment -%}
+{%- assign current_sort = results.sort_by | default: results.default_sort_by -%}
+<div class="facets-sort{% if class %} {{ class }}{% endif %}">
+  <label class="facets-sort__label" for="{{ id }}">{{ 'collections.toolbar.sort_by' | t }}</label>
+  <div class="select facets-sort__select">
+    <select
+      id="{{ id }}"
+      class="select__select"
+      name="sort_by"
+      data-facets-sort
+      data-default="{{ results.default_sort_by | escape }}"
+      {% if form_id %}form="{{ form_id }}"{% endif %}
+    >
+      {%- for option in results.sort_options -%}
+        <option value="{{ option.value | escape }}"{% if option.value == current_sort %} selected{% endif %}>
+          {{- option.name | escape -}}
+        </option>
+      {%- endfor -%}
+    </select>
+    {%- render 'icon', name: 'chevron-down', size: 16 -%}
+  </div>
+</div>

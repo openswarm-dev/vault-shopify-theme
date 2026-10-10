@@ -1,0 +1,181 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "game_line": {
+          "type": "game_line",
+          "settings": {
+            "show_game": true,
+            "show_set": true,
+            "show_number": true,
+            "vendor_fallback": true
+          }
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "badges": {
+          "type": "badges",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {
+            "show_tax_note": true
+          }
+        },
+        "inventory": {
+          "type": "inventory",
+          "settings": {
+            "in_stock_note": "Ships in 24h",
+            "low_stock_note": "Once it's gone, it's gone",
+            "show_meter": true
+          }
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {
+            "picker_type": "pills"
+          }
+        },
+        "condition_guide": {
+          "type": "popup",
+          "settings": {
+            "text": "Condition & grading guide",
+            "heading": "Condition guide",
+            "content": "<p><strong>Near Mint (NM)</strong> — Sharp corners, clean edges and a glossy surface. At most one tiny flaw under close inspection.</p><p><strong>Lightly Played (LP)</strong> — Light edge wear or minor scuffs on a closer look. No creases or bends.</p><p><strong>Moderately Played (MP)</strong> — Noticeable edge wear, corner rounding or light surface scratches.</p><p><strong>Heavily Played (HP)</strong> — Heavy wear, whitening or a crease. Still sleeve-playable.</p><p><strong>Graded slabs</strong> — Sold exactly as certified. The grade on the label is the grade you get.</p>"
+          }
+        },
+        "quantity": {
+          "type": "quantity",
+          "settings": {}
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_dynamic_checkout": true
+          }
+        },
+        "cert_verify": {
+          "type": "cert_verify",
+          "settings": {}
+        },
+        "trust": {
+          "type": "trust",
+          "settings": {
+            "icon_1": "verified",
+            "title_1": "Authenticity guaranteed",
+            "text_1": "Inspected under loupe and UV",
+            "icon_2": "cards",
+            "title_2": "Ships in top-loader + team bag",
+            "text_2": "Slabs travel in bubble sleeves",
+            "icon_3": "truck",
+            "title_3": "Insured tracked shipping",
+            "text_3": "Covered door to door"
+          }
+        },
+        "collector_specs": {
+          "type": "collector_specs",
+          "settings": {
+            "heading": "Card details"
+          }
+        },
+        "tab_description": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Description",
+            "icon": "info",
+            "source": "description",
+            "content": "<p>Every card is checked for centering, corners, edges and surface before it is listed, then photographed front and back so you know exactly what you are getting.</p>",
+            "open": true
+          }
+        },
+        "tab_shipping": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Shipping & protection",
+            "icon": "truck",
+            "source": "content",
+            "content": "<p>Orders placed before 2pm ship the same day. Raw singles travel in a penny sleeve, top-loader and sealed team bag; slabs are bubble-sleeved and boxed. Every parcel is tracked and fully insured.</p>",
+            "open": false
+          }
+        },
+        "tab_grading": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Grading & condition",
+            "icon": "award",
+            "source": "content",
+            "content": "<p>Raw singles are graded in-house on the Near Mint to Heavily Played scale under daylight-balanced light. Slabs from PSA, BGS, CGC, SGC and TAG are sold exactly as certified — use the cert number to verify any slab on the grader's site.</p>",
+            "open": false
+          }
+        },
+        "tab_returns": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Returns",
+            "icon": "return",
+            "source": "content",
+            "content": "<p>Changed your mind? Return any unopened item within 14 days of delivery for a full refund. Slabs must come back with the tamper-evident seal intact.</p>",
+            "open": false
+          }
+        },
+        "share": {
+          "type": "share",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "game_line",
+        "title",
+        "badges",
+        "price",
+        "inventory",
+        "variant_picker",
+        "condition_guide",
+        "quantity",
+        "buy_buttons",
+        "cert_verify",
+        "trust",
+        "collector_specs",
+        "tab_description",
+        "tab_shipping",
+        "tab_grading",
+        "tab_returns",
+        "share"
+      ],
+      "settings": {
+        "gallery_foil": "intense",
+        "enable_flip": true,
+        "enable_zoom": true,
+        "show_thumbnails": true,
+        "sticky_media": true,
+        "show_breadcrumbs": true,
+        "sticky_atc": "mobile",
+        "color_scheme": "scheme-1",
+        "padding_top": 30,
+        "padding_bottom": 80
+      }
+    },
+    "recommendations": {
+      "type": "product-recommendations",
+      "settings": {
+        "eyebrow": "Handpicked for you",
+        "heading": "You might also <em>pull</em>",
+        "intent": "related",
+        "products_to_show": 8,
+        "layout": "carousel",
+        "columns_desktop": 4,
+        "color_scheme": "scheme-1",
+        "padding_top": 60,
+        "padding_bottom": 100
+      }
+    }
+  },
+  "order": [
+    "main",
+    "recommendations"
+  ]
+}

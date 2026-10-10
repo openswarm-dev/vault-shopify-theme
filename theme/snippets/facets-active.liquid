@@ -1,0 +1,77 @@
+{%- comment -%}
+  Active filter chips — each removable — plus "Clear all". Plain links, so they work without JavaScript;
+  component-facets.js intercepts them ([data-facets-link]) and animates chips in/out with Motion.
+  Usage: {% render 'facets-active', results: collection, clear_url: clear_url, active_count: active_count, show_clear: true %}
+  Params:
+    results       (required) collection or search object
+    clear_url     (required) URL that removes every filter
+    active_count  (required) number of active filters (container hidden when 0)
+    show_clear    show the "Clear all" link (default true)
+    class         extra classes
+{%- endcomment -%}
+<div
+  class="facets-active{% if class %} {{ class }}{% endif %}"
+  data-facets-swap="active"
+  {% if active_count == 0 %}
+    hidden
+  {% endif %}
+>
+  <p class="visually-hidden">{{ 'collections.facets.active_label' | t }}</p>
+  <ul class="facets-active__list list-reset" role="list">
+    {%- for filter in results.filters -%}
+      {%- if filter.type == 'price_range' -%}
+        {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
+          {%- liquid
+            if filter.min_value.value != nil and filter.max_value.value != nil
+              assign chip_min = filter.min_value.value | money
+              assign chip_max = filter.max_value.value | money
+              assign chip_label = 'collections.facets.price_range_chip' | t: min: chip_min, max: chip_max
+            elsif filter.min_value.value != nil
+              assign chip_min = filter.min_value.value | money
+              assign chip_label = 'collections.facets.price_min_chip' | t: price: chip_min
+            else
+              assign chip_max = filter.max_value.value | money
+              assign chip_label = 'collections.facets.price_max_chip' | t: price: chip_max
+            endif
+            assign chip_full = filter.label | append: ': ' | append: chip_label
+          -%}
+          <li class="facets-active__item" data-chip-key="{{ filter.param_name | escape }}">
+            <a
+              href="{{ filter.url_to_remove }}"
+              class="facet-chip"
+              data-facets-link
+              aria-label="{{ 'collections.facets.remove_filter' | t: filter: chip_full | escape }}"
+            >
+              <span class="facet-chip__group">{{ filter.label | escape }}</span>
+              <span class="facet-chip__value">{{ chip_label | escape }}</span>
+              <span class="facet-chip__x">{% render 'icon', name: 'close', size: 12, stroke: 2.5 %}</span>
+            </a>
+          </li>
+        {%- endif -%}
+      {%- else -%}
+        {%- for value in filter.active_values -%}
+          {%- assign chip_full = filter.label | append: ': ' | append: value.label -%}
+          <li class="facets-active__item" data-chip-key="{{ value.param_name | escape }}={{ value.value | escape }}">
+            <a
+              href="{{ value.url_to_remove }}"
+              class="facet-chip"
+              data-facets-link
+              aria-label="{{ 'collections.facets.remove_filter' | t: filter: chip_full | escape }}"
+            >
+              <span class="facet-chip__group">{{ filter.label | escape }}</span>
+              <span class="facet-chip__value">{{ value.label | escape }}</span>
+              <span class="facet-chip__x">{% render 'icon', name: 'close', size: 12, stroke: 2.5 %}</span>
+            </a>
+          </li>
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- unless show_clear == false -%}
+      <li class="facets-active__item facets-active__item--clear" data-chip-key="clear-all">
+        <a href="{{ clear_url }}" class="facets-active__clear link link--muted" data-facets-link>
+          {{- 'general.actions.clear_all' | t -}}
+        </a>
+      </li>
+    {%- endunless -%}
+  </ul>
+</div>

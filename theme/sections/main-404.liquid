@@ -1,0 +1,185 @@
+{{ 'component-page-head.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-404.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sid = section.id
+
+  assign heading = section.settings.heading
+  if heading == blank
+    assign heading = 'templates.404.title_html' | t
+  endif
+  assign text = section.settings.text
+  if text == blank
+    assign text = 'templates.404.text' | t
+  endif
+  assign secondary_label = section.settings.button_label
+  if secondary_label == blank
+    assign secondary_label = 'templates.404.new_arrivals' | t
+  endif
+  assign card_uid = 'nf-' | append: sid
+-%}
+
+<section
+  id="Section-{{ sid }}"
+  class="section main-404 color-{{ section.settings.color_scheme }} section-bg"
+  style="--pt: {{ section.settings.padding_top | divided_by: 100.0 }}; --pb: {{ section.settings.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ sid }}"
+>
+  <div class="page-backdrop" aria-hidden="true"></div>
+
+  <div class="page-width main-404__grid">
+    <flip-card-404 class="nf-card" data-flip-card>
+      <div class="nf-card__stage" aria-hidden="true">
+        <span class="nf-card__glow" aria-hidden="true"></span>
+        <holo-card class="nf-card__holo" data-foil="rainbow" data-max-tilt="10">
+          <div class="holo nf-card__holo-inner">
+            <div class="nf-card__inner" data-flip-inner>
+              <div class="nf-card__face nf-card__face--front">
+                <div class="nf-card__frame">
+                  <div class="nf-card__top">
+                    <span class="nf-card__name">{{ 'templates.404.card_name' | t }}</span>
+                    <span class="nf-card__hp"><small>HP</small>404</span>
+                  </div>
+                  <div class="nf-card__window">
+                    <span class="nf-card__numerals" aria-hidden="true">
+                      <span>4</span><span class="nf-card__zero">0</span><span>4</span>
+                    </span>
+                    <span class="nf-card__scan" aria-hidden="true"></span>
+                  </div>
+                  <div class="nf-card__type">{{ 'templates.404.card_type' | t }}</div>
+                  <div class="nf-card__text">
+                    <p>{{ 'templates.404.card_ability' | t }}</p>
+                    <span class="nf-card__line"></span>
+                    <span class="nf-card__line nf-card__line--short"></span>
+                  </div>
+                  <div class="nf-card__foot">
+                    <span class="mono">404/404</span>
+                    <span class="nf-card__rarity" aria-hidden="true"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="nf-card__face nf-card__face--back" aria-hidden="true">
+                {% render 'placeholder-card', variant: 2, uid: card_uid %}
+              </div>
+            </div>
+            <span class="holo__shine" aria-hidden="true"></span>
+            <span class="holo__glare" aria-hidden="true"></span>
+          </div>
+        </holo-card>
+      </div>
+      <button type="button" class="nf-card__flip" data-flip-toggle aria-pressed="false">
+        {%- render 'icon', name: 'flip', size: 18 -%}
+        <span>{{ 'templates.404.flip' | t }}</span>
+      </button>
+    </flip-card-404>
+
+    <div class="main-404__text">
+      <p class="eyebrow" data-reveal="fade">{{ 'templates.404.eyebrow' | t }}</p>
+      <h1 class="h1 main-404__title" data-split>{{ heading }}</h1>
+      <p class="lead main-404__lead" data-reveal>{{ text | escape }}</p>
+
+      {%- if section.settings.show_search -%}
+        <form action="{{ routes.search_url }}" method="get" role="search" class="main-404__search" data-reveal>
+          <div class="field">
+            <input
+              class="field__input"
+              type="search"
+              id="NotFoundSearch-{{ sid }}"
+              name="q"
+              placeholder=" "
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+            >
+            <label class="field__label" for="NotFoundSearch-{{ sid }}">{{ 'templates.404.search_label' | t }}</label>
+            <button type="submit" class="field__button main-404__search-btn" aria-label="{{ 'accessibility.search' | t }}">
+              {%- render 'icon', name: 'search', size: 20 -%}
+            </button>
+          </div>
+        </form>
+      {%- endif -%}
+
+      <div class="main-404__actions" data-reveal>
+        <a href="{{ routes.root_url }}" class="btn btn--primary btn--lg">
+          {%- render 'icon', name: 'home', size: 18 -%}
+          <span>{{ 'templates.404.home' | t }}</span>
+        </a>
+        <a href="{{ section.settings.button_link | default: routes.all_products_collection_url }}" class="btn btn--secondary btn--lg">
+          <span>{{ secondary_label | escape }}</span>
+          {%- render 'icon', name: 'arrow-right', size: 18 -%}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="{{ 'section-main-404.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "404 page",
+  "class": "shopify-section--main-404",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "This card isn't in our <em>vault</em>"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Text",
+      "default": "The page you're after was moved, sold out or never printed. Search the vault or jump back to the latest drops."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show search",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Second button label",
+      "default": "New arrivals"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Second button link",
+      "default": "/collections/all"
+    },
+    {
+      "type": "header",
+      "content": "Colors & spacing"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Top padding",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "%",
+      "label": "Bottom padding",
+      "default": 100
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,121 @@
+{%- comment -%}
+  Variant picker: one <fieldset> per option, as pill radios (default) or a dropdown.
+  Each value is flagged data-state="available | sold-out | missing" relative to the currently selected
+  variant (so unavailable combinations render struck through). <product-info> keeps these states in
+  sync client-side on every change; this markup is the server-rendered starting point.
+
+  Usage:
+    {% render 'product-variant-picker', product: product, variant: current_variant, section_id: section.id, picker_type: 'pills' %}
+  Params:
+    product      (required)
+    variant      (required) selected variant
+    section_id   (required) used to namespace input ids / names
+    picker_type  pills | dropdown (default pills)
+{%- endcomment -%}
+{%- liquid
+  assign last_idx = product.options.size | minus: 1
+  assign str_sold_out = 'products.pdp.variant.sold_out' | t
+  assign str_unavailable = 'products.pdp.variant.unavailable' | t
+-%}
+{%- for option in product.options_with_values -%}
+  {%- liquid
+    assign pos = forloop.index0
+
+    # Availability of every value of this option, combined with the other selected options.
+    assign states_csv = ''
+    for value in option.values
+      assign value_name = value.name | default: value
+      assign v_exists = false
+      assign v_avail = false
+      for v in product.variants
+        if v.options[pos] == value_name
+          assign v_match = true
+          for i in (0..last_idx)
+            if i != pos and v.options[i] != variant.options[i]
+              assign v_match = false
+              break
+            endif
+          endfor
+          if v_match
+            assign v_exists = true
+            if v.available
+              assign v_avail = true
+              break
+            endif
+          endif
+        endif
+      endfor
+      assign v_state = 'missing'
+      if v_avail
+        assign v_state = 'available'
+      elsif v_exists
+        assign v_state = 'sold-out'
+      endif
+      assign states_csv = states_csv | append: v_state | append: ','
+    endfor
+    assign states = states_csv | split: ','
+  -%}
+  <fieldset class="pdp-option{% if picker_type == 'dropdown' %} pdp-option--dropdown{% endif %}" data-option-index="{{ pos }}">
+    <legend class="pdp-option__legend">
+      <span class="pdp-label">{{ option.name | escape }}</span>
+      <span class="pdp-option__current" data-option-current>{{ variant.options[pos] | escape }}</span>
+    </legend>
+
+    {%- if picker_type == 'dropdown' -%}
+      <div class="select pdp-option__select">
+        <select
+          class="select__select"
+          id="Option-{{ section_id }}-{{ pos }}"
+          name="Option-{{ section_id }}-{{ pos }}"
+          aria-label="{{ option.name | escape }}"
+          data-option-input
+        >
+          {%- for value in option.values -%}
+            {%- liquid
+              assign value_name = value.name | default: value
+              assign v_state = states[forloop.index0]
+            -%}
+            <option
+              value="{{ value_name | escape }}"
+              data-state="{{ v_state }}"
+              {% if variant.options[pos] == value_name %}
+                selected
+              {% endif %}
+            >
+              {{- value_name | escape -}}
+              {%- if v_state == 'sold-out' %} — {{ str_sold_out }}{% elsif v_state == 'missing' %} — {{ str_unavailable }}{% endif -%}
+            </option>
+          {%- endfor -%}
+        </select>
+        {%- render 'icon', name: 'chevron-down', size: 16 -%}
+      </div>
+    {%- else -%}
+      <div class="pdp-option__values">
+        {%- for value in option.values -%}
+          {%- liquid
+            assign value_name = value.name | default: value
+            assign v_state = states[forloop.index0]
+            assign input_id = 'Option-' | append: section_id | append: '-' | append: pos | append: '-' | append: forloop.index0
+          -%}
+          <input
+            type="radio"
+            class="pdp-pill__input"
+            id="{{ input_id }}"
+            name="Option-{{ section_id }}-{{ pos }}"
+            value="{{ value_name | escape }}"
+            data-option-input
+            {% if variant.options[pos] == value_name %}
+              checked
+            {% endif %}
+          >
+          <label class="pdp-pill" for="{{ input_id }}" data-state="{{ v_state }}">
+            <span class="pdp-pill__text">{{ value_name | escape }}</span>
+            <span class="visually-hidden" data-state-text>
+              {%- if v_state == 'sold-out' %}, {{ str_sold_out }}{% elsif v_state == 'missing' %}, {{ str_unavailable }}{% endif -%}
+            </span>
+          </label>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </fieldset>
+{%- endfor -%}

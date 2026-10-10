@@ -1,0 +1,440 @@
+/* ==========================================================================
+   Grade scale — <grade-scale>
+   Phones: swipeable segmented rail + compact detail (slab tucked top-right).
+   Tablet ≥ 750px: full-width rail, two-column detail. Desktop ≥ 990px: roomier.
+   ========================================================================== */
+
+@property --gs-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #e11d2e;
+}
+
+.section-grade-scale {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  overflow: clip;
+}
+.gs-atmos {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(45% 35% at 85% 75%, rgb(var(--color-accent-rgb) / .1), transparent 70%),
+    radial-gradient(35% 30% at 0% 10%, rgb(var(--color-accent-rgb) / .06), transparent 70%);
+}
+
+grade-scale {
+  display: grid;
+  gap: clamp(1rem, .75rem + 1.2vw, 1.75rem);
+  transition: --gs-color .6s var(--ease-out);
+}
+
+/* ---------- Rail (tablist) ---------- */
+.gs-rail {
+  position: relative;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  margin-inline: calc(var(--gutter) * -1);
+  padding: 8px var(--gutter);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%);
+}
+.gs-rail::-webkit-scrollbar { display: none; }
+
+.gs-rail__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--gs-count), 74px);
+  width: max-content;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, rgb(var(--color-text-rgb) / .045), transparent),
+    rgb(var(--color-surface-rgb) / .6);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .04);
+}
+
+.gs-rail__indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(100% / var(--gs-count));
+  border-radius: calc(var(--radius-lg) - 1px);
+  pointer-events: none;
+  background:
+    radial-gradient(120% 95% at 50% 100%, color-mix(in srgb, var(--gs-color) 36%, transparent), transparent 72%),
+    rgb(var(--color-text-rgb) / .05);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--gs-color) 60%, transparent),
+    0 12px 32px -14px var(--gs-color);
+  transform: translateX(0);
+  will-change: transform;
+}
+.gs-rail__indicator::after {
+  content: "";
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--gs-color);
+  box-shadow: 0 0 14px var(--gs-color), 0 0 4px var(--gs-color);
+}
+
+.gs-tab {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: .4rem;
+  min-width: 0;
+  min-height: 78px;
+  padding: .95rem .25rem .8rem;
+  color: var(--color-muted);
+  text-align: center;
+  transition: color var(--dur) var(--ease-out);
+}
+.gs-tab + .gs-tab::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 24%;
+  bottom: 24%;
+  width: 1px;
+  background: var(--color-border);
+}
+.gs-tab:focus-visible { outline-offset: -4px; border-radius: var(--radius-md); }
+.gs-tab__tick {
+  position: absolute;
+  top: 0;
+  left: 26%;
+  right: 26%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--tier);
+  opacity: .42;
+  transition: opacity var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+.gs-tab__score {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-stretch: var(--font-display-stretch);
+  font-size: 1.375rem;
+  line-height: 1;
+  letter-spacing: -.02em;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  transition: transform var(--dur) var(--ease-out), text-shadow var(--dur);
+}
+.gs-tab__label {
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.gs-tab.is-active { color: var(--color-text); }
+.gs-tab.is-active .gs-tab__tick { opacity: 1; box-shadow: 0 0 12px var(--tier), 0 0 3px var(--tier); }
+.gs-tab.is-active .gs-tab__score { text-shadow: 0 0 22px color-mix(in srgb, var(--tier) 60%, transparent); }
+@media (hover: hover) and (pointer: fine) {
+  .gs-tab:hover { color: var(--color-text); }
+  .gs-tab:hover .gs-tab__tick { opacity: 1; }
+  .gs-tab:hover .gs-tab__score { transform: translateY(-2px); }
+}
+
+/* ---------- Stage + detail ---------- */
+.gs-stage {
+  position: relative;
+  isolation: isolate;
+  padding: 1.25rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgb(var(--color-text-rgb) / .08);
+  background:
+    radial-gradient(75% 85% at 88% 18%, color-mix(in srgb, var(--gs-color) 17%, transparent), transparent 70%),
+    linear-gradient(180deg, rgb(var(--color-surface-rgb) / .78), rgb(var(--color-surface-rgb) / .38));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .05), var(--shadow-lg);
+  overflow: hidden;
+}
+.gs-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgb(var(--color-text-rgb) / .04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--color-text-rgb) / .04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(60% 80% at 85% 30%, #000, transparent 75%);
+  mask-image: radial-gradient(60% 80% at 85% 30%, #000, transparent 75%);
+  pointer-events: none;
+}
+
+.gs-detail {
+  position: relative;
+  container-type: inline-size;
+}
+
+html.js .gs-panels { display: grid; }
+html.js .gs-panel { grid-area: 1 / 1; }
+html.js .gs-panel:not(.is-active) { visibility: hidden; }
+html.no-js .gs-rail { display: none; }
+html.no-js .gs-panel + .gs-panel {
+  margin-top: 1.75rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.gs-panel {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  min-width: 0;
+}
+.gs-panel:focus-visible { outline-offset: 8px; border-radius: var(--radius-md); }
+
+/* Phones: slab sits top-right; the head leaves room for it. */
+.gs-panel__head {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: .85rem;
+  padding-right: 42cqi;
+  min-height: calc(37cqi * 1180 / 760);
+}
+.gs-panel__score {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: var(--font-display-stretch);
+  font-size: 4.5rem;
+  font-size: 25cqi;
+  line-height: .82;
+  letter-spacing: -.045em;
+  padding-top: .04em;
+  background: linear-gradient(180deg, var(--tier) 12%, color-mix(in srgb, var(--tier) 30%, transparent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 10px 30px color-mix(in srgb, var(--tier) 45%, transparent));
+}
+.gs-panel__title {
+  display: grid;
+  justify-items: start;
+  gap: .6rem;
+  min-width: 0;
+}
+.gs-panel__label {
+  font-size: var(--h4);
+  line-height: 1.1;
+}
+.gs-panel__desc {
+  max-width: 54ch;
+  color: var(--color-muted);
+  font-size: var(--text-base);
+  line-height: 1.65;
+}
+
+.gs-meter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .85rem;
+  max-width: 440px;
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.gs-meter__track {
+  position: relative;
+  height: 4px;
+  border-radius: 4px;
+  background: rgb(var(--color-text-rgb) / .1);
+  overflow: hidden;
+}
+.gs-meter__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--gs-fill, 1));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tier) 45%, transparent), var(--tier));
+  box-shadow: 0 0 12px var(--tier);
+}
+.gs-meter__value {
+  font-size: var(--text-xs);
+  letter-spacing: 0;
+  color: var(--color-text);
+}
+
+/* ---------- Slab mock-up ---------- */
+.gs-slab-wrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 37cqi;
+}
+.gs-slab-glow {
+  position: absolute;
+  inset: 8% -18%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--gs-color) 55%, transparent), transparent);
+  filter: blur(26px);
+  opacity: .75;
+  pointer-events: none;
+}
+.gs-slab-holo {
+  border-radius: 4.5% / 2.9%;
+  filter: drop-shadow(0 24px 40px rgb(0 0 0 / .55));
+}
+.gs-slab { border-radius: inherit; }
+.gs-slab__inner {
+  position: relative;
+  aspect-ratio: 760 / 1180;
+  container-type: inline-size;
+}
+.gs-slab__inner > .placeholder-card {
+  position: absolute;
+  inset: 0;
+}
+
+/* label patch over the printed grade (coordinates match the 760×1180 slab art) */
+.gs-slab__grade {
+  position: absolute;
+  left: 57.9%;
+  top: 7.1%;
+  width: 36.8%;
+  height: 11.4%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.4cqi;
+  background: #f4f4f5;
+  color: #111214;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1;
+  overflow: hidden;
+}
+.gs-slab__abbr {
+  font-size: 3.4cqi;
+  font-weight: 800;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.gs-slab__score {
+  font-size: 7.6cqi;
+  font-weight: 900;
+  color: #d50f25;
+}
+
+/* simulated wear on the card itself — fades in as the grade drops */
+.gs-slab__wear {
+  position: absolute;
+  left: 8.55%;
+  top: 22.2%;
+  width: 82.9%;
+  height: 74.6%;
+  border-radius: 5.4% / 3.9%;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--gs-wear, 0);
+  transition: opacity .6s var(--ease-out);
+  background:
+    radial-gradient(circle at 0 0, rgb(255 255 255 / .75), transparent 7%),
+    radial-gradient(circle at 100% 0, rgb(255 255 255 / .6), transparent 6%),
+    radial-gradient(circle at 0 100%, rgb(255 255 255 / .55), transparent 6%),
+    radial-gradient(circle at 100% 100%, rgb(255 255 255 / .75), transparent 8%),
+    linear-gradient(160deg, rgb(214 186 130 / .2), rgb(150 120 80 / .24));
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / .3), inset 0 0 22px rgb(255 255 255 / .18);
+}
+.gs-slab__scuffs,
+.gs-slab__crease {
+  position: absolute;
+  inset: 0;
+}
+.gs-slab__scuffs {
+  background:
+    repeating-linear-gradient(117deg, transparent 0 13px, rgb(255 255 255 / .1) 13px 14px),
+    repeating-linear-gradient(31deg, transparent 0 22px, rgb(255 255 255 / .07) 22px 23px);
+}
+.gs-slab__crease {
+  background:
+    linear-gradient(58deg, transparent 47.6%, rgb(255 255 255 / .6) 48.3%, rgb(0 0 0 / .4) 48.9%, transparent 49.7%),
+    linear-gradient(-24deg, transparent 63.6%, rgb(255 255 255 / .35) 64.1%, rgb(0 0 0 / .25) 64.6%, transparent 65.2%);
+  opacity: clamp(0, calc((var(--gs-wear, 0) - .55) * 3), 1);
+  transition: opacity .6s var(--ease-out);
+}
+
+.gs-note {
+  display: flex;
+  align-items: flex-start;
+  gap: .55rem;
+  max-width: 72ch;
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--color-muted);
+}
+.gs-note .icon { margin-top: .1em; color: var(--color-accent); }
+
+/* ---------- Tablet ---------- */
+@media (min-width: 750px) {
+  .gs-rail {
+    overflow: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .gs-rail__inner {
+    width: 100%;
+    grid-template-columns: repeat(var(--gs-count), minmax(0, 1fr));
+  }
+  .gs-tab { min-height: 88px; }
+  .gs-tab__score { font-size: 1.625rem; }
+
+  .gs-stage { padding: clamp(1.75rem, .5rem + 3vw, 3.5rem); }
+  .gs-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 34%);
+    align-items: center;
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+  }
+  .gs-panel { gap: 1.25rem; }
+  .gs-panel__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: .75rem 1.5rem;
+    padding-right: 0;
+    min-height: 0;
+  }
+  .gs-panel__score { font-size: clamp(5rem, 2.5rem + 7vw, 9.5rem); }
+  .gs-panel__title { padding-bottom: .4em; }
+  .gs-panel__label { font-size: var(--h3); }
+  .gs-panel__desc { font-size: var(--text-md); }
+
+  .gs-slab-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    justify-self: center;
+  }
+}
+
+/* ---------- Desktop ---------- */
+@media (min-width: 990px) {
+  .gs-tab { min-height: 100px; gap: .5rem; }
+  .gs-tab__score { font-size: 2rem; }
+  .gs-detail { grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); }
+  .gs-slab-wrap { max-width: 360px; }
+}

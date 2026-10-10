@@ -1,0 +1,363 @@
+{{ 'section-multicolumn.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign s = section.settings
+  assign style = s.style
+  assign block_count = section.blocks.size
+
+  # Never leave empty columns: cap the column count at the number of blocks.
+  assign cols_desktop = s.columns_desktop
+  assign cols_tablet = s.columns_tablet | plus: 0
+  if block_count > 0 and block_count < cols_desktop
+    assign cols_desktop = block_count
+  endif
+  if block_count > 0 and block_count < cols_tablet
+    assign cols_tablet = block_count
+  endif
+  assign cols_mobile = 1
+  if s.columns_mobile == '2'
+    assign cols_mobile = 2
+  endif
+
+  assign heading_id = 'Heading-' | append: section.id
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-multicolumn multicolumn multicolumn--{{ style }} multicolumn--{{ s.text_align }} color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}aria-labelledby="{{ heading_id }}"{% endif %}
+>
+  <div class="page-width">
+    {% render 'section-header',
+      eyebrow: s.eyebrow,
+      heading: s.heading,
+      text: s.text,
+      link_label: s.link_label,
+      link_url: s.link_url,
+      align: s.heading_align,
+      size: 'h2',
+      tag: 'h2',
+      id: heading_id
+    %}
+
+    {%- if block_count > 0 -%}
+      <ul
+        class="multicolumn__list{% if s.columns_mobile == 'scroll' %} multicolumn__list--scroll{% endif %}"
+        role="list"
+        style="--mc-cols-mobile: {{ cols_mobile }}; --mc-cols-tablet: {{ cols_tablet }}; --mc-cols-desktop: {{ cols_desktop }};"
+      >
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign b = block.settings
+            assign number = forloop.index | prepend: '0' | slice: -2, 2
+            if forloop.index > 99
+              assign number = forloop.index
+            endif
+            assign has_link = false
+            if b.link != blank
+              assign has_link = true
+            endif
+          -%}
+          <li class="multicolumn__item" data-reveal="fade-up" {{ block.shopify_attributes }}>
+            <div class="multicolumn__card{% if has_link %} multicolumn__card--linked{% endif %}"{% if style == 'cards' %} data-spotlight{% endif %}>
+              {%- if style == 'numbered' -%}
+                <span class="multicolumn__number" aria-hidden="true">{{ number }}</span>
+              {%- endif -%}
+
+              {%- if b.image != blank -%}
+                <span class="multicolumn__icon multicolumn__icon--image">
+                  {{- b.image | image_url: width: 160 | image_tag: loading: 'lazy', widths: '80, 120, 160', sizes: '56px', alt: '' -}}
+                </span>
+              {%- elsif b.icon != 'none' and style != 'numbered' -%}
+                <span class="multicolumn__icon">
+                  {%- render 'icon', name: b.icon, size: 22 -%}
+                </span>
+              {%- endif -%}
+
+              <div class="multicolumn__body">
+                {%- if b.title != blank -%}
+                  <h3 class="multicolumn__title">
+                    {%- if has_link and b.link_label == blank -%}
+                      <a href="{{ b.link }}" class="multicolumn__link">{{ b.title | escape }}</a>
+                    {%- else -%}
+                      {{- b.title | escape -}}
+                    {%- endif -%}
+                  </h3>
+                {%- endif -%}
+                {%- if b.text != blank -%}
+                  <div class="multicolumn__text rte">{{ b.text }}</div>
+                {%- endif -%}
+                {%- if has_link and b.link_label != blank -%}
+                  <a href="{{ b.link }}" class="multicolumn__cta multicolumn__link link link--accent">
+                    {{- b.link_label | escape -}}
+                    {%- render 'icon', name: 'arrow-right', size: 16 -%}
+                  </a>
+                {%- endif -%}
+              </div>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Multicolumn",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow" },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Italicize words to highlight them in the accent color."
+    },
+    { "type": "inline_richtext", "id": "text", "label": "Subheading" },
+    {
+      "type": "select",
+      "id": "heading_align",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "left"
+    },
+    { "type": "text", "id": "link_label", "label": "Heading link label" },
+    { "type": "url", "id": "link_url", "label": "Heading link" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "options": [
+        { "value": "cards", "label": "Glass cards" },
+        { "value": "minimal", "label": "Minimal trust bar" },
+        { "value": "numbered", "label": "Numbered steps" }
+      ],
+      "default": "cards"
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Column alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "left"
+    },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 5, "step": 1, "label": "Columns on desktop", "default": 4 },
+    {
+      "type": "select",
+      "id": "columns_tablet",
+      "label": "Columns on tablet",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Mobile layout",
+      "options": [
+        { "value": "1", "label": "1 column" },
+        { "value": "2", "label": "2 columns" },
+        { "value": "scroll", "label": "Swipeable row" }
+      ],
+      "default": "1"
+    },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "column",
+      "name": "Column",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "verified", "label": "Verified seal" },
+            { "value": "award", "label": "Award" },
+            { "value": "trophy", "label": "Trophy" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "box", "label": "Box" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "return", "label": "Return" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "star", "label": "Star" },
+            { "value": "flame", "label": "Flame" },
+            { "value": "bolt", "label": "Bolt" },
+            { "value": "gift", "label": "Gift" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "layers", "label": "Layers" },
+            { "value": "tag", "label": "Price tag" },
+            { "value": "clock", "label": "Clock" },
+            { "value": "calendar", "label": "Calendar" },
+            { "value": "chat", "label": "Chat" },
+            { "value": "mail", "label": "Mail" },
+            { "value": "phone", "label": "Phone" },
+            { "value": "map-pin", "label": "Map pin" },
+            { "value": "globe", "label": "Globe" },
+            { "value": "heart", "label": "Heart" },
+            { "value": "eye", "label": "Eye" },
+            { "value": "camera", "label": "Camera" },
+            { "value": "check", "label": "Check" }
+          ],
+          "default": "verified"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Custom icon image",
+          "info": "Replaces the icon. Square PNG or SVG, at least 160px."
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "100% authentic" },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Every card inspected by hand before it ships.</p>"
+        },
+        { "type": "text", "id": "link_label", "label": "Link label", "info": "Leave blank to link the title instead." },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Multicolumn",
+      "settings": {
+        "eyebrow": "Why collectors trust us",
+        "heading": "Built by collectors, <em>for</em> collectors"
+      },
+      "blocks": [
+        {
+          "type": "column",
+          "settings": {
+            "icon": "verified",
+            "title": "100% authentic",
+            "text": "<p>Every card is inspected under loupe and UV light before it is listed. Slabs are checked against the grader's cert database.</p>"
+          }
+        },
+        {
+          "type": "column",
+          "settings": {
+            "icon": "shield",
+            "title": "Penny sleeve + top-loader",
+            "text": "<p>Every single ships sleeved, top-loaded and sealed in a bubble mailer. Never loose, never bent.</p>"
+          }
+        },
+        {
+          "type": "column",
+          "settings": {
+            "icon": "truck",
+            "title": "Insured, tracked shipping",
+            "text": "<p>Tracked on every order and fully insured from our vault to your door. Dispatched within one business day.</p>"
+          }
+        },
+        {
+          "type": "column",
+          "settings": {
+            "icon": "return",
+            "title": "14-day hassle-free returns",
+            "text": "<p>Not the card you hoped for? Send it back in the same condition within 14 days for a full refund.</p>"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trust bar",
+      "settings": {
+        "style": "minimal",
+        "columns_mobile": "2",
+        "padding_top": 40,
+        "padding_bottom": 40
+      },
+      "blocks": [
+        {
+          "type": "column",
+          "settings": {
+            "icon": "verified",
+            "title": "100% authentic",
+            "text": "<p>Every card inspected</p>"
+          }
+        },
+        {
+          "type": "column",
+          "settings": {
+            "icon": "shield",
+            "title": "Shipped like a slab",
+            "text": "<p>Penny sleeve + top-loader + bubble mailer</p>"
+          }
+        },
+        {
+          "type": "column",
+          "settings": {
+            "icon": "truck",
+            "title": "Insured, tracked shipping",
+            "text": "<p>Covered door to door</p>"
+          }
+        },
+        {
+          "type": "column",
+          "settings": {
+            "icon": "return",
+            "title": "14-day returns",
+            "text": "<p>Hassle-free, no questions</p>"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Numbered steps",
+      "settings": {
+        "eyebrow": "We buy collections",
+        "heading": "Turn your binder into <em>cash</em>",
+        "text": "Singles, slabs, sealed or a whole childhood collection. Three steps, no lowballing.",
+        "style": "numbered",
+        "columns_desktop": 3,
+        "columns_tablet": "3"
+      },
+      "blocks": [
+        {
+          "type": "column",
+          "settings": {
+            "icon": "none",
+            "title": "Send us your list",
+            "text": "<p>Snap a few photos or upload a spreadsheet. Binders, slabs, sealed product and bulk all welcome.</p>"
+          }
+        },
+        {
+          "type": "column",
+          "settings": {
+            "icon": "none",
+            "title": "Get an offer in 48 hours",
+            "text": "<p>Priced against live market data by collectors who know the difference between a 1st Edition and Unlimited.</p>"
+          }
+        },
+        {
+          "type": "column",
+          "settings": {
+            "icon": "none",
+            "title": "Ship free, get paid fast",
+            "text": "<p>We send a prepaid, insured label. Choose cash or take 20% more in store credit.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

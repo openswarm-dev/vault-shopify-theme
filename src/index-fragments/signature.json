@@ -1,0 +1,177 @@
+{
+  "sections": {
+    "signature-hero": {
+      "order_hint": 10,
+      "type": "hero-pack",
+      "settings": {
+        "eyebrow": "New drop live",
+        "heading": "Pull something <em>legendary</em>",
+        "subheading": "Graded slabs, sealed boosters and chase singles. Authenticated, sleeved and shipped insured from the vault.",
+        "button_label_1": "Shop the drop",
+        "button_link_1": "/collections/all",
+        "button_label_2": "Browse graded",
+        "button_link_2": "/collections",
+        "stat_1_number": "25",
+        "stat_1_suffix": "K+",
+        "stat_1_label": "Cards sold",
+        "stat_2_number": "4.9",
+        "stat_2_suffix": "/5",
+        "stat_2_label": "Collector rating",
+        "stat_3_number": "100",
+        "stat_3_suffix": "%",
+        "stat_3_label": "Authenticated",
+        "layout": "fan",
+        "overlay_opacity": 60,
+        "show_floor": true,
+        "show_particles": true,
+        "full_height": true,
+        "color_scheme": "scheme-1",
+        "padding_top": 0,
+        "padding_bottom": 0
+      },
+      "blocks": {
+        "hero-card-1": {
+          "type": "card",
+          "settings": { "label": "Alt art", "foil": "subtle", "graded": false }
+        },
+        "hero-card-2": {
+          "type": "card",
+          "settings": { "label": "Secret rare", "foil": "rainbow", "graded": false }
+        },
+        "hero-card-3": {
+          "type": "card",
+          "settings": { "label": "PSA 10 Gem mint", "foil": "intense", "graded": true }
+        },
+        "hero-card-4": {
+          "type": "card",
+          "settings": { "label": "1st edition", "foil": "rainbow", "graded": false }
+        },
+        "hero-card-5": {
+          "type": "card",
+          "settings": { "label": "Full art", "foil": "subtle", "graded": false }
+        }
+      },
+      "block_order": ["hero-card-1", "hero-card-2", "hero-card-3", "hero-card-4", "hero-card-5"]
+    },
+    "signature-marquee": {
+      "order_hint": 20,
+      "type": "marquee",
+      "settings": {
+        "style": "ribbon",
+        "speed": 45,
+        "direction": "left",
+        "scroll_velocity": true,
+        "flip_on_scroll": false,
+        "second_row": false,
+        "rotation": -2,
+        "pause_on_hover": true,
+        "edge_fade": false,
+        "color_scheme": "scheme-4",
+        "padding_top": 20,
+        "padding_bottom": 20
+      },
+      "blocks": {
+        "marquee-psa": { "type": "text", "settings": { "text": "PSA 10 Gem Mint", "icon": "sparkle", "outline": false } },
+        "marquee-sealed": { "type": "text", "settings": { "text": "Sealed boosters", "icon": "sparkle", "outline": false } },
+        "marquee-vintage": { "type": "text", "settings": { "text": "Vintage holos", "icon": "sparkle", "outline": false } },
+        "marquee-japanese": { "type": "text", "settings": { "text": "Japanese exclusives", "icon": "sparkle", "outline": false } },
+        "marquee-alt": { "type": "text", "settings": { "text": "Alt arts", "icon": "sparkle", "outline": false } },
+        "marquee-rookies": { "type": "text", "settings": { "text": "Sports rookies", "icon": "sparkle", "outline": false } }
+      },
+      "block_order": ["marquee-psa", "marquee-sealed", "marquee-vintage", "marquee-japanese", "marquee-alt", "marquee-rookies"]
+    },
+    "signature-pulls": {
+      "order_hint": 40,
+      "type": "card-flip-reveal",
+      "settings": {
+        "eyebrow": "Today's pulls",
+        "heading": "Fresh from the <em>vault</em>",
+        "text": "Chase-tier pulls land here first. Every morning the team cracks, checks and lists the night's best hits.",
+        "link_label": "View all pulls",
+        "link_url": "/collections/all",
+        "reveal_mode": "auto",
+        "stagger": 150,
+        "columns_desktop": 6,
+        "mobile_layout": "grid",
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "pull-1": {
+          "type": "card",
+          "settings": { "title": "Ember Drake · 1st edition holo", "price": "$420", "rarity": "Holo rare", "chase": false }
+        },
+        "pull-2": {
+          "type": "card",
+          "settings": { "title": "Void Reaper · Alt art", "price": "$185", "rarity": "Alt art", "chase": false }
+        },
+        "pull-3": {
+          "type": "card",
+          "settings": { "title": "Crimson Titan · Gold secret", "price": "$1,250", "rarity": "Secret rare", "chase": true }
+        },
+        "pull-4": {
+          "type": "card",
+          "settings": { "title": "Tide Sovereign · Full art", "price": "$96", "rarity": "Full art", "chase": false }
+        },
+        "pull-5": {
+          "type": "card",
+          "settings": { "title": "Astral Oracle · Event promo", "price": "$64", "rarity": "Promo", "chase": false }
+        },
+        "pull-6": {
+          "type": "card",
+          "settings": { "title": "Inferno Kirin · Japanese ultra", "price": "$138", "rarity": "Ultra rare", "chase": false }
+        }
+      },
+      "block_order": ["pull-1", "pull-2", "pull-3", "pull-4", "pull-5", "pull-6"]
+    },
+    "signature-showcase": {
+      "order_hint": 60,
+      "type": "holo-showcase",
+      "settings": {
+        "eyebrow": "Inspect the foil",
+        "heading": "Every <em>foil</em>, every flaw, on camera",
+        "text": "Turn it over, tilt it into the light. Every listing shows the card exactly as it will land in your hands.",
+        "shape": "slab",
+        "color_scheme": "scheme-2",
+        "padding_top": 100,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "showcase-light": {
+          "type": "feature",
+          "settings": {
+            "icon": "camera",
+            "title": "Shot under raking light",
+            "text": "Every holo is photographed at several angles, so you see the real foil and not a stock scan."
+          }
+        },
+        "showcase-zoom": {
+          "type": "feature",
+          "settings": {
+            "icon": "zoom",
+            "title": "Corners, edges, centering",
+            "text": "We zoom in on the four things graders care about and show each one up close."
+          }
+        },
+        "showcase-back": {
+          "type": "feature",
+          "settings": {
+            "icon": "flip",
+            "title": "Both sides, always",
+            "text": "The back tells the truth. Whitening, scratches and print lines are all in the gallery."
+          }
+        },
+        "showcase-sealed": {
+          "type": "feature",
+          "settings": {
+            "icon": "shield",
+            "title": "Sealed in the vault",
+            "text": "Penny sleeve, top loader, team bag and a tamper-evident seal before it ships insured."
+          }
+        }
+      },
+      "block_order": ["showcase-light", "showcase-zoom", "showcase-back", "showcase-sealed"]
+    }
+  }
+}

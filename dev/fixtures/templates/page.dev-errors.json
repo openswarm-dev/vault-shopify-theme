@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "broken": { "type": "dev-broken" },
+    "syntax": { "type": "dev-syntax" },
+    "missing": { "type": "section-that-does-not-exist" },
+    "main": { "type": "main-page" }
+  },
+  "order": ["broken", "syntax", "missing", "main"]
+}

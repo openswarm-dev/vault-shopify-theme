@@ -1,0 +1,17 @@
+{%- comment -%}
+  Section Rendering API target for the cart drawer. Outputs the same keyed regions as
+  snippets/cart-drawer.liquid (both use snippets/cart-drawer-region.liquid); registered with
+  Vault.cart.register('cart-drawer') by component-cart-drawer.js.
+{%- endcomment -%}
+{%- render 'cart-drawer-region', key: 'header' -%}
+{%- render 'cart-drawer-region', key: 'progress' -%}
+{%- render 'cart-drawer-region', key: 'items' -%}
+{%- render 'cart-drawer-region', key: 'upsell' -%}
+{%- render 'cart-drawer-region', key: 'footer' -%}
+
+{% schema %}
+{
+  "name": "Cart drawer",
+  "settings": []
+}
+{% endschema %}

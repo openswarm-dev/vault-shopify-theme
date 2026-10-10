@@ -1,0 +1,24 @@
+/* ==========================================================================
+   VAULT — component-social-icons.css (loaded by snippets/social-icons.liquid)
+   ========================================================================== */
+.social-icons { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0; padding: 0; list-style: none; }
+.social-icons__link {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--color-muted);
+  transition: color var(--dur), background-color var(--dur), transform .35s var(--ease-back);
+}
+.social-icons__link:focus-visible { color: var(--color-text); }
+.social-icons__link:active { transform: scale(.9); }
+@media (hover: hover) and (pointer: fine) {
+  .social-icons__link:hover {
+    color: var(--color-text);
+    background: rgb(var(--color-accent-rgb) / .14);
+    transform: translateY(-2px);
+  }
+}
+.social-icons__svg { width: 20px; height: 20px; }

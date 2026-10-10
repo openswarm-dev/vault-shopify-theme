@@ -1,0 +1,91 @@
+{%- comment -%}
+  Numbered pagination: prev/next arrows + numbered parts with ellipsis.
+  Used by collection, search and blog templates.
+  Usage: {% render 'pagination', paginate: paginate, anchor: '#ProductGrid' %}
+  Params:
+    paginate  (required) the paginate object from {% paginate %}
+    anchor    (optional) fragment appended to every link, e.g. '#MainContent'
+  Phones show prev · "2 / 9" · next; tablet and up show every numbered part.
+{%- endcomment -%}
+{%- if paginate.pages > 1 -%}
+  {{ 'component-pagination.css' | asset_url | stylesheet_tag }}
+  {%- liquid
+    assign pg_anchor = anchor | default: ''
+    assign pg_current = paginate.current_page | append: ''
+  -%}
+  <nav class="pagination" aria-label="{{ 'general.pagination.label' | t }}">
+    <ul class="pagination__list list-reset" role="list">
+      <li class="pagination__cell pagination__cell--arrow">
+        {%- if paginate.previous -%}
+          <a
+            href="{{ paginate.previous.url }}{{ pg_anchor }}"
+            class="pagination__item pagination__item--arrow"
+            rel="prev"
+            aria-label="{{ 'general.pagination.previous' | t }}"
+          >
+            {%- render 'icon', name: 'arrow-left', size: 18 -%}
+          </a>
+        {%- else -%}
+          <span class="pagination__item pagination__item--arrow is-disabled" aria-hidden="true">
+            {%- render 'icon', name: 'arrow-left', size: 18 -%}
+          </span>
+        {%- endif -%}
+      </li>
+
+      {%- for part in paginate.parts -%}
+        {%- assign part_title = part.title | append: '' -%}
+        {%- if part.is_link -%}
+          <li class="pagination__cell pagination__cell--number">
+            <a
+              href="{{ part.url }}{{ pg_anchor }}"
+              class="pagination__item"
+              aria-label="{{ 'general.pagination.page' | t: number: part.title }}"
+            >
+              {{- part.title -}}
+            </a>
+          </li>
+        {%- elsif part_title == pg_current -%}
+          <li class="pagination__cell pagination__cell--number pagination__cell--current">
+            <span
+              class="pagination__item pagination__item--current"
+              aria-current="page"
+              aria-label="{{ 'general.pagination.page' | t: number: part.title }}"
+            >
+              {{- part.title -}}
+            </span>
+          </li>
+        {%- else -%}
+          <li class="pagination__cell pagination__cell--number pagination__cell--gap" aria-hidden="true">
+            <span class="pagination__item pagination__item--gap">&hellip;</span>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+
+      <li class="pagination__cell pagination__cell--status">
+        <span class="visually-hidden" aria-current="page">{{ 'general.pagination.page' | t: number: paginate.current_page }}</span>
+        <span class="pagination__status tabular" aria-hidden="true">
+          <span class="pagination__status-current">{{ paginate.current_page }}</span>
+          <span class="pagination__status-sep">/</span>
+          {{ paginate.pages }}
+        </span>
+      </li>
+
+      <li class="pagination__cell pagination__cell--arrow">
+        {%- if paginate.next -%}
+          <a
+            href="{{ paginate.next.url }}{{ pg_anchor }}"
+            class="pagination__item pagination__item--arrow"
+            rel="next"
+            aria-label="{{ 'general.pagination.next' | t }}"
+          >
+            {%- render 'icon', name: 'arrow-right', size: 18 -%}
+          </a>
+        {%- else -%}
+          <span class="pagination__item pagination__item--arrow is-disabled" aria-hidden="true">
+            {%- render 'icon', name: 'arrow-right', size: 18 -%}
+          </span>
+        {%- endif -%}
+      </li>
+    </ul>
+  </nav>
+{%- endif -%}

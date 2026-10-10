@@ -1,0 +1,14 @@
+{%- comment -%}
+  Cart count bubble. The SAME markup is used by the header cart icon, the mobile dock and
+  sections/cart-icon-bubble.liquid so Vault.applySections can swap it after every cart change
+  (core pre-registers the "cart-icon-bubble" section).
+  Usage: {% render 'header-cart-count' %}   (inside an <a data-cart-icon> that is position: relative)
+{%- endcomment -%}
+<span class="cart-count" data-cart-swap="cart-icon-bubble">
+  {%- if cart.item_count > 0 -%}
+    <span class="cart-bubble" data-count="{{ cart.item_count }}" aria-hidden="true">
+      {%- if cart.item_count < 100 -%}{{ cart.item_count }}{%- else -%}99+{%- endif -%}
+    </span>
+  {%- endif -%}
+  <span class="visually-hidden">{{ 'cart.general.item_count' | t: count: cart.item_count }}</span>
+</span>

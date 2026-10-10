@@ -1,0 +1,436 @@
+{%- comment -%}
+  Product detail page.
+  Desktop ≥ 990: sticky display-case gallery (~56%) + info column (~44%).
+  Tablet portrait: full-width swipeable gallery with a thumbnail row, info below in a comfortable measure.
+  Phones: edge-to-edge swipe gallery with dots, then info; a glass sticky add-to-cart bar springs up
+  once the main buy buttons scroll away.
+  JS: component-product-gallery.js (<product-gallery>, <product-zoom>), component-product-form.js (<product-info>, <product-share>).
+{%- endcomment -%}
+{{ 'component-product-form.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-product.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign s = section.settings
+  assign current_variant = product.selected_or_first_available_variant
+  assign product_form_id = 'ProductForm-' | append: section.id
+  assign sticky_media = product.featured_media
+  if current_variant.featured_media != blank
+    assign sticky_media = current_variant.featured_media
+  endif
+-%}
+<section
+  id="MainProduct-{{ section.id }}"
+  class="section main-product color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+>
+  <span class="main-product__glow" aria-hidden="true"></span>
+  <div class="page-width">
+    <product-info
+      class="pdp{% if s.sticky_media %} pdp--sticky-media{% endif %}"
+      data-product
+      data-section-id="{{ section.id }}"
+      data-product-id="{{ product.id }}"
+      data-product-url="{{ product.url }}"
+      data-form-id="{{ product_form_id }}"
+      data-update-url="true"
+      data-str-sold-out="{{ 'products.pdp.variant.sold_out' | t | escape }}"
+      data-str-unavailable="{{ 'products.pdp.variant.unavailable' | t | escape }}"
+      data-str-added="{{ 'products.product.added' | t | escape }}"
+    >
+      <div class="pdp__grid">
+        <div class="pdp__media">
+          {% render 'product-gallery',
+            product: product,
+            variant: current_variant,
+            section_id: section.id,
+            context: 'main',
+            foil: s.gallery_foil,
+            enable_flip: s.enable_flip,
+            enable_zoom: s.enable_zoom,
+            show_thumbs: s.show_thumbnails,
+            eager: true
+          %}
+        </div>
+
+        <div class="pdp__info">
+          {%- if s.show_breadcrumbs -%}
+            <nav class="pdp-crumbs hide-mobile" aria-label="{{ 'products.pdp.breadcrumb' | t }}" data-reveal="fade">
+              <ol class="pdp-crumbs__list" role="list">
+                <li class="pdp-crumbs__item">
+                  <a href="{{ routes.root_url }}" class="pdp-crumbs__link">{{ 'products.pdp.home' | t }}</a>
+                </li>
+                {%- if collection != blank -%}
+                  <li class="pdp-crumbs__item">
+                    <a href="{{ collection.url }}" class="pdp-crumbs__link">{{ collection.title | escape }}</a>
+                  </li>
+                {%- endif -%}
+                <li class="pdp-crumbs__item">
+                  <span class="pdp-crumbs__current" aria-current="page">{{ product.title | escape }}</span>
+                </li>
+              </ol>
+            </nav>
+          {%- endif -%}
+
+          <div class="pdp__blocks">
+            {%- for block in section.blocks -%}
+              {%- if block.type == '@app' -%}
+                <div class="pdp-block pdp-app" {{ block.shopify_attributes }}>{% render block %}</div>
+              {%- else -%}
+                {% render 'product-info-block',
+                  block: block,
+                  product: product,
+                  variant: current_variant,
+                  section_id: section.id,
+                  form_id: product_form_id,
+                  context: 'main'
+                %}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      </div>
+
+      {%- if s.sticky_atc != 'none' -%}
+        {%- comment -%} Moved to <body> by JS so it stacks above page content; swapped on variant change. {%- endcomment -%}
+        <div
+          class="pdp-sticky color-{{ s.color_scheme }}"
+          data-sticky-atc
+          data-mode="{{ s.sticky_atc }}"
+          data-section="{{ section.id }}"
+          role="region"
+          aria-label="{{ 'products.pdp.sticky.label' | t }}"
+          aria-hidden="true"
+          inert
+        >
+          <div class="pdp-sticky__bar" data-variant-swap="sticky">
+            <button type="button" class="pdp-sticky__product" data-sticky-top aria-label="{{ 'products.pdp.sticky.back_to_top' | t }}">
+              <span class="pdp-sticky__thumb">
+                {%- if sticky_media != blank -%}
+                  {{
+                    sticky_media.preview_image
+                    | image_url: width: 120
+                    | image_tag: loading: 'lazy', widths: '60, 120', sizes: '48px', alt: ''
+                  }}
+                {%- else -%}
+                  {% render 'placeholder-card', variant: 1, uid: 'sticky-thumb' %}
+                {%- endif -%}
+              </span>
+              <span class="pdp-sticky__text">
+                <span class="pdp-sticky__title">{{ product.title | escape }}</span>
+                <span class="pdp-sticky__meta">
+                  <span class="pdp-sticky__price">{{ current_variant.price | money }}</span>
+                  {%- if current_variant.compare_at_price > current_variant.price -%}
+                    <s class="pdp-sticky__compare">{{ current_variant.compare_at_price | money }}</s>
+                  {%- endif -%}
+                  {%- unless product.has_only_default_variant -%}
+                    <span class="pdp-sticky__variant">{{ current_variant.title | escape }}</span>
+                  {%- endunless -%}
+                </span>
+              </span>
+            </button>
+            <button
+              type="submit"
+              form="{{ product_form_id }}"
+              name="add"
+              class="btn btn--primary pdp-sticky__atc"
+              data-atc
+              {% unless current_variant.available %}
+                disabled
+              {% endunless %}
+            >
+              <span data-atc-label>
+                {%- if current_variant.available -%}
+                  {{ 'products.product.add_to_cart' | t }}
+                {%- else -%}
+                  {{ 'products.product.sold_out' | t }}
+                {%- endif -%}
+              </span>
+            </button>
+          </div>
+        </div>
+      {%- endif -%}
+
+      <script type="application/json" data-product-json>
+        {{ product | json }}
+      </script>
+    </product-info>
+  </div>
+</section>
+
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+<script src="{{ 'component-product-gallery.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'component-product-form.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Product information",
+  "tag": "div",
+  "class": "shopify-section--main-product",
+  "settings": [
+    { "type": "header", "content": "Media" },
+    {
+      "type": "select",
+      "id": "gallery_foil",
+      "label": "Featured image foil",
+      "options": [
+        { "value": "intense", "label": "Intense holo" },
+        { "value": "rainbow", "label": "Rainbow" },
+        { "value": "subtle", "label": "Subtle" },
+        { "value": "none", "label": "None" }
+      ],
+      "default": "intense"
+    },
+    { "type": "checkbox", "id": "enable_flip", "label": "Flip button", "info": "Rotates the featured card to reveal the second image, e.g. the card or slab back.", "default": true },
+    { "type": "checkbox", "id": "enable_zoom", "label": "Full-screen zoom", "default": true },
+    { "type": "checkbox", "id": "show_thumbnails", "label": "Show thumbnails", "info": "Tablets and desktop. Phones use swipe with dots.", "default": true },
+    { "type": "checkbox", "id": "sticky_media", "label": "Keep media in view while scrolling (desktop)", "default": true },
+    { "type": "header", "content": "Product info" },
+    { "type": "checkbox", "id": "show_breadcrumbs", "label": "Show breadcrumbs", "info": "Tablets and desktop.", "default": true },
+    {
+      "type": "select",
+      "id": "sticky_atc",
+      "label": "Sticky add to cart bar",
+      "options": [
+        { "value": "mobile", "label": "Phones and tablets" },
+        { "value": "all", "label": "All devices" },
+        { "value": "none", "label": "Off" }
+      ],
+      "default": "mobile"
+    },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 30 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 80 }
+  ],
+  "blocks": [
+    { "type": "@app" },
+    {
+      "type": "game_line",
+      "name": "Game & set line",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Reads game, set and card number from collector metafields or tags (see Theme settings > Collector data)." },
+        { "type": "checkbox", "id": "show_game", "label": "Show game", "default": true },
+        { "type": "checkbox", "id": "show_set", "label": "Show set", "default": true },
+        { "type": "checkbox", "id": "show_number", "label": "Show card number", "default": true },
+        { "type": "checkbox", "id": "vendor_fallback", "label": "Show vendor when the game is unknown", "default": true }
+      ]
+    },
+    { "type": "title", "name": "Title", "limit": 1, "settings": [] },
+    {
+      "type": "badges",
+      "name": "Badges",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Grade, rarity, sealed, sale, new and low-stock badges." }
+      ]
+    },
+    {
+      "type": "price",
+      "name": "Price",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_tax_note", "label": "Show tax and shipping note", "default": true }
+      ]
+    },
+    {
+      "type": "inventory",
+      "name": "Inventory status",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Low stock uses the threshold in Theme settings > Product cards." },
+        { "type": "text", "id": "in_stock_note", "label": "In stock message", "default": "Ships in 24h" },
+        { "type": "text", "id": "low_stock_note", "label": "Low stock message", "default": "Once it's gone, it's gone" },
+        { "type": "checkbox", "id": "show_meter", "label": "Show low stock meter", "default": true }
+      ]
+    },
+    {
+      "type": "variant_picker",
+      "name": "Variant picker",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "picker_type",
+          "label": "Style",
+          "options": [
+            { "value": "pills", "label": "Pills" },
+            { "value": "dropdown", "label": "Dropdown" }
+          ],
+          "default": "pills"
+        }
+      ]
+    },
+    { "type": "quantity", "name": "Quantity selector", "limit": 1, "settings": [] },
+    {
+      "type": "buy_buttons",
+      "name": "Buy buttons",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_dynamic_checkout", "label": "Show dynamic checkout buttons", "info": "Customers see their preferred express checkout, like Shop Pay or Apple Pay.", "default": true }
+      ]
+    },
+    {
+      "type": "collector_specs",
+      "name": "Card details",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Card details" }
+      ]
+    },
+    {
+      "type": "trust",
+      "name": "Trust badges",
+      "limit": 2,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon_1",
+          "label": "First icon",
+          "options": [
+            { "value": "verified", "label": "Verified seal" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "box", "label": "Box" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "award", "label": "Award" },
+            { "value": "return", "label": "Return" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "clock", "label": "Clock" }
+          ],
+          "default": "verified"
+        },
+        { "type": "text", "id": "title_1", "label": "First title", "default": "Authenticity guaranteed" },
+        { "type": "text", "id": "text_1", "label": "First text", "default": "Inspected under loupe and UV" },
+        {
+          "type": "select",
+          "id": "icon_2",
+          "label": "Second icon",
+          "options": [
+            { "value": "verified", "label": "Verified seal" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "box", "label": "Box" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "award", "label": "Award" },
+            { "value": "return", "label": "Return" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "clock", "label": "Clock" }
+          ],
+          "default": "cards"
+        },
+        { "type": "text", "id": "title_2", "label": "Second title", "default": "Ships in top-loader + team bag" },
+        { "type": "text", "id": "text_2", "label": "Second text", "default": "Slabs travel in bubble sleeves" },
+        {
+          "type": "select",
+          "id": "icon_3",
+          "label": "Third icon",
+          "options": [
+            { "value": "verified", "label": "Verified seal" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "box", "label": "Box" },
+            { "value": "cards", "label": "Cards" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "award", "label": "Award" },
+            { "value": "return", "label": "Return" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "clock", "label": "Clock" }
+          ],
+          "default": "truck"
+        },
+        { "type": "text", "id": "title_3", "label": "Third title", "default": "Insured tracked shipping" },
+        { "type": "text", "id": "text_3", "label": "Third text", "default": "Covered door to door" }
+      ]
+    },
+    {
+      "type": "collapsible_tab",
+      "name": "Collapsible tab",
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Shipping & protection" },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "info", "label": "Info" },
+            { "value": "layers", "label": "Layers" },
+            { "value": "box", "label": "Box" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "verified", "label": "Verified seal" },
+            { "value": "award", "label": "Award" },
+            { "value": "return", "label": "Return" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "chat", "label": "Chat" }
+          ],
+          "default": "truck"
+        },
+        {
+          "type": "select",
+          "id": "source",
+          "label": "Content",
+          "options": [
+            { "value": "content", "label": "Text below" },
+            { "value": "description", "label": "Product description" },
+            { "value": "page", "label": "Page" }
+          ],
+          "default": "content"
+        },
+        { "type": "richtext", "id": "content", "label": "Text", "default": "<p>Orders placed before 2pm ship the same day. Raw singles travel in a penny sleeve, top-loader and sealed team bag; slabs are bubble-sleeved and boxed. Every parcel is tracked and fully insured.</p>" },
+        { "type": "page", "id": "page", "label": "Page" },
+        { "type": "checkbox", "id": "open", "label": "Open by default", "default": false }
+      ]
+    },
+    { "type": "share", "name": "Share", "limit": 1, "settings": [] },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Photographed in-house under daylight-balanced light. The card you see is the exact card you get.</p>" },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Style",
+          "options": [
+            { "value": "body", "label": "Body" },
+            { "value": "subtle", "label": "Subtle" },
+            { "value": "callout", "label": "Callout" }
+          ],
+          "default": "subtle"
+        }
+      ]
+    },
+    {
+      "type": "custom_liquid",
+      "name": "Custom Liquid",
+      "settings": [
+        { "type": "liquid", "id": "custom_liquid", "label": "Custom Liquid", "info": "Add app snippets or other Liquid code." }
+      ]
+    },
+    {
+      "type": "cert_verify",
+      "name": "Cert verification",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Shows a verification button for graded slabs when the cert number and grading company are known and cert links are on in Theme settings > Collector data." }
+      ]
+    },
+    {
+      "type": "popup",
+      "name": "Pop-up",
+      "settings": [
+        { "type": "text", "id": "text", "label": "Link label", "default": "Condition & grading guide" },
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Condition guide" },
+        { "type": "richtext", "id": "content", "label": "Text", "default": "<p><strong>Near Mint (NM)</strong> — Sharp corners, clean edges and a glossy surface. At most one tiny flaw under close inspection.</p><p><strong>Lightly Played (LP)</strong> — Light edge wear or minor scuffs on a closer look. No creases or bends.</p><p><strong>Moderately Played (MP)</strong> — Noticeable edge wear, corner rounding or light surface scratches.</p><p><strong>Heavily Played (HP)</strong> — Heavy wear, whitening or a crease. Still sleeve-playable.</p><p><strong>Graded slabs</strong> — Sold exactly as certified. The grade on the label is the grade you get.</p>" },
+        { "type": "page", "id": "page", "label": "Page", "info": "Replaces the text above." }
+      ]
+    }
+  ]
+}
+{% endschema %}

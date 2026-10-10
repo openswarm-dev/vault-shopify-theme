@@ -1,0 +1,176 @@
+/* ==========================================================================
+   Logo list — graders & official brands as a marquee or a tile grid.
+   Logos without an image render as display-type wordmarks.
+   ========================================================================== */
+
+.logo-list {
+  --lh: calc(var(--logo-h, 40px) * .8);
+}
+@media (min-width: 750px) {
+  .logo-list { --lh: var(--logo-h, 40px); }
+}
+
+/* ---------- Heading ---------- */
+.logo-list__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-bottom: clamp(1.25rem, .9rem + 1.6vw, 2.5rem);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  font-stretch: normal;
+  line-height: 1.5;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--color-muted);
+}
+.logo-list__label::before,
+.logo-list__label::after {
+  content: "";
+  flex: 1 1 24px;
+  min-width: 24px;
+  max-width: 240px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border));
+}
+.logo-list__label::after { background: linear-gradient(270deg, transparent, var(--color-border)); }
+.logo-list__label > span { flex: 0 1 auto; text-wrap: balance; }
+.logo-list__label :is(em, strong) { font-style: normal; color: var(--color-accent); }
+
+.logo-list__header {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: clamp(1.5rem, 1rem + 2vw, 3rem);
+}
+.logo-list__heading { max-width: 24ch; }
+
+/* ---------- Logo ---------- */
+.logo-list__item { position: relative; min-width: 0; }
+.logo-list__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: max(44px, var(--lh));
+  color: var(--color-text);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.logo-list__img {
+  display: block;
+  height: var(--lh);
+  width: auto;
+  max-width: calc(var(--lh) * 4.5);
+  object-fit: contain;
+  transition: filter var(--dur-slow) var(--ease-out), opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+}
+.logo-list__wordmark {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-stretch: var(--font-display-stretch);
+  font-size: calc(var(--lh) * .6 * var(--heading-adjust, 1));
+  line-height: 1;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-text);
+  transition: color var(--dur-slow) var(--ease-out), text-shadow var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+}
+
+/* Monochrome treatment: calm on touch, dimmer on desktop where hover restores colour */
+.logo-list--mono .logo-list__img { filter: grayscale(1); opacity: .72; }
+.logo-list--mono .logo-list__wordmark { color: rgb(var(--color-text-rgb) / .62); }
+.logo-list--mono .logo-list__logo:active .logo-list__img { filter: none; opacity: 1; }
+.logo-list--mono .logo-list__logo:active .logo-list__wordmark { color: var(--color-text); }
+
+@media (hover: hover) and (pointer: fine) {
+  .logo-list--mono .logo-list__img { opacity: .5; }
+  .logo-list--mono .logo-list__wordmark { color: rgb(var(--color-text-rgb) / .45); }
+  .logo-list__logo:hover .logo-list__img { filter: none; opacity: 1; transform: translateY(-3px); }
+  .logo-list__logo:hover .logo-list__wordmark {
+    color: var(--color-text);
+    text-shadow: 0 0 28px rgb(var(--color-accent-rgb) / .65);
+    transform: translateY(-3px);
+  }
+}
+.logo-list__logo:focus-visible .logo-list__img { filter: none; opacity: 1; }
+.logo-list__logo:focus-visible .logo-list__wordmark { color: var(--color-text); }
+
+/* ---------- Marquee ---------- */
+.logo-list__marquee {
+  --marquee-gap: clamp(2.75rem, 1.75rem + 4vw, 5.5rem);
+  padding-block: var(--space-2);
+}
+.logo-list .logo-list__group { list-style: none; margin: 0; padding: 0 var(--marquee-gap) 0 0; }
+.logo-list__group > .logo-list__item { flex: none; }
+/* Glowing red dot centred in each gap (the group's trailing padding keeps the loop seamless) */
+.logo-list--marquee .logo-list__item::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: calc(var(--marquee-gap) / -2);
+  width: 6px;
+  height: 6px;
+  margin: -3px -3px 0 0;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 3px rgb(var(--color-accent-rgb) / .15), 0 0 12px rgb(var(--color-accent-rgb) / .9);
+  pointer-events: none;
+}
+/* Without motion the marquee is a swipeable row; give the ends some breathing room */
+html:not(.motion-ok) .logo-list__group { padding-left: var(--gutter); }
+
+/* ---------- Grid ---------- */
+.logo-list__grid {
+  --c: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--grid-gap);
+  list-style: none;
+  padding: 0;
+}
+.logo-list__grid > .logo-list__item {
+  flex: 0 0 calc((100% - (var(--c) - 1) * var(--grid-gap)) / var(--c));
+  display: flex;
+}
+@media (min-width: 480px) {
+  .logo-list__grid { --c: 3; }
+}
+@media (min-width: 750px) {
+  .logo-list__grid { --c: min(var(--logo-cols, 5), 4); }
+}
+@media (min-width: 990px) {
+  .logo-list__grid { --c: var(--logo-cols, 5); }
+}
+.logo-list--grid .logo-list__logo {
+  flex: 1;
+  min-height: calc(var(--lh) + 3rem);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgb(var(--color-text-rgb) / .035), rgb(var(--color-text-rgb) / .01));
+  overflow: hidden;
+  transition: border-color var(--dur-slow) var(--ease-out), background-color var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+}
+.logo-list--grid .logo-list__wordmark {
+  white-space: normal;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  font-size: calc(var(--lh) * .5 * var(--heading-adjust, 1));
+  line-height: 1.1;
+}
+.logo-list--grid .logo-list__img { max-width: 100%; }
+@media (hover: hover) and (pointer: fine) {
+  .logo-list--grid .logo-list__logo:hover {
+    border-color: rgb(var(--color-accent-rgb) / .45);
+    transform: translateY(-3px);
+  }
+  .logo-list--grid .logo-list__logo:hover .logo-list__img,
+  .logo-list--grid .logo-list__logo:hover .logo-list__wordmark { transform: none; }
+}

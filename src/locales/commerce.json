@@ -1,0 +1,82 @@
+{
+  "products": {
+    "card": {
+      "price_from_html": "<span class=\"price__from\">From</span> {{ price }}",
+      "saving_chip": "−{{ percent }}%",
+      "saving_label": "Save {{ percent }}%",
+      "sale_off": "{{ percent }}% off",
+      "demo": {
+        "title_1": "Ember Drake — 1st Edition Holo",
+        "title_2": "Void Reaper — Secret Rare",
+        "title_3": "Inferno Kirin — Alt Art",
+        "title_4": "Tide Sovereign — Full Art",
+        "title_5": "Crimson Titan — Black Star Promo",
+        "title_6": "Astral Oracle — Gold Secret",
+        "title_7": "Ember Drake — Shadowless Holo",
+        "title_8": "Void Reaper — Reverse Holo",
+        "title_9": "Inferno Rising Booster Box",
+        "title_10": "Tide Sovereign — Gem Mint",
+        "title_11": "Crimson Titan — Ultra Rare",
+        "title_12": "Astral Oracle — Manga Rare",
+        "meta_1": "Origins · #004/102",
+        "meta_2": "Shadowfall · #113/110",
+        "meta_3": "Inferno Rising · #025/198",
+        "meta_4": "Tidebound · #067/165",
+        "meta_5": "Promo · #SV-001",
+        "meta_6": "Astral Echoes · #201/195",
+        "meta_7": "Origins · #004/102",
+        "meta_8": "Shadowfall · #041/110",
+        "meta_9": "Inferno Rising · 36 packs",
+        "meta_10": "Tidebound · #067/165",
+        "meta_11": "Crimson Vault · #150/165",
+        "meta_12": "Astral Echoes · #188/195",
+        "rarity_holo": "Holo Rare",
+        "rarity_secret": "Secret Rare",
+        "rarity_alt": "Alt Art",
+        "rarity_full": "Full Art",
+        "rarity_promo": "Promo",
+        "rarity_gold": "Gold Secret Rare",
+        "rarity_reverse": "Reverse Holo",
+        "rarity_ultra": "Ultra Rare",
+        "rarity_manga": "Manga Rare",
+        "detail_nm_en": "Near Mint · English",
+        "detail_nm_jp": "Near Mint · Japanese",
+        "detail_lp_en": "Lightly Played · English",
+        "detail_sealed": "Factory sealed"
+      }
+    }
+  },
+  "sections": {
+    "featured_collection": {
+      "tabs_label": "Browse collections",
+      "tab_fallback": "Collection {{ number }}",
+      "all_products": "The full vault",
+      "products": "Products",
+      "item_count": {
+        "one": "{{ count }} item",
+        "other": "{{ count }} items"
+      }
+    },
+    "collection_list": {
+      "label": "Collections",
+      "item_count": {
+        "one": "{{ count }} item",
+        "other": "{{ count }} items"
+      },
+      "defaults": {
+        "title_1": "Pokémon",
+        "title_2": "Magic: The Gathering",
+        "title_3": "Yu-Gi-Oh!",
+        "title_4": "One Piece",
+        "title_5": "Lorcana",
+        "title_6": "Sports Cards",
+        "caption_1": "Vintage holos to modern chase cards",
+        "caption_2": "Reserved List to Commander staples",
+        "caption_3": "Ghost rares and 1st Editions",
+        "caption_4": "Manga rares and alt arts",
+        "caption_5": "Enchanted and cold-foil singles",
+        "caption_6": "Rookies, autos and numbered parallels"
+      }
+    }
+  }
+}

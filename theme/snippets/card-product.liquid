@@ -1,0 +1,474 @@
+{%- comment -%}
+  THE product card — grids, carousels, search, recommendations, cart upsell.
+
+  Usage:
+    {% render 'card-product', product: product, index: forloop.index0, sizes: card_sizes, section_id: section.id %}
+    {% render 'card-product', demo: 3, index: 2, section_id: section.id %}   (sample card, no product needed)
+
+  Params:
+    product         product object (required unless `demo` is passed)
+    index           position in the list, 0-based (default 0) — placeholder art + image priority
+    ratio           card | portrait | square | natural (default settings.card_media_ratio)
+    show_quick_add  true | false (default settings.card_quick_add)
+    lazy            default true. false → eager image, plus fetchpriority high when index < 2
+    sizes           image `sizes` attribute (default: 2 / 3 / 4 columns)
+    section_id      used to build unique ids
+    reveal          default true → data-reveal="card" entrance
+    class           extra classes on the root
+    demo            1–12 → sample card with placeholder art, title and price (no links, no form)
+
+  Structure:
+    .product-card[data-product-card]                  container-query root + reveal
+      .product-card__inner[data-spotlight]             surface: border, glow, hover lift
+        holo-card > .holo > .product-card__media[data-vt-media][data-fly-source]
+                          + .card-badges + .holo__shine + .holo__glare
+                  + .quick-add                         outside .holo so it stays flat while the card tilts
+        .product-card__info                            meta · vendor · title link (stretched) · condition · price
+  Styles: assets/component-card.css (loaded here).
+{%- endcomment -%}
+{%- liquid
+  assign card_index = index | default: 0
+  assign card_ratio = ratio | default: settings.card_media_ratio | default: 'card'
+  assign card_fit = settings.card_media_fit | default: 'contain'
+  assign card_uid = section_id | default: 'card' | append: '-' | append: card_index
+  assign card_sizes = sizes | default: '(min-width: 990px) calc((100vw - 160px) / 4), (min-width: 750px) calc((100vw - 96px) / 3), calc((100vw - 44px) / 2)'
+
+  assign card_quick_add = settings.card_quick_add
+  if show_quick_add == true
+    assign card_quick_add = true
+  elsif show_quick_add == false
+    assign card_quick_add = false
+  endif
+
+  assign demo_mode = false
+  if product == blank
+    assign demo_mode = true
+    if demo != blank
+      assign demo_n = demo | plus: 0
+    else
+      assign demo_n = card_index | plus: 1
+    endif
+    assign demo_n = demo_n | minus: 1 | modulo: 12 | plus: 1
+  else
+    assign card_uid = card_uid | append: '-' | append: product.id
+  endif
+
+  assign sold_out = false
+  assign is_graded = false
+  assign rarity_tier = ''
+  assign meta_text = ''
+  assign detail_text = ''
+-%}
+
+{%- if demo_mode -%}
+  {%- comment -%}
+    Sample data: fictional cards that match the placeholder-card artwork.
+    Row fields: art | price | compare-at | rarity key | rarity tier | detail key | grader | score | flags
+    Flags: g = gem mint, n = new, s = sealed, x = sold out, - = none
+  {%- endcomment -%}
+  {%- liquid
+    assign demo_rows = '1|124900|0|holo|holo|detail_nm_en|||n;2|89000|0|secret|secret||PSA|10|g;3|18500|22000|alt|secret|detail_nm_jp|||-;4|4200|0|full|ultra|detail_lp_en|||-;5|32000|0|promo|promo||BGS|9.5|g;6|27500|0|gold|secret|detail_nm_en|||x;1|64000|0|holo|holo||CGC|9|-;2|1800|0|reverse|holo|detail_nm_en|||n;3|15999|17999|||detail_sealed|||s;4|41000|0||||SGC|10|g;5|9500|11900|ultra|ultra|detail_nm_en|||-;6|21000|0|manga|secret||TAG|10|g' | split: ';'
+    assign demo_i = demo_n | minus: 1
+    assign row = demo_rows[demo_i] | split: '|'
+    assign demo_art = row[0] | plus: 0
+    assign demo_price = row[1] | plus: 0
+    assign demo_compare = row[2] | plus: 0
+    assign demo_rarity = row[3]
+    assign rarity_tier = row[4]
+    assign demo_detail = row[5]
+    assign demo_grader = row[6]
+    assign demo_score = row[7]
+    assign demo_flags = row[8]
+    assign demo_gem = false
+    if demo_flags contains 'g'
+      assign demo_gem = true
+    endif
+    assign demo_new = false
+    if demo_flags contains 'n'
+      assign demo_new = true
+    endif
+    assign demo_sealed = false
+    if demo_flags contains 's'
+      assign demo_sealed = true
+    endif
+    if demo_flags contains 'x'
+      assign sold_out = true
+    endif
+
+    if demo_grader != blank
+      assign is_graded = true
+    endif
+    assign demo_sale = false
+    assign demo_percent = 0
+    if demo_compare > demo_price and sold_out == false
+      assign demo_sale = true
+      assign demo_percent = demo_compare | minus: demo_price | times: 100.0 | divided_by: demo_compare | round
+    endif
+
+    assign title_key = 'products.card.demo.title_' | append: demo_n
+    assign meta_key = 'products.card.demo.meta_' | append: demo_n
+    assign card_title = title_key | t
+    assign meta_text = meta_key | t
+    if demo_detail != blank
+      assign detail_key = 'products.card.demo.' | append: demo_detail
+      assign detail_text = detail_key | t
+    endif
+    if demo_rarity != blank
+      assign rarity_key = 'products.card.demo.rarity_' | append: demo_rarity
+      assign demo_rarity_label = rarity_key | t
+    endif
+    assign demo_grader_key = demo_grader | downcase
+    assign ph_variant = demo_art
+  -%}
+{%- else -%}
+  {%- liquid
+    assign card_title = product.title
+    if product.available == false
+      assign sold_out = true
+    endif
+
+    # ---- Collector data (ARCHITECTURE §8): metafields first, tags as fallback ----
+    assign ns = settings.collector_namespace | default: 'custom'
+    assign mf = product.metafields[ns]
+    assign c_game = mf.game.value | default: '' | append: '' | strip
+    assign c_set = mf.set_name.value | default: '' | append: '' | strip
+    assign c_number = mf.card_number.value | default: '' | append: '' | strip
+    assign c_condition = mf.condition.value | default: '' | append: '' | strip
+    assign c_language = mf.language.value | default: '' | append: '' | strip
+    assign c_rarity = mf.rarity.value | default: '' | append: '' | strip
+    assign c_grade = mf.grade.value | default: '' | append: '' | strip
+
+    if settings.collector_tag_fallback
+      for tag in product.tags
+        if tag contains ':'
+          assign tag_key_raw = tag | split: ':' | first
+          assign tag_key = tag_key_raw | strip | downcase
+          assign tag_val = tag | remove_first: tag_key_raw | remove_first: ':' | strip
+          case tag_key
+            when 'game'
+              if c_game == blank
+                assign c_game = tag_val
+              endif
+            when 'set'
+              if c_set == blank
+                assign c_set = tag_val
+              endif
+            when 'number'
+              if c_number == blank
+                assign c_number = tag_val
+              endif
+            when 'condition'
+              if c_condition == blank
+                assign c_condition = tag_val
+              endif
+            when 'language'
+              if c_language == blank
+                assign c_language = tag_val
+              endif
+            when 'rarity'
+              if c_rarity == blank
+                assign c_rarity = tag_val
+              endif
+            when 'grade'
+              if c_grade == blank
+                assign c_grade = tag_val
+              endif
+          endcase
+        endif
+      endfor
+    endif
+
+    if c_grade != blank
+      assign is_graded = true
+    endif
+
+    # Meta line: game · set · #number
+    if settings.card_show_meta
+      assign meta_text = c_game
+      if c_set != blank
+        if meta_text != blank
+          assign meta_text = meta_text | append: ' · '
+        endif
+        assign meta_text = meta_text | append: c_set
+      endif
+      if c_number != blank
+        if meta_text != blank
+          assign meta_text = meta_text | append: ' · '
+        endif
+        assign card_no = c_number | remove_first: '#'
+        assign meta_text = meta_text | append: '#' | append: card_no
+      endif
+    endif
+
+    # Condition · language
+    assign detail_text = c_condition
+    if c_language != blank
+      if detail_text != blank
+        assign detail_text = detail_text | append: ' · '
+      endif
+      assign detail_text = detail_text | append: c_language
+    endif
+
+    # Rarity → tier (drives the foil strength)
+    if c_rarity != blank
+      assign r = c_rarity | downcase
+      assign rarity_tier = 'common'
+      if r contains 'secret' or r contains 'hyper' or r contains 'gold' or r contains 'special illustration' or r contains 'sir' or r contains 'alt art' or r contains 'manga'
+        assign rarity_tier = 'secret'
+      elsif r contains 'ultra' or r contains 'full art' or r contains 'ex' or r contains 'gx' or r contains 'v max' or r contains 'vmax' or r contains 'vstar' or r contains 'mythic' or r contains 'ghost' or r contains 'starlight' or r contains 'quarter century' or r contains 'collector'
+        assign rarity_tier = 'ultra'
+      elsif r contains 'holo' or r contains 'foil' or r contains 'reverse'
+        assign rarity_tier = 'holo'
+      endif
+    endif
+
+    # Media
+    assign card_media = product.featured_media
+    assign card_img = card_media.preview_image
+    if settings.card_second_image and product.media.size > 1
+      assign card_img2 = product.media[1].preview_image
+    endif
+    assign ph_variant = card_index | modulo: 6 | plus: 1
+  -%}
+{%- endif -%}
+
+{%- liquid
+  # Foil strength by rarity tier
+  if settings.card_holo == false
+    assign foil = 'none'
+  elsif rarity_tier == 'secret' or rarity_tier == 'ultra'
+    assign foil = 'intense'
+  elsif rarity_tier == 'holo'
+    assign foil = 'rainbow'
+  elsif card_img == blank
+    assign foil = 'rainbow'
+  else
+    assign foil = 'subtle'
+  endif
+
+  # Media shape
+  assign shape = card_ratio
+  if card_ratio == 'natural' and card_img == blank
+    assign shape = 'card'
+  endif
+  case shape
+    when 'portrait'
+      assign media_class = 'media--portrait'
+    when 'square'
+      assign media_class = 'media--square'
+    when 'natural'
+      assign media_class = 'media--natural'
+    else
+      assign media_class = 'media--card'
+  endcase
+
+  # Image loading
+  assign img_loading = 'lazy'
+  assign img_priority = 'auto'
+  if lazy == false
+    assign img_loading = 'eager'
+    if card_index < 2
+      assign img_priority = 'high'
+    endif
+  endif
+-%}
+
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+<div
+  class="product-card product-card--{{ shape }} product-card--fit-{{ card_fit }}{% if sold_out %} product-card--sold-out{% endif %}{% if card_img2 != blank %} product-card--has-alt{% endif %}{% if demo_mode %} product-card--demo{% endif %}{% if class != blank %} {{ class }}{% endif %}"
+  {% unless demo_mode %}
+    data-product-card
+    data-product-url="{{ product.url }}"
+  {% endunless %}
+  {% unless reveal == false %}
+    data-reveal="card"
+  {% endunless %}
+>
+  <div class="product-card__inner" data-spotlight>
+    <holo-card class="product-card__holo" data-foil="{{ foil }}" data-tilt="{{ settings.card_tilt }}" data-max-tilt="9">
+      <div class="holo">
+        <div
+          class="product-card__media media {{ media_class }}"
+          {% unless demo_mode %}
+            data-vt-media data-fly-source
+          {% endunless %}
+        >
+          {%- if card_img != blank -%}
+            {%- assign img_alt = card_media.alt | default: product.title -%}
+            {{-
+              card_img
+              | image_url: width: 800
+              | image_tag:
+                widths: '200, 300, 400, 500, 640, 800',
+                sizes: card_sizes,
+                loading: img_loading,
+                fetchpriority: img_priority,
+                alt: img_alt,
+                class: 'product-card__img product-card__img--primary'
+            -}}
+            {%- if card_img2 != blank -%}
+              {{-
+                card_img2
+                | image_url: width: 800
+                | image_tag:
+                  widths: '200, 300, 400, 500, 640, 800',
+                  sizes: card_sizes,
+                  loading: 'lazy',
+                  alt: '',
+                  class: 'product-card__img product-card__img--secondary'
+              -}}
+            {%- endif -%}
+          {%- else -%}
+            {%- render 'placeholder-card', variant: ph_variant, uid: card_uid, graded: is_graded, class: 'product-card__placeholder' -%}
+          {%- endif -%}
+          {%- unless demo_mode -%}
+            <a class="product-card__media-link" href="{{ product.url }}" tabindex="-1" aria-hidden="true"></a>
+          {%- endunless -%}
+        </div>
+
+        {%- if demo_mode -%}
+          <div class="card-badges card-badges--card">
+            <div class="card-badges__status badges">
+              {%- if sold_out -%}
+                <span class="badge badge--sold-out"><span class="badge__text">{{ 'products.product.sold_out' | t }}</span></span>
+              {%- endif -%}
+              {%- if demo_sale -%}
+                <span class="badge badge--sale"><span class="badge__text">{{ 'products.card.sale_off' | t: percent: demo_percent }}</span></span>
+              {%- endif -%}
+              {%- if demo_new -%}
+                <span class="badge badge--new"><span class="badge__text">{{ 'products.product.badges.new' | t }}</span></span>
+              {%- endif -%}
+              {%- if demo_sealed -%}
+                <span class="badge badge--sealed"><span class="badge__text">{{ 'products.product.badges.sealed' | t }}</span></span>
+              {%- endif -%}
+              {%- if demo_rarity != blank -%}
+                <span class="badge badge--rarity" data-tier="{{ rarity_tier }}">
+                  <span class="visually-hidden">{{ 'collector.rarity' | t }}:</span>
+                  <span class="badge__text">{{ demo_rarity_label }}</span>
+                </span>
+              {%- endif -%}
+            </div>
+            {%- if demo_grader != blank -%}
+              <div class="card-badges__grade">
+                <span class="badge badge--grade" data-grader="{{ demo_grader_key }}"{% if demo_gem %} data-gem{% endif %}>
+                  <span class="visually-hidden">{{ 'collector.grade' | t }}:</span>
+                  <span class="badge__grader">{{ demo_grader }}</span>
+                  <span class="badge__score">{{ demo_score }}</span>
+                </span>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- else -%}
+          {%- render 'card-badges', product: product, context: 'card' -%}
+        {%- endif -%}
+
+        <span class="holo__shine" aria-hidden="true"></span>
+        <span class="holo__glare" aria-hidden="true"></span>
+      </div>
+
+      {%- if card_quick_add -%}
+        {%- if demo_mode -%}
+          <div class="quick-add quick-add--{% if sold_out %}sold-out{% else %}add{% endif %}" aria-hidden="true">
+            <span class="quick-add__btn">
+              <span class="quick-add__label">
+                {%- if sold_out -%}
+                  {{- 'products.product.sold_out' | t -}}
+                {%- else -%}
+                  {{- 'products.product.add_to_cart' | t -}}
+                {%- endif -%}
+              </span>
+              <span class="quick-add__icon">
+                {%- if sold_out -%}
+                  {%- render 'icon', name: 'close', size: 16, stroke: 2 -%}
+                {%- else -%}
+                  {%- render 'icon', name: 'plus', size: 18, stroke: 2 -%}
+                {%- endif -%}
+              </span>
+            </span>
+          </div>
+        {%- elsif sold_out -%}
+          <div class="quick-add quick-add--sold-out" aria-hidden="true">
+            <button type="button" class="quick-add__btn" disabled tabindex="-1">
+              <span class="quick-add__label">{{ 'products.product.sold_out' | t }}</span>
+              <span class="quick-add__icon">{%- render 'icon', name: 'close', size: 16, stroke: 2 -%}</span>
+            </button>
+          </div>
+        {%- elsif product.variants.size == 1 and product.requires_selling_plan != true -%}
+          <form
+            method="post"
+            action="{{ routes.cart_add_url }}"
+            class="quick-add quick-add--add"
+            accept-charset="UTF-8"
+            data-cart-form
+          >
+            <input type="hidden" name="form_type" value="product">
+            <input type="hidden" name="utf8" value="✓">
+            <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="quick-add__btn" name="add">
+              <span class="quick-add__label">
+                {{- 'products.product.add_to_cart' | t -}}
+                <span class="visually-hidden">: {{ product.title | escape }}</span>
+              </span>
+              <span class="quick-add__icon">{%- render 'icon', name: 'plus', size: 18, stroke: 2 -%}</span>
+            </button>
+          </form>
+        {%- else -%}
+          <div class="quick-add quick-add--options">
+            <a href="{{ product.url }}" class="quick-add__btn" tabindex="-1" aria-hidden="true">
+              <span class="quick-add__label">{{ 'products.product.choose_options' | t }}</span>
+              <span class="quick-add__icon">{%- render 'icon', name: 'sliders', size: 18 -%}</span>
+            </a>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </holo-card>
+
+    <div class="product-card__info">
+      {%- if meta_text != blank -%}
+        <p class="product-card__meta mono">{{ meta_text | escape }}</p>
+      {%- endif -%}
+      {%- if settings.card_show_vendor and demo_mode == false and product.vendor != blank -%}
+        <p class="product-card__vendor">
+          <span class="visually-hidden">{{ 'accessibility.vendor' | t }}</span>
+          {{ product.vendor | escape }}
+        </p>
+      {%- endif -%}
+      <h3 class="product-card__title">
+        {%- if demo_mode -%}
+          <span class="product-card__link">{{ card_title | escape }}</span>
+        {%- else -%}
+          <a class="product-card__link" href="{{ product.url }}">{{ card_title | escape }}</a>
+        {%- endif -%}
+      </h3>
+      {%- if detail_text != blank -%}
+        <p class="product-card__detail">{{ detail_text | escape }}</p>
+      {%- endif -%}
+      <div class="product-card__price">
+        {%- if demo_mode -%}
+          {{ 'component-price.css' | asset_url | stylesheet_tag }}
+          <div class="price price--sm{% if demo_sale %} price--on-sale{% endif %}{% if sold_out %} price--sold-out{% endif %}">
+            <span class="price__main">
+              <span class="visually-hidden">
+                {%- if demo_sale -%}
+                  {{- 'products.product.price.sale' | t -}}
+                {%- else -%}
+                  {{- 'products.product.price.regular' | t -}}
+                {%- endif -%}
+              </span>
+              <span class="price__current">{{ demo_price | money }}</span>
+            </span>
+            {%- if demo_sale -%}
+              <span class="price__was">
+                <span class="visually-hidden">{{ 'products.product.price.regular' | t }}</span>
+                <s class="price__compare">{{ demo_compare | money }}</s>
+              </span>
+            {%- endif -%}
+          </div>
+        {%- else -%}
+          {%- render 'price', product: product, size: 'sm', show_saving: false -%}
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+{%- comment -%}
+  Applies the visitor's saved grid density (set by <grid-density> in section-collection-grid.js) to <html>
+  before the grid paints, so returning shoppers don't see the columns jump. Values are validated.
+  Usage: {% render 'facets-density-boot' %}   (place just before the product grid)
+{%- endcomment -%}
+<script>
+  try {
+    var vaultDensity = JSON.parse(window.localStorage.getItem('vault:grid-density') || '{}');
+    ['mobile', 'tablet', 'desktop'].forEach(function (key) {
+      if (/^[1-5]$/.test(String(vaultDensity[key]))) document.documentElement.setAttribute('data-grid-' + key, vaultDensity[key]);
+    });
+  } catch (e) {}
+</script>

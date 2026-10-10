@@ -1,0 +1,176 @@
+{{ 'section-logo-list.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign s = section.settings
+  assign mode = s.display
+  assign heading_id = 'LogoHeading-' | append: section.id
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-logo-list logo-list logo-list--{{ mode }}{% if s.greyscale %} logo-list--mono{% endif %} color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }}; --logo-h: {{ s.logo_height }}px; --logo-cols: {{ s.columns_desktop }};"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}aria-labelledby="{{ heading_id }}"{% endif %}
+>
+  {%- if s.heading != blank -%}
+    <div class="page-width">
+      {%- if s.heading_style == 'label' -%}
+        <h2 id="{{ heading_id }}" class="logo-list__label" data-reveal="fade">
+          <span>{{ s.heading }}</span>
+        </h2>
+      {%- else -%}
+        <div class="logo-list__header">
+          <h2 id="{{ heading_id }}" class="h3 logo-list__heading" data-split>{{ s.heading }}</h2>
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if section.blocks.size > 0 -%}
+    {%- capture logos -%}
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign b = block.settings
+          assign name = b.name | strip
+          assign logo_tag = 'span'
+          if b.link != blank
+            assign logo_tag = 'a'
+          endif
+        -%}
+        {%- if b.image != blank or name != blank -%}
+          <li class="logo-list__item"{% if mode == 'grid' %} data-reveal="fade-up"{% endif %} {{ block.shopify_attributes }}>
+            <{{ logo_tag }}
+              class="logo-list__logo"
+              {% if b.link != blank %}href="{{ b.link }}"{% endif %}
+              {% if mode == 'grid' %}data-spotlight{% endif %}
+            >
+              {%- if b.image != blank -%}
+                {%- assign logo_alt = b.image.alt | default: name -%}
+                {{- b.image | image_url: width: 480 | image_tag: loading: 'lazy', widths: '160, 240, 320, 480', sizes: '(min-width: 750px) 240px, 160px', alt: logo_alt, class: 'logo-list__img' -}}
+              {%- else -%}
+                <span class="logo-list__wordmark">{{ name | escape }}</span>
+              {%- endif -%}
+            </{{ logo_tag }}>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+
+    {%- if mode == 'marquee' -%}
+      <vault-marquee
+        class="logo-list__marquee"
+        data-speed="{{ s.speed }}"
+        data-direction="{{ s.direction }}"
+        data-scroll-velocity="true"
+        data-pause-hover
+        data-fade
+        data-reveal="fade"
+      >
+        <div class="marquee__track">
+          <ul class="marquee__group logo-list__group" role="list">
+            {{- logos -}}
+          </ul>
+        </div>
+      </vault-marquee>
+    {%- else -%}
+      <div class="page-width">
+        <ul class="logo-list__grid" role="list">
+          {{- logos -}}
+        </ul>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Logo list",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Graded by the best · Official products from"
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Heading style",
+      "options": [
+        { "value": "label", "label": "Small label" },
+        { "value": "heading", "label": "Display heading" }
+      ],
+      "default": "label"
+    },
+    {
+      "type": "select",
+      "id": "display",
+      "label": "Display",
+      "options": [
+        { "value": "marquee", "label": "Scrolling marquee" },
+        { "value": "grid", "label": "Grid" }
+      ],
+      "default": "marquee"
+    },
+    { "type": "range", "id": "logo_height", "min": 24, "max": 96, "step": 4, "unit": "px", "label": "Logo height", "default": 40 },
+    {
+      "type": "checkbox",
+      "id": "greyscale",
+      "label": "Monochrome logos",
+      "info": "Logos turn full color on hover (desktop).",
+      "default": true
+    },
+    { "type": "header", "content": "Marquee" },
+    { "type": "range", "id": "speed", "min": 10, "max": 120, "step": 10, "label": "Speed", "default": 40 },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "Direction",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    { "type": "header", "content": "Grid" },
+    { "type": "range", "id": "columns_desktop", "min": 3, "max": 8, "step": 1, "label": "Columns on desktop", "default": 5 },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Logo image", "info": "Transparent PNG or SVG. Leave empty to show the name as a wordmark." },
+        { "type": "text", "id": "name", "label": "Name", "info": "Shown as a wordmark when there is no image, and used as alt text.", "default": "PSA" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "max_blocks": 24,
+  "presets": [
+    {
+      "name": "Logo list",
+      "settings": {
+        "padding_top": 60,
+        "padding_bottom": 60
+      },
+      "blocks": [
+        { "type": "logo", "settings": { "name": "PSA" } },
+        { "type": "logo", "settings": { "name": "BGS" } },
+        { "type": "logo", "settings": { "name": "CGC" } },
+        { "type": "logo", "settings": { "name": "SGC" } },
+        { "type": "logo", "settings": { "name": "TAG" } },
+        { "type": "logo", "settings": { "name": "Pokémon TCG" } },
+        { "type": "logo", "settings": { "name": "Magic" } },
+        { "type": "logo", "settings": { "name": "Yu-Gi-Oh!" } },
+        { "type": "logo", "settings": { "name": "One Piece" } },
+        { "type": "logo", "settings": { "name": "Lorcana" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

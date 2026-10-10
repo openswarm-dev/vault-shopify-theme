@@ -1,0 +1,240 @@
+{{ 'section-faq.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign s = section.settings
+  assign heading_id = 'FaqHeading-' | append: section.id
+  assign contact_id = 'FaqContact-' | append: section.id
+  assign contact_url = s.contact_link
+  if contact_url == blank
+    assign contact_url = routes.root_url | append: '/pages/contact' | replace: '//', '/'
+  endif
+-%}
+
+<section
+  id="Section-{{ section.id }}"
+  class="section section-faq faq{% if s.show_numbers %} faq--numbered{% endif %} color-{{ s.color_scheme }} section-bg"
+  style="--pt: {{ s.padding_top | divided_by: 100.0 }}; --pb: {{ s.padding_bottom | divided_by: 100.0 }};"
+  data-section-id="{{ section.id }}"
+  {% if s.heading != blank %}aria-labelledby="{{ heading_id }}"{% endif %}
+>
+  <div class="page-width">
+    <faq-accordion class="faq__layout">
+      <div class="faq__aside">
+        <div class="faq__intro">
+          {% render 'section-header',
+            eyebrow: s.eyebrow,
+            heading: s.heading,
+            text: s.text,
+            align: 'left',
+            size: 'h2',
+            tag: 'h2',
+            id: heading_id
+          %}
+        </div>
+
+        {%- if s.show_contact -%}
+          <div class="faq__contact" data-reveal data-spotlight role="group" aria-labelledby="{{ contact_id }}">
+            <span class="faq__contact-icon" aria-hidden="true">
+              {%- render 'icon', name: 'chat', size: 22 -%}
+            </span>
+            <div class="faq__contact-body">
+              <h3 id="{{ contact_id }}" class="faq__contact-title h4">{{ s.contact_heading | escape }}</h3>
+              {%- if s.contact_text != blank -%}
+                <p class="faq__contact-text">{{ s.contact_text }}</p>
+              {%- endif -%}
+            </div>
+            {%- if s.contact_button_label != blank -%}
+              <a href="{{ contact_url }}" class="btn btn--primary faq__contact-btn" data-magnetic="0.2">
+                <span>{{ s.contact_button_label | escape }}</span>
+                {%- render 'icon', name: 'arrow-right', size: 18 -%}
+              </a>
+            {%- endif -%}
+            {%- if s.contact_note != blank -%}
+              <p class="faq__contact-note">
+                <span class="faq__contact-dot" aria-hidden="true"></span>
+                <span>{{ s.contact_note | escape }}</span>
+              </p>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="faq__list"{% if s.single_open %} data-accordion-group{% endif %}>
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign number = forloop.index | prepend: '0' | slice: -2, 2
+            if forloop.index > 99
+              assign number = forloop.index
+            endif
+            assign is_open = false
+            if forloop.first and s.open_first
+              assign is_open = true
+            endif
+          -%}
+          <details
+            class="accordion faq__item"
+            id="Faq-{{ block.id }}"
+            data-accordion
+            data-reveal="fade-up"
+            {% if is_open %}open{% endif %}
+            {{ block.shopify_attributes }}
+          >
+            <summary class="faq__summary">
+              {%- if s.show_numbers -%}
+                <span class="faq__num" aria-hidden="true">{{ number }}</span>
+              {%- endif -%}
+              <h3 class="faq__question">{{ block.settings.question | escape }}</h3>
+              <span class="accordion__icon faq__icon" aria-hidden="true">
+                {%- render 'icon', name: 'plus', size: 14, stroke: 2 -%}
+              </span>
+            </summary>
+            <div class="accordion__content">
+              <div class="accordion__inner faq__answer rte">{{ block.settings.answer }}</div>
+            </div>
+          </details>
+        {%- endfor -%}
+      </div>
+    </faq-accordion>
+  </div>
+
+  {%- if s.enable_schema and section.blocks.size > 0 -%}
+    {%- assign printed = false -%}
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {%- for block in section.blocks -%}
+            {%- if block.settings.question != blank and block.settings.answer != blank -%}
+              {%- if printed %},{% endif -%}
+              {
+                "@type": "Question",
+                "name": {{ block.settings.question | strip_html | strip | json }},
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": {{ block.settings.answer | json }}
+                }
+              }
+              {%- assign printed = true -%}
+            {%- endif -%}
+          {%- endfor -%}
+        ]
+      }
+    </script>
+  {%- endif -%}
+</section>
+
+<script src="{{ 'section-faq.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Help centre" },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Italicize words to highlight them in the accent color.",
+      "default": "Collector questions, <em>answered</em>"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "text",
+      "label": "Subheading",
+      "default": "Authenticity, grading, shipping and everything in between. If it is not here, ask a real collector on our team."
+    },
+    { "type": "header", "content": "Questions" },
+    { "type": "checkbox", "id": "single_open", "label": "Keep one answer open at a time", "default": true },
+    { "type": "checkbox", "id": "open_first", "label": "Open the first answer", "default": true },
+    { "type": "checkbox", "id": "show_numbers", "label": "Show question numbers", "default": true },
+    {
+      "type": "checkbox",
+      "id": "enable_schema",
+      "label": "Add FAQ structured data",
+      "info": "Helps search engines understand your questions. Use on one FAQ section per page.",
+      "default": true
+    },
+    { "type": "header", "content": "Contact box" },
+    { "type": "checkbox", "id": "show_contact", "label": "Show contact box", "default": true },
+    { "type": "text", "id": "contact_heading", "label": "Heading", "default": "Still got questions?" },
+    {
+      "type": "inline_richtext",
+      "id": "contact_text",
+      "label": "Text",
+      "default": "Our team are collectors too. Ask about a card, a grade or a trade and get a real answer from a human."
+    },
+    { "type": "text", "id": "contact_button_label", "label": "Button label", "default": "Contact us" },
+    { "type": "url", "id": "contact_link", "label": "Button link", "info": "Defaults to your contact page." },
+    { "type": "text", "id": "contact_note", "label": "Note", "default": "Average reply time: under 2 hours" },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Top padding", "default": 100 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "%", "label": "Bottom padding", "default": 100 }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "Are your cards guaranteed authentic?" },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Yes. Every single and slab is inspected by hand under magnification and UV light before it is listed. If anything we sell is ever proven inauthentic, you get a full refund with no time limit.</p>"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 30,
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        {
+          "type": "question",
+          "settings": {
+            "question": "Are your cards guaranteed authentic?",
+            "answer": "<p>Yes. Every single and slab is inspected by hand under magnification and UV light before it is listed, and graded slabs are checked against the grader's cert database. If anything we sell is ever proven inauthentic, you get a full refund with no time limit.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "How do you describe raw card condition?",
+            "answer": "<p>We use the standard scale: Near Mint, Lightly Played, Moderately Played, Heavily Played and Damaged. Centering, corners, edges and surface are checked individually, and higher-value singles are photographed front and back so the card you see is the card you get.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "How are orders packed and protected?",
+            "answer": "<p>Singles ship in a penny sleeve and top-loader, sealed in a team bag inside a rigid bubble mailer. Slabs and sealed product ship boxed with edge protection. Every order is tracked, and higher-value orders are fully insured until they reach your door.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "Can I return a graded card?",
+            "answer": "<p>Yes, within 14 days of delivery as long as the slab is unaltered. We record the cert number of every slab we ship and match it on return. Sealed product must be unopened with the factory wrap intact.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "Do you buy collections?",
+            "answer": "<p>We do. Send us a list or photos of your singles, binders, slabs or sealed product and we will come back with a cash or store credit offer within 48 hours. Store credit offers are 20% higher.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "How do pre-orders work?",
+            "answer": "<p>Pre-orders are charged when you order and ship as soon as stock lands, usually ahead of release day. Your price is locked in, and if a distributor shorts our allocation you are refunded in full automatically.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
