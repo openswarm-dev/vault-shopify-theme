@@ -1,0 +1,116 @@
+{
+  "general": {
+    "meta": {
+      "tagged": "Tagged \"{{ tags }}\"",
+      "page": "Page {{ page }}"
+    },
+    "pagination": {
+      "label": "Pagination",
+      "page": "Page {{ number }}",
+      "next": "Next page",
+      "previous": "Previous page",
+      "load_more": "Load more",
+      "showing": "Showing {{ shown }} of {{ total }}"
+    },
+    "actions": {
+      "view_all": "View all",
+      "shop_now": "Shop now",
+      "learn_more": "Learn more",
+      "read_more": "Read more",
+      "subscribe": "Subscribe",
+      "submit": "Submit",
+      "apply": "Apply",
+      "clear_all": "Clear all",
+      "back": "Back"
+    },
+    "newsletter": {
+      "email_label": "Email address",
+      "success": "You're on the list. Watch your inbox for the next drop.",
+      "button": "Subscribe"
+    }
+  },
+  "accessibility": {
+    "skip_to_content": "Skip to content",
+    "close": "Close",
+    "loading": "Loading…",
+    "menu": "Menu",
+    "open_menu": "Open menu",
+    "search": "Search",
+    "cart": "Cart",
+    "account": "Account",
+    "home": "Home",
+    "previous_slide": "Previous slide",
+    "next_slide": "Next slide",
+    "play": "Play",
+    "pause": "Pause",
+    "new_window": "Opens in a new window",
+    "external_link": "Opens external website",
+    "unit_price_separator": "per",
+    "vendor": "Vendor:",
+    "rating": "{{ rating }} out of 5 stars",
+    "increase_quantity": "Increase quantity for {{ product }}",
+    "decrease_quantity": "Decrease quantity for {{ product }}"
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Add to cart",
+      "added": "Added to cart",
+      "quick_add": "Quick add",
+      "choose_options": "Choose options",
+      "view_details": "View details",
+      "sold_out": "Sold out",
+      "unavailable": "Unavailable",
+      "quantity": "Quantity",
+      "price": {
+        "regular": "Regular price",
+        "sale": "Sale price",
+        "from": "From {{ price }}",
+        "unit": "Unit price"
+      },
+      "badges": {
+        "new": "New",
+        "sale": "Sale",
+        "sealed": "Sealed",
+        "low_stock": {
+          "one": "Last one",
+          "other": "Only {{ count }} left"
+        }
+      }
+    }
+  },
+  "collector": {
+    "game": "Game",
+    "set": "Set",
+    "number": "Card no.",
+    "rarity": "Rarity",
+    "grade": "Grade",
+    "grader": "Grading company",
+    "cert": "Cert #",
+    "condition": "Condition",
+    "language": "Language",
+    "year": "Year",
+    "population": "Population",
+    "verify_cert": "Verify certification",
+    "raw": "Raw (ungraded)"
+  },
+  "cart": {
+    "general": {
+      "title": "Your cart",
+      "empty": "Your cart is empty",
+      "continue_shopping": "Continue shopping",
+      "checkout": "Check out",
+      "subtotal": "Subtotal",
+      "taxes_and_shipping": "Taxes and shipping calculated at checkout",
+      "note": "Order note",
+      "remove": "Remove",
+      "error": "Something went wrong. Please try again.",
+      "quantity_error": "You can only add {{ quantity }} of this item to your cart.",
+      "free_shipping_remaining": "You're {{ amount }} away from free insured shipping",
+      "free_shipping_unlocked": "You've unlocked free insured shipping",
+      "item_count": {
+        "one": "{{ count }} item",
+        "other": "{{ count }} items"
+      }
+    }
+  }
+}

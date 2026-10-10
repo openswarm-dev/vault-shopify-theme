@@ -1,0 +1,139 @@
+{%- comment -%}
+  UI icon set (24x24, stroke = currentColor).
+  Usage: {% render 'icon', name: 'cart', size: 20, class: 'my-class' %}
+  Params: name (required), size (px, default 20), class (optional), stroke (default 1.75)
+{%- endcomment -%}
+{%- liquid
+  assign icon_size = size | default: 20
+  assign icon_stroke = stroke | default: 1.75
+-%}
+<svg
+  class="icon icon--{{ name }}{% if class %} {{ class }}{% endif %}"
+  width="{{ icon_size }}"
+  height="{{ icon_size }}"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="{{ icon_stroke }}"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  {%- case name -%}
+    {%- when 'arrow-right' -%}
+      <path d="M5 12h14M13 6l6 6-6 6"/>
+    {%- when 'arrow-left' -%}
+      <path d="M19 12H5M11 6l-6 6 6 6"/>
+    {%- when 'arrow-up-right' -%}
+      <path d="M7 17 17 7M8 7h9v9"/>
+    {%- when 'chevron-down' -%}
+      <path d="m6 9 6 6 6-6"/>
+    {%- when 'chevron-up' -%}
+      <path d="m6 15 6-6 6 6"/>
+    {%- when 'chevron-right' -%}
+      <path d="m9 6 6 6-6 6"/>
+    {%- when 'chevron-left' -%}
+      <path d="m15 6-6 6 6 6"/>
+    {%- when 'close' -%}
+      <path d="M6 6l12 12M18 6 6 18"/>
+    {%- when 'menu' -%}
+      <path d="M4 7h16M4 12h16M4 17h10"/>
+    {%- when 'search' -%}
+      <circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>
+    {%- when 'cart' -%}
+      <path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9L5 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>
+    {%- when 'user' -%}
+      <circle cx="12" cy="8.5" r="3.75"/><path d="M4.5 20.25c1.3-3.6 4.2-5.5 7.5-5.5s6.2 1.9 7.5 5.5"/>
+    {%- when 'home' -%}
+      <path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19v-8.5Z"/>
+    {%- when 'grid' -%}
+      <rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>
+    {%- when 'cards' -%}
+      <rect x="8" y="3.5" width="11" height="15" rx="1.8" transform="rotate(8 13.5 11)"/><path d="M6.2 6.6 5 6.8a1.8 1.8 0 0 0-1.5 2.1l1.7 10.1a1.8 1.8 0 0 0 2.1 1.5l6.4-1.1"/>
+    {%- when 'heart' -%}
+      <path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20Z"/>
+    {%- when 'plus' -%}
+      <path d="M12 5v14M5 12h14"/>
+    {%- when 'minus' -%}
+      <path d="M5 12h14"/>
+    {%- when 'trash' -%}
+      <path d="M4.5 7h15M10 11v6M14 11v6M6 7l.9 12.1A2 2 0 0 0 8.9 21h6.2a2 2 0 0 0 2-1.9L18 7M9 7V4.5h6V7"/>
+    {%- when 'check' -%}
+      <path d="m5 12.5 4.5 4.5L19 7.5"/>
+    {%- when 'star' -%}
+      <path d="m12 3.8 2.5 5.1 5.6.8-4 3.9 1 5.6-5.1-2.7-5 2.7 1-5.6-4.1-3.9 5.6-.8L12 3.8Z"/>
+    {%- when 'star-filled' -%}
+      <path fill="currentColor" d="m12 3.8 2.5 5.1 5.6.8-4 3.9 1 5.6-5.1-2.7-5 2.7 1-5.6-4.1-3.9 5.6-.8L12 3.8Z"/>
+    {%- when 'shield' -%}
+      <path d="M12 3.5 19 6v5.5c0 4.4-3 8-7 9-4-1-7-4.6-7-9V6l7-2.5Z"/><path d="m9 12 2 2 4-4"/>
+    {%- when 'truck' -%}
+      <path d="M3.5 6.5h10v9h-10zM13.5 10h3.8l2.7 3v2.5h-6.5"/><circle cx="7" cy="17.5" r="1.75"/><circle cx="17" cy="17.5" r="1.75"/>
+    {%- when 'lock' -%}
+      <rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/>
+    {%- when 'sparkle' -%}
+      <path d="M12 3.5c.6 4.3 2.2 5.9 6.5 6.5-4.3.6-5.9 2.2-6.5 6.5-.6-4.3-2.2-5.9-6.5-6.5 4.3-.6 5.9-2.2 6.5-6.5Z"/><path d="M18.5 15.5c.3 1.7.8 2.2 2.5 2.5-1.7.3-2.2.8-2.5 2.5-.3-1.7-.8-2.2-2.5-2.5 1.7-.3 2.2-.8 2.5-2.5Z"/>
+    {%- when 'flame' -%}
+      <path d="M12 21c3.6 0 6-2.4 6-5.8 0-3.9-3.4-6-4.3-10.2-1.8 1.3-2.9 3.3-3 5.3-.9-.6-1.5-1.6-1.6-2.7C7.4 9.3 6 11.7 6 15.2 6 18.6 8.4 21 12 21Z"/>
+    {%- when 'eye' -%}
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>
+    {%- when 'filter' -%}
+      <path d="M4 6h16M7 12h10M10 18h4"/>
+    {%- when 'sliders' -%}
+      <path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>
+    {%- when 'list' -%}
+      <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>
+    {%- when 'play' -%}
+      <path d="M8 5.5v13l10.5-6.5L8 5.5Z"/>
+    {%- when 'pause' -%}
+      <path d="M8.5 5.5v13M15.5 5.5v13"/>
+    {%- when 'zoom' -%}
+      <circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2M11 8.5v5M8.5 11h5"/>
+    {%- when 'flip' -%}
+      <path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.7M20 4.5v4.2h-4.2M20 12a8 8 0 0 1-13.7 5.6L4 15.3M4 19.5v-4.2h4.2"/>
+    {%- when 'info' -%}
+      <circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8h.01"/>
+    {%- when 'alert' -%}
+      <path d="M12 4 21 19.5H3L12 4Z"/><path d="M12 10v4M12 16.8h.01"/>
+    {%- when 'mail' -%}
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4 7 8 6 8-6"/>
+    {%- when 'phone' -%}
+      <path d="M6.6 3.5h2.5l1.4 4-2 1.3a11 11 0 0 0 6.7 6.7l1.3-2 4 1.4v2.5a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2Z"/>
+    {%- when 'map-pin' -%}
+      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/>
+    {%- when 'clock' -%}
+      <circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>
+    {%- when 'tag' -%}
+      <path d="M3.5 12.3V4.5a1 1 0 0 1 1-1h7.8l8.2 8.2a1.5 1.5 0 0 1 0 2.1l-6.2 6.2a1.5 1.5 0 0 1-2.1 0l-8.7-7.7Z"/><circle cx="8" cy="8" r="1.4"/>
+    {%- when 'box' -%}
+      <path d="M12 3.5 20 7.5v9L12 20.5 4 16.5v-9L12 3.5Z"/><path d="m4 7.5 8 4 8-4M12 11.5v9"/>
+    {%- when 'layers' -%}
+      <path d="m12 4 8.5 4.5L12 13 3.5 8.5 12 4Z"/><path d="m3.5 12.5 8.5 4.5 8.5-4.5M3.5 16.5 12 21l8.5-4.5"/>
+    {%- when 'award' -%}
+      <circle cx="12" cy="9" r="5.5"/><path d="m8.6 13.4-1.1 7.1L12 18l4.5 2.5-1.1-7.1"/>
+    {%- when 'verified' -%}
+      <path d="m12 3 2.2 1.6 2.7-.1.8 2.6 2.2 1.6-.9 2.6.9 2.6-2.2 1.6-.8 2.6-2.7-.1L12 21l-2.2-1.6-2.7.1-.8-2.6-2.2-1.6.9-2.6-.9-2.6 2.2-1.6.8-2.6 2.7.1L12 3Z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/>
+    {%- when 'external' -%}
+      <path d="M14 4.5h5.5V10M19.5 4.5 11 13M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/>
+    {%- when 'globe' -%}
+      <circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5S9.7 5.9 12 3.5Z"/>
+    {%- when 'gift' -%}
+      <rect x="4" y="9" width="16" height="11.5" rx="1.5"/><path d="M3.5 9h17M12 9v11.5M12 9S10.8 4 8.2 4.4C6 4.8 6.8 9 12 9Zm0 0s1.2-5 3.8-4.6C18 4.8 17.2 9 12 9Z"/>
+    {%- when 'bolt' -%}
+      <path d="M13 3 5 13.5h6L10.5 21 19 10.5h-6L13 3Z"/>
+    {%- when 'trophy' -%}
+      <path d="M8 4.5h8v5a4 4 0 0 1-8 0v-5ZM8 6.5H5a3 3 0 0 0 3 4M16 6.5h3a3 3 0 0 1-3 4M12 13.5V17M8.5 20.5h7M9.5 17h5v3.5h-5z"/>
+    {%- when 'chat' -%}
+      <path d="M20 12a7.5 7.5 0 0 1-11 6.6L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12Z"/>
+    {%- when 'return' -%}
+      <path d="M9 14 4.5 9.5 9 5"/><path d="M4.5 9.5H15a4.5 4.5 0 0 1 0 9h-3"/>
+    {%- when 'calendar' -%}
+      <rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>
+    {%- when 'camera' -%}
+      <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.3l1.4-2h5.6l1.4 2h2.3A1.5 1.5 0 0 1 20 8.5v9.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18V8.5Z"/><circle cx="12" cy="13" r="3.5"/>
+    {%- when 'dot' -%}
+      <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>
+    {%- else -%}
+      <circle cx="12" cy="12" r="8.5"/>
+  {%- endcase -%}
+</svg>

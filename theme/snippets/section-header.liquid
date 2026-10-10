@@ -1,0 +1,47 @@
+{%- comment -%}
+  Consistent section heading block.
+  Usage:
+    {% render 'section-header',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      text: section.settings.text,
+      link_label: section.settings.link_label,
+      link_url: section.settings.link_url,
+      align: 'left',            # left | center
+      size: 'h2',               # h1 | h2 | h3
+      tag: 'h2',                # heading element
+      split: true,              # animated word reveal on the heading
+      id: 'Heading-' | append: section.id
+    %}
+  `heading` may contain <em>…</em> or <strong>…</strong> (from inline_richtext) — styled as accent text.
+{%- endcomment -%}
+{%- liquid
+  assign hd_align = align | default: 'left'
+  assign hd_size = size | default: 'h2'
+  assign hd_tag = tag | default: 'h2'
+-%}
+{%- if eyebrow != blank or heading != blank or text != blank or link_label != blank -%}
+  <div class="section-header{% if hd_align == 'center' %} section-header--center{% endif %}">
+    <div class="section-header__text">
+      {%- if eyebrow != blank -%}
+        <p class="eyebrow" data-reveal="fade">{{ eyebrow | escape }}</p>
+      {%- endif -%}
+      {%- if heading != blank -%}
+        <{{ hd_tag }} class="{{ hd_size }} section-header__heading"{% if id %} id="{{ id }}"{% endif %}{% if split != false %} data-split{% else %} data-reveal{% endif %}>
+          {{- heading -}}
+        </{{ hd_tag }}>
+      {%- endif -%}
+      {%- if text != blank -%}
+        <div class="lead section-header__subtext" data-reveal>{{ text }}</div>
+      {%- endif -%}
+    </div>
+    {%- if link_label != blank and link_url != blank and hd_align != 'center' -%}
+      <div class="section-header__actions" data-reveal="fade">
+        <a href="{{ link_url }}" class="link link--accent">
+          {{- link_label | escape -}}
+          {% render 'icon', name: 'arrow-right', size: 16 %}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+{%- endif -%}

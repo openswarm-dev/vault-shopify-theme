@@ -1,0 +1,174 @@
+{
+  "current": {
+    "logo_width": 130,
+    "logo_width_mobile": 96,
+    "font_display": "unbounded",
+    "font_body": "manrope",
+    "font_mono_enabled": true,
+    "heading_case": "uppercase",
+    "heading_scale": 100,
+    "body_scale": 100,
+    "page_width": 1440,
+    "section_spacing": 100,
+    "grid_gap": 20,
+    "corner_style": "soft",
+    "animations_enabled": true,
+    "animation_intensity": "standard",
+    "page_transitions": true,
+    "scroll_progress": true,
+    "cursor_glow": true,
+    "grain_overlay": true,
+    "card_media_ratio": "card",
+    "card_media_fit": "contain",
+    "card_holo": true,
+    "card_tilt": true,
+    "card_second_image": true,
+    "card_show_vendor": false,
+    "card_show_meta": true,
+    "card_quick_add": true,
+    "card_new_badge_days": 14,
+    "low_stock_threshold": 3,
+    "collector_namespace": "custom",
+    "collector_tag_fallback": true,
+    "collector_cert_links": true,
+    "cart_type": "drawer",
+    "free_shipping_threshold": "75",
+    "cart_show_note": true,
+    "cart_fly_animation": true,
+    "predictive_search_enabled": true,
+    "predictive_search_show_price": true,
+    "mobile_dock": true,
+    "social_instagram_link": "https://instagram.com/",
+    "social_tiktok_link": "https://tiktok.com/",
+    "social_youtube_link": "https://youtube.com/",
+    "social_discord_link": "https://discord.com/",
+    "color_schemes": {
+      "scheme-1": {
+        "settings": {
+          "background": "#111214",
+          "background_gradient": "",
+          "surface": "#1a1b20",
+          "text": "#f4f4f5",
+          "text_muted": "#a1a1aa",
+          "accent": "#e11d2e",
+          "on_accent": "#ffffff",
+          "border": "#2a2c33"
+        }
+      },
+      "scheme-2": {
+        "settings": {
+          "background": "#0a0a0b",
+          "background_gradient": "",
+          "surface": "#151518",
+          "text": "#fafafa",
+          "text_muted": "#9b9ba3",
+          "accent": "#ff2a3c",
+          "on_accent": "#ffffff",
+          "border": "#232328"
+        }
+      },
+      "scheme-3": {
+        "settings": {
+          "background": "#1c1e23",
+          "background_gradient": "",
+          "surface": "#262930",
+          "text": "#f4f4f5",
+          "text_muted": "#a8a9b1",
+          "accent": "#e11d2e",
+          "on_accent": "#ffffff",
+          "border": "#363941"
+        }
+      },
+      "scheme-4": {
+        "settings": {
+          "background": "#b10f1f",
+          "background_gradient": "linear-gradient(135deg, rgba(225, 29, 46, 1) 0%, rgba(122, 8, 18, 1) 100%)",
+          "surface": "#8f0c19",
+          "text": "#ffffff",
+          "text_muted": "#ffd0d4",
+          "accent": "#0d0e10",
+          "on_accent": "#ffffff",
+          "border": "#d33a48"
+        }
+      },
+      "scheme-5": {
+        "settings": {
+          "background": "#f2f2f3",
+          "background_gradient": "",
+          "surface": "#ffffff",
+          "text": "#111214",
+          "text_muted": "#5f6068",
+          "accent": "#d0142a",
+          "on_accent": "#ffffff",
+          "border": "#dcdce0"
+        }
+      }
+    }
+  },
+  "presets": {
+    "Default": {
+      "color_schemes": {
+        "scheme-1": {
+          "settings": {
+            "background": "#111214",
+            "background_gradient": "",
+            "surface": "#1a1b20",
+            "text": "#f4f4f5",
+            "text_muted": "#a1a1aa",
+            "accent": "#e11d2e",
+            "on_accent": "#ffffff",
+            "border": "#2a2c33"
+          }
+        },
+        "scheme-2": {
+          "settings": {
+            "background": "#0a0a0b",
+            "background_gradient": "",
+            "surface": "#151518",
+            "text": "#fafafa",
+            "text_muted": "#9b9ba3",
+            "accent": "#ff2a3c",
+            "on_accent": "#ffffff",
+            "border": "#232328"
+          }
+        },
+        "scheme-3": {
+          "settings": {
+            "background": "#1c1e23",
+            "background_gradient": "",
+            "surface": "#262930",
+            "text": "#f4f4f5",
+            "text_muted": "#a8a9b1",
+            "accent": "#e11d2e",
+            "on_accent": "#ffffff",
+            "border": "#363941"
+          }
+        },
+        "scheme-4": {
+          "settings": {
+            "background": "#b10f1f",
+            "background_gradient": "linear-gradient(135deg, rgba(225, 29, 46, 1) 0%, rgba(122, 8, 18, 1) 100%)",
+            "surface": "#8f0c19",
+            "text": "#ffffff",
+            "text_muted": "#ffd0d4",
+            "accent": "#0d0e10",
+            "on_accent": "#ffffff",
+            "border": "#d33a48"
+          }
+        },
+        "scheme-5": {
+          "settings": {
+            "background": "#f2f2f3",
+            "background_gradient": "",
+            "surface": "#ffffff",
+            "text": "#111214",
+            "text_muted": "#5f6068",
+            "accent": "#d0142a",
+            "on_accent": "#ffffff",
+            "border": "#dcdce0"
+          }
+        }
+      }
+    }
+  }
+}

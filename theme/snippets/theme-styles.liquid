@@ -1,0 +1,182 @@
+{%- comment -%}
+  Fonts + global CSS custom properties + color scheme classes.
+  Rendered once in <head> by layout/theme.liquid and layout/password.liquid.
+{%- endcomment -%}
+{%- liquid
+  assign display_stretch = 'normal'
+  assign display_adjust = 0.86
+  assign display_weight = 700
+  case settings.font_display
+    when 'archivo_expanded'
+      assign display_family = "'Archivo'"
+      assign display_query = 'Archivo:wdth,wght@62..125,400..900'
+      assign display_stretch = '125%'
+      assign display_adjust = 0.86
+      assign display_weight = 800
+    when 'chakra_petch'
+      assign display_family = "'Chakra Petch'"
+      assign display_query = 'Chakra+Petch:wght@500;600;700'
+      assign display_adjust = 1.0
+    when 'space_grotesk'
+      assign display_family = "'Space Grotesk'"
+      assign display_query = 'Space+Grotesk:wght@400..700'
+      assign display_adjust = 1.0
+    when 'syne'
+      assign display_family = "'Syne'"
+      assign display_query = 'Syne:wght@500..800'
+      assign display_adjust = 0.94
+      assign display_weight = 800
+    when 'oswald'
+      assign display_family = "'Oswald'"
+      assign display_query = 'Oswald:wght@400..700'
+      assign display_adjust = 1.12
+      assign display_weight = 600
+    when 'bebas_neue'
+      assign display_family = "'Bebas Neue'"
+      assign display_query = 'Bebas+Neue'
+      assign display_adjust = 1.24
+      assign display_weight = 400
+    when 'system'
+      assign display_family = 'ui-sans-serif'
+      assign display_query = ''
+      assign display_adjust = 1.0
+      assign display_weight = 800
+    else
+      assign display_family = "'Unbounded'"
+      assign display_query = 'Unbounded:wght@400..900'
+      assign display_adjust = 0.84
+      assign display_weight = 700
+  endcase
+
+  case settings.font_body
+    when 'inter'
+      assign body_family = "'Inter'"
+      assign body_query = 'Inter:wght@400..700'
+    when 'dm_sans'
+      assign body_family = "'DM Sans'"
+      assign body_query = 'DM+Sans:wght@400..700'
+    when 'plus_jakarta_sans'
+      assign body_family = "'Plus Jakarta Sans'"
+      assign body_query = 'Plus+Jakarta+Sans:wght@400..800'
+    when 'space_grotesk'
+      assign body_family = "'Space Grotesk'"
+      assign body_query = 'Space+Grotesk:wght@400..700'
+    when 'system'
+      assign body_family = 'ui-sans-serif'
+      assign body_query = ''
+    else
+      assign body_family = "'Manrope'"
+      assign body_query = 'Manrope:wght@400..800'
+  endcase
+
+  assign font_params = ''
+  if display_query != blank
+    assign font_params = font_params | append: '&family=' | append: display_query
+  endif
+  if body_query != blank and body_query != display_query
+    assign font_params = font_params | append: '&family=' | append: body_query
+  endif
+  if settings.font_mono_enabled
+    assign font_params = font_params | append: '&family=JetBrains+Mono:wght@400;500;700'
+  endif
+
+  case settings.corner_style
+    when 'sharp'
+      assign r_xs = 0
+      assign r_sm = 2
+      assign r_md = 3
+      assign r_lg = 4
+      assign r_xl = 6
+      assign r_card = 3
+      assign r_btn = '2px'
+    when 'round'
+      assign r_xs = 6
+      assign r_sm = 10
+      assign r_md = 16
+      assign r_lg = 24
+      assign r_xl = 32
+      assign r_card = 16
+      assign r_btn = '999px'
+    else
+      assign r_xs = 4
+      assign r_sm = 8
+      assign r_md = 12
+      assign r_lg = 18
+      assign r_xl = 26
+      assign r_card = 12
+      assign r_btn = '10px'
+  endcase
+-%}
+{%- if font_params != '' -%}
+  {% # theme-check-disable RemoteAsset %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?{{ font_params | remove_first: '&' }}&display=swap">
+  {% # theme-check-enable RemoteAsset %}
+{%- endif -%}
+
+{% style %}
+  :root {
+    --font-display: {{ display_family }}, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display-weight: {{ display_weight }};
+    --font-display-stretch: {{ display_stretch }};
+    --font-display-case: {{ settings.heading_case }};
+    --heading-adjust: {{ display_adjust }};
+    --heading-scale: {{ settings.heading_scale | divided_by: 100.0 }};
+    --font-body: {{ body_family }}, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --body-scale: {{ settings.body_scale | divided_by: 100.0 }};
+    --font-mono: {% if settings.font_mono_enabled %}'JetBrains Mono', {% endif %}ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    --page-width: {{ settings.page_width }}px;
+    --section-spacing-scale: {{ settings.section_spacing | divided_by: 100.0 }};
+    --grid-gap-desktop: {{ settings.grid_gap }}px;
+
+    --radius-xs: {{ r_xs }}px;
+    --radius-sm: {{ r_sm }}px;
+    --radius-md: {{ r_md }}px;
+    --radius-lg: {{ r_lg }}px;
+    --radius-xl: {{ r_xl }}px;
+    --radius-card: {{ r_card }}px;
+    --radius-btn: {{ r_btn }};
+
+    --logo-width: {{ settings.logo_width }}px;
+    --logo-width-mobile: {{ settings.logo_width_mobile }}px;
+  }
+
+  {% for scheme in settings.color_schemes -%}
+    {%- liquid
+      assign bg = scheme.settings.background
+      assign surface = scheme.settings.surface
+      assign text = scheme.settings.text
+      assign muted = scheme.settings.text_muted
+      assign accent = scheme.settings.accent
+      assign on_accent = scheme.settings.on_accent
+      assign border = scheme.settings.border
+    -%}
+    {% if forloop.first %}:root,{% endif %}
+    .color-{{ scheme.id }} {
+      --color-bg: {{ bg }};
+      --color-bg-rgb: {{ bg.red }} {{ bg.green }} {{ bg.blue }};
+      --color-bg-gradient: {% if scheme.settings.background_gradient != blank %}{{ scheme.settings.background_gradient }}{% else %}{{ bg }}{% endif %};
+      --color-surface: {{ surface }};
+      --color-surface-rgb: {{ surface.red }} {{ surface.green }} {{ surface.blue }};
+      --color-text: {{ text }};
+      --color-text-rgb: {{ text.red }} {{ text.green }} {{ text.blue }};
+      --color-muted: {{ muted }};
+      --color-muted-rgb: {{ muted.red }} {{ muted.green }} {{ muted.blue }};
+      --color-accent: {{ accent }};
+      --color-accent-rgb: {{ accent.red }} {{ accent.green }} {{ accent.blue }};
+      --color-on-accent: {{ on_accent }};
+      --color-border: {{ border }};
+      --color-border-rgb: {{ border.red }} {{ border.green }} {{ border.blue }};
+    }
+  {%- endfor %}
+{% endstyle %}
+
+{%- if settings.page_transitions and settings.animations_enabled -%}
+  <style>
+    @media (prefers-reduced-motion: no-preference) {
+      @view-transition { navigation: auto; }
+    }
+  </style>
+{%- endif -%}

@@ -1,0 +1,20 @@
+{
+  "name": "vault-shopify-theme",
+  "version": "1.0.0",
+  "description": "Vault — a dark grey & red Shopify OS 2.0 theme for trading card collectors, animated with Motion (Framer Motion).",
+  "scripts": {
+    "dev": "node dev/server.mjs",
+    "locales": "node scripts/merge-locales.mjs",
+    "check": "node scripts/check.mjs",
+    "shots": "node dev/screenshot.mjs",
+    "package": "node scripts/merge-locales.mjs && node scripts/package.mjs"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@shopify/theme-check-node": "^3.30.1",
+    "liquidjs": "^10.30.0",
+    "motion": "^14.1.0",
+    "playwright-core": "^1.64.0"
+  },
+  "private": true
+}

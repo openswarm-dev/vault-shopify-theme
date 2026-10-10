@@ -1,0 +1,231 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Vault",
+    "theme_version": "1.0.0",
+    "theme_author": "Collector Web",
+    "theme_documentation_url": "https://help.shopify.com/manual/online-store/themes",
+    "theme_support_url": "https://help.shopify.com/manual/online-store/themes"
+  },
+  {
+    "name": "Logo & favicon",
+    "settings": [
+      { "type": "image_picker", "id": "logo", "label": "Logo" },
+      { "type": "range", "id": "logo_width", "min": 60, "max": 300, "step": 5, "unit": "px", "label": "Desktop logo width", "default": 130 },
+      { "type": "range", "id": "logo_width_mobile", "min": 50, "max": 200, "step": 5, "unit": "px", "label": "Mobile logo width", "default": 96 },
+      { "type": "image_picker", "id": "favicon", "label": "Favicon", "info": "Scaled down to 32 x 32px" }
+    ]
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "color_scheme_group",
+        "id": "color_schemes",
+        "definition": [
+          { "type": "color", "id": "background", "label": "Background", "default": "#111214" },
+          { "type": "color_background", "id": "background_gradient", "label": "Background gradient", "info": "Overrides the solid background where supported" },
+          { "type": "color", "id": "surface", "label": "Surface (cards, panels)", "default": "#1a1b20" },
+          { "type": "color", "id": "text", "label": "Text", "default": "#f4f4f5" },
+          { "type": "color", "id": "text_muted", "label": "Muted text", "default": "#a1a1aa" },
+          { "type": "color", "id": "accent", "label": "Accent", "default": "#e11d2e" },
+          { "type": "color", "id": "on_accent", "label": "Text on accent", "default": "#ffffff" },
+          { "type": "color", "id": "border", "label": "Borders", "default": "#2a2c33" }
+        ],
+        "role": {
+          "background": { "solid": "background", "gradient": "background_gradient" },
+          "text": "text",
+          "primary_button": "accent",
+          "on_primary_button": "on_accent",
+          "primary_button_border": "accent",
+          "secondary_button": "surface",
+          "on_secondary_button": "text",
+          "secondary_button_border": "border",
+          "icons": "text",
+          "links": "accent"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "select",
+        "id": "font_display",
+        "label": "Display font",
+        "info": "Loaded from Google Fonts",
+        "options": [
+          { "value": "unbounded", "label": "Unbounded" },
+          { "value": "archivo_expanded", "label": "Archivo Expanded" },
+          { "value": "chakra_petch", "label": "Chakra Petch" },
+          { "value": "space_grotesk", "label": "Space Grotesk" },
+          { "value": "syne", "label": "Syne" },
+          { "value": "oswald", "label": "Oswald" },
+          { "value": "bebas_neue", "label": "Bebas Neue" },
+          { "value": "system", "label": "System font (fastest)" }
+        ],
+        "default": "unbounded"
+      },
+      {
+        "type": "select",
+        "id": "font_body",
+        "label": "Body font",
+        "options": [
+          { "value": "manrope", "label": "Manrope" },
+          { "value": "inter", "label": "Inter" },
+          { "value": "dm_sans", "label": "DM Sans" },
+          { "value": "plus_jakarta_sans", "label": "Plus Jakarta Sans" },
+          { "value": "space_grotesk", "label": "Space Grotesk" },
+          { "value": "system", "label": "System font (fastest)" }
+        ],
+        "default": "manrope"
+      },
+      { "type": "checkbox", "id": "font_mono_enabled", "label": "Monospace for card numbers & specs", "default": true },
+      {
+        "type": "select",
+        "id": "heading_case",
+        "label": "Heading case",
+        "options": [
+          { "value": "uppercase", "label": "Uppercase" },
+          { "value": "none", "label": "As typed" }
+        ],
+        "default": "uppercase"
+      },
+      { "type": "range", "id": "heading_scale", "min": 80, "max": 130, "step": 5, "unit": "%", "label": "Heading size", "default": 100 },
+      { "type": "range", "id": "body_scale", "min": 90, "max": 120, "step": 5, "unit": "%", "label": "Body text size", "default": 100 }
+    ]
+  },
+  {
+    "name": "Layout",
+    "settings": [
+      { "type": "range", "id": "page_width", "min": 1000, "max": 1800, "step": 40, "unit": "px", "label": "Page width", "default": 1440 },
+      { "type": "range", "id": "section_spacing", "min": 50, "max": 150, "step": 10, "unit": "%", "label": "Space between sections", "default": 100 },
+      { "type": "range", "id": "grid_gap", "min": 8, "max": 40, "step": 4, "unit": "px", "label": "Grid spacing (desktop)", "default": 20 },
+      {
+        "type": "select",
+        "id": "corner_style",
+        "label": "Corner style",
+        "options": [
+          { "value": "sharp", "label": "Sharp" },
+          { "value": "soft", "label": "Soft" },
+          { "value": "round", "label": "Round" }
+        ],
+        "default": "soft"
+      }
+    ]
+  },
+  {
+    "name": "Animations",
+    "settings": [
+      { "type": "checkbox", "id": "animations_enabled", "label": "Enable animations", "info": "Visitors who prefer reduced motion always get a calm, static experience.", "default": true },
+      {
+        "type": "select",
+        "id": "animation_intensity",
+        "label": "Animation intensity",
+        "options": [
+          { "value": "subtle", "label": "Subtle" },
+          { "value": "standard", "label": "Standard" },
+          { "value": "bold", "label": "Bold" }
+        ],
+        "default": "standard"
+      },
+      { "type": "checkbox", "id": "page_transitions", "label": "Smooth page transitions", "info": "Uses View Transitions in supporting browsers. Product images morph between collection and product pages.", "default": true },
+      { "type": "checkbox", "id": "scroll_progress", "label": "Scroll progress bar", "default": true },
+      { "type": "checkbox", "id": "cursor_glow", "label": "Cursor glow (desktop only)", "default": true },
+      { "type": "checkbox", "id": "grain_overlay", "label": "Film grain texture", "default": true }
+    ]
+  },
+  {
+    "name": "Product cards",
+    "settings": [
+      {
+        "type": "select",
+        "id": "card_media_ratio",
+        "label": "Image shape",
+        "options": [
+          { "value": "card", "label": "Trading card (63:88)" },
+          { "value": "portrait", "label": "Portrait (3:4)" },
+          { "value": "square", "label": "Square" },
+          { "value": "natural", "label": "Original image" }
+        ],
+        "default": "card"
+      },
+      {
+        "type": "select",
+        "id": "card_media_fit",
+        "label": "Image fit",
+        "options": [
+          { "value": "contain", "label": "Fit (show whole card)" },
+          { "value": "cover", "label": "Fill" }
+        ],
+        "default": "contain"
+      },
+      { "type": "checkbox", "id": "card_holo", "label": "Holographic shine", "default": true },
+      { "type": "checkbox", "id": "card_tilt", "label": "3D tilt", "default": true },
+      { "type": "checkbox", "id": "card_second_image", "label": "Show second image on hover", "info": "Great for showing the back of a card or slab.", "default": true },
+      { "type": "checkbox", "id": "card_show_vendor", "label": "Show vendor", "default": false },
+      { "type": "checkbox", "id": "card_show_meta", "label": "Show set & card number", "default": true },
+      { "type": "checkbox", "id": "card_quick_add", "label": "Quick add button", "default": true },
+      { "type": "range", "id": "card_new_badge_days", "min": 0, "max": 60, "step": 1, "unit": "d", "label": "\"New\" badge for products added within", "info": "Set to 0 to hide", "default": 14 },
+      { "type": "range", "id": "low_stock_threshold", "min": 0, "max": 10, "step": 1, "label": "Low stock badge threshold", "info": "Set to 0 to hide", "default": 3 }
+    ]
+  },
+  {
+    "name": "Collector data",
+    "settings": [
+      { "type": "paragraph", "content": "Card details are read from product metafields in the namespace below (keys: game, set_name, card_number, rarity, grade, grading_company, cert_number, condition, language, year, population). If a metafield is empty, tags such as rarity:Secret Rare, grade:PSA 10, set:Base Set, number:4/102, condition:Near Mint, language:Japanese, year:1999, cert:12345678 and game:Pokémon are used instead." },
+      { "type": "text", "id": "collector_namespace", "label": "Metafield namespace", "default": "custom" },
+      { "type": "checkbox", "id": "collector_tag_fallback", "label": "Read card details from tags", "default": true },
+      { "type": "checkbox", "id": "collector_cert_links", "label": "Link certification numbers to the grader's verification page", "default": true }
+    ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Cart type",
+        "options": [
+          { "value": "drawer", "label": "Drawer" },
+          { "value": "page", "label": "Page" }
+        ],
+        "default": "drawer"
+      },
+      { "type": "text", "id": "free_shipping_threshold", "label": "Free shipping threshold", "info": "Amount in your store currency, e.g. 75. Leave blank to hide the progress bar.", "default": "75" },
+      { "type": "checkbox", "id": "cart_show_note", "label": "Order note", "default": true },
+      { "type": "checkbox", "id": "cart_fly_animation", "label": "Fly-to-cart animation", "default": true },
+      { "type": "collection", "id": "cart_upsell_collection", "label": "Cart drawer recommendations" }
+    ]
+  },
+  {
+    "name": "Search",
+    "settings": [
+      { "type": "checkbox", "id": "predictive_search_enabled", "label": "Search suggestions", "default": true },
+      { "type": "checkbox", "id": "predictive_search_show_price", "label": "Show prices in suggestions", "default": true }
+    ]
+  },
+  {
+    "name": "Mobile",
+    "settings": [
+      { "type": "checkbox", "id": "mobile_dock", "label": "App-style bottom navigation", "info": "Home, Shop, Search, Account and Cart shortcuts on phones.", "default": true },
+      { "type": "link_list", "id": "mobile_dock_shop_menu", "label": "Shop button menu", "info": "Opens the menu drawer at this menu. Defaults to the header menu." }
+    ]
+  },
+  {
+    "name": "Social media",
+    "settings": [
+      { "type": "header", "content": "Accounts" },
+      { "type": "text", "id": "social_instagram_link", "label": "Instagram", "placeholder": "https://instagram.com/" },
+      { "type": "text", "id": "social_tiktok_link", "label": "TikTok", "placeholder": "https://tiktok.com/@" },
+      { "type": "text", "id": "social_youtube_link", "label": "YouTube", "placeholder": "https://youtube.com/" },
+      { "type": "text", "id": "social_x_link", "label": "X (Twitter)", "placeholder": "https://x.com/" },
+      { "type": "text", "id": "social_facebook_link", "label": "Facebook", "placeholder": "https://facebook.com/" },
+      { "type": "text", "id": "social_discord_link", "label": "Discord", "placeholder": "https://discord.gg/" },
+      { "type": "text", "id": "social_twitch_link", "label": "Twitch", "placeholder": "https://twitch.tv/" },
+      { "type": "text", "id": "social_whatnot_link", "label": "Whatnot", "placeholder": "https://whatnot.com/user/" },
+      { "type": "text", "id": "social_ebay_link", "label": "eBay", "placeholder": "https://ebay.com/str/" }
+    ]
+  }
+]

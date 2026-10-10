@@ -1,0 +1,123 @@
+<!doctype html>
+<html
+  class="no-js{% if settings.animations_enabled %} motion-pref{% endif %}"
+  lang="{{ request.locale.iso_code }}"
+  data-anim="{{ settings.animation_intensity }}"
+>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    {%- for scheme in settings.color_schemes limit: 1 %}
+      <meta name="theme-color" content="{{ scheme.settings.background }}">
+    {%- endfor %}
+    <meta name="color-scheme" content="dark">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    {%- endif -%}
+
+    <title>
+      {{- page_title -}}
+      {%- if current_tags %} &ndash; {{ 'general.meta.tagged' | t: tags: current_tags | join: ', ' }}{% endif -%}
+      {%- if current_page != 1 %} &ndash; {{ 'general.meta.page' | t: page: current_page }}{% endif -%}
+      {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+    </title>
+
+    {%- if page_description -%}
+      <meta name="description" content="{{ page_description | escape }}">
+    {%- endif -%}
+
+    {% render 'meta-tags' %}
+
+    <script>
+      (function () {
+        var html = document.documentElement;
+        html.className = html.className.replace('no-js', 'js');
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (html.classList.contains('motion-pref') && !reduce) html.classList.add('motion-ok');
+        if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) html.classList.add('can-hover');
+        // Failsafe: never leave content hidden if scripts fail to boot.
+        window.setTimeout(function () {
+          if (!window.Vault || !window.Vault.ready) html.classList.remove('motion-ok');
+        }, 3500);
+      })();
+    </script>
+
+    <script src="{{ 'motion.js' | asset_url }}" defer></script>
+    <script src="{{ 'theme.js' | asset_url }}" defer></script>
+
+    {{ content_for_header }}
+
+    {% render 'theme-styles' %}
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+  </head>
+
+  <body class="template-{{ template.name | handle }}{% if template.suffix != blank %} template-{{ template.name | handle }}--{{ template.suffix | handle }}{% endif %}">
+    <a class="skip-link" href="#MainContent">{{ 'accessibility.skip_to_content' | t }}</a>
+
+    {%- if settings.grain_overlay -%}
+      <div class="fx-grain" aria-hidden="true"></div>
+    {%- endif -%}
+    {%- if settings.scroll_progress -%}
+      <div class="fx-scroll-progress" data-scroll-progress aria-hidden="true"></div>
+    {%- endif -%}
+    {%- if settings.cursor_glow -%}
+      <div class="fx-cursor-glow" data-cursor-glow aria-hidden="true"></div>
+    {%- endif -%}
+
+    {%- if settings.cart_type == 'drawer' -%}
+      {% render 'cart-drawer' %}
+    {%- endif -%}
+
+    {% sections 'header-group' %}
+
+    <main id="MainContent" class="main-content" role="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+
+    <div class="toast-region" data-toast-region role="status" aria-live="polite"></div>
+
+    <script>
+      window.routes = {
+        root: {{ routes.root_url | json }},
+        cart: {{ routes.cart_url | json }},
+        cart_add: {{ routes.cart_add_url | json }},
+        cart_change: {{ routes.cart_change_url | json }},
+        cart_update: {{ routes.cart_update_url | json }},
+        search: {{ routes.search_url | json }},
+        predictive_search: {{ routes.predictive_search_url | json }},
+        product_recommendations: {{ routes.product_recommendations_url | json }},
+        collections: {{ routes.collections_url | json }}
+      };
+      window.theme = {
+        moneyFormat: {{ shop.money_format | json }},
+        currency: {{ cart.currency.iso_code | json }},
+        locale: {{ request.locale.iso_code | json }},
+        designMode: {{ request.design_mode | json }},
+        settings: {
+          cartType: {{ settings.cart_type | json }},
+          flyToCart: {{ settings.cart_fly_animation | json }},
+          intensity: {{ settings.animation_intensity | json }},
+          holo: {{ settings.card_holo | json }},
+          tilt: {{ settings.card_tilt | json }},
+          predictiveSearch: {{ settings.predictive_search_enabled | json }}
+        },
+        strings: {
+          addToCart: {{ 'products.product.add_to_cart' | t | json }},
+          added: {{ 'products.product.added' | t | json }},
+          soldOut: {{ 'products.product.sold_out' | t | json }},
+          unavailable: {{ 'products.product.unavailable' | t | json }},
+          cartError: {{ 'cart.general.error' | t | json }},
+          cartQuantityError: {{ 'cart.general.quantity_error' | t | json }},
+          close: {{ 'accessibility.close' | t | json }},
+          loading: {{ 'accessibility.loading' | t | json }}
+        }
+      };
+    </script>
+  </body>
+</html>
